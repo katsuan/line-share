@@ -191,6 +191,7 @@ select {
 
 textarea {
   resize: vertical;
+  min-height: 120px;
 }
 
 input:focus,
@@ -384,6 +385,73 @@ select:focus {
   margin: 0 0 20px;
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.6;
+}
+
+.checklist-card {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 7%, white), #ffffff 56%);
+}
+
+.validation-list {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.validation-list li {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 11px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.validation-list li strong {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.validation-list li.is-error {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.validation-list li.is-warning {
+  border-color: #fde68a;
+  background: #fffdf3;
+}
+
+.validation-list li.is-success {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.validation-list li.is-info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.send-pill {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.send-pill.is-ready {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.send-pill.is-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.send-pill.is-error {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .preview-column {

@@ -84,6 +84,12 @@ const BLOCK_META = {
 
 let state = loadState();
 const els = {};
+const liffState = {
+  phase: "idle",
+  message: "LIFF初期化前です。",
+  loggedIn: false,
+  canShare: false
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindElements();
@@ -99,6 +105,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 function bindElements() {
   [
     "titleInput",
+    "subtitleInput",
+    "bodyInput",
     "useBadgesInput",
     "badgesDetail",
     "badgeList",
@@ -128,10 +136,14 @@ function bindElements() {
     "statusText",
     "sendButton",
     "copyJsonButton",
+    "copyJsonPreviewButton",
     "mobilePreviewButton",
     "previewPanel",
     "closePreviewButton",
     "jumpTemplateButton",
+    "sendReadinessPill",
+    "envText",
+    "validationSummary",
     "templatePanel",
     "templateNameInput",
     "templateSelect",
@@ -145,6 +157,8 @@ function bindElements() {
 
 function bindEvents() {
   bindText("titleInput", "title");
+  bindText("subtitleInput", "subtitle");
+  bindText("bodyInput", "body");
   bindText("imageUrlInput", "imageUrl");
   bindText("imageActionUrlInput", "imageActionUrl");
 
@@ -161,6 +175,7 @@ function bindEvents() {
   els.addButtonButton.addEventListener("click", addButton);
   els.sendButton.addEventListener("click", sendFlex);
   els.copyJsonButton.addEventListener("click", copyFlexJson);
+  els.copyJsonPreviewButton.addEventListener("click", copyFlexJson);
 
   els.mobilePreviewButton.addEventListener("click", () => {
     els.previewPanel.classList.add("is-open");
@@ -189,6 +204,11 @@ function bindText(id, key) {
 function bindCheck(id, key) {
   els[id].addEventListener("change", (event) => {
     state[key] = event.target.checked;
+
+    if (key === "useImage" && !state.useImage) {
+      state.useImageAction = false;
+    }
+
     renderAll();
   });
 }
@@ -217,40 +237,98 @@ async function initLiff() {
   const liffId = window.APP_CONFIG?.LIFF_ID;
 
   if (!liffId || liffId === "YOUR_LIFF_ID") {
+    updateLiffState("error", "LIFF ID未設定です。config.jsを編集してください。");
     setStatus("LIFF ID未設定です。config.jsを編集してください。");
+    renderAll();
+    return;
+  }
+
+  if (!window.liff) {
+    updateLiffState("error", "LIFF SDKの読み込みに失敗しました。");
+    setStatus("LIFF SDKの読み込みに失敗しました。");
+    renderAll();
     return;
   }
 
   try {
+    updateLiffState("loading", "LIFFを初期化しています…");
+    renderAll();
     await liff.init({ liffId });
-    setStatus("LIFF初期化完了。");
+    const loggedIn = typeof liff.isLoggedIn === "function" ? liff.isLoggedIn() : false;
+    const canShare = liff.isApiAvailable("shareTargetPicker");
+
+    if (!loggedIn && !liff.isInClient()) {
+      updateLiffState("login_required", "外部ブラウザです。送信時にLINEログインへ移動します。", {
+        loggedIn,
+        canShare
+      });
+      setStatus("外部ブラウザです。送信時にLINEログインへ移動します。");
+    } else if (!canShare) {
+      updateLiffState("error", "この環境ではshareTargetPickerを利用できません。", {
+        loggedIn,
+        canShare
+      });
+      setStatus("この環境ではshareTargetPickerを利用できません。");
+    } else {
+      const readyMessage = liff.isInClient()
+        ? "LINEアプリ内で送信できます。"
+        : "共有先選択で送信できます。";
+      updateLiffState("ready", readyMessage, { loggedIn, canShare });
+      setStatus("LIFF初期化完了。");
+    }
   } catch (error) {
     console.error(error);
+    updateLiffState("error", `LIFF初期化エラー: ${error.message}`);
     setStatus(`LIFF初期化エラー: ${error.message}`);
+  } finally {
+    renderAll();
   }
 }
 
 function loadState() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return structuredClone(DEFAULT_STATE);
+    if (!saved) return hydrateState();
 
     const parsed = JSON.parse(saved);
 
-    return {
-      ...structuredClone(DEFAULT_STATE),
-      ...parsed,
-      theme: {
-        ...DEFAULT_STATE.theme,
-        ...(parsed.theme || {})
-      },
-      badges: Array.isArray(parsed.badges) ? parsed.badges : structuredClone(DEFAULT_STATE.badges),
-      buttons: Array.isArray(parsed.buttons) ? parsed.buttons : structuredClone(DEFAULT_STATE.buttons),
-      order: sanitizeOrder(parsed.order)
-    };
+    return hydrateState(parsed);
   } catch {
-    return structuredClone(DEFAULT_STATE);
+    return hydrateState();
   }
+}
+
+function hydrateState(source = {}) {
+  return {
+    ...structuredClone(DEFAULT_STATE),
+    ...source,
+    theme: {
+      ...DEFAULT_STATE.theme,
+      ...(source.theme || {})
+    },
+    badges: normalizeItems(source.badges, DEFAULT_STATE.badges, {
+      enabled: true,
+      text: "バッジ",
+      color: "#FF6B35"
+    }),
+    buttons: normalizeItems(source.buttons, DEFAULT_STATE.buttons, {
+      enabled: true,
+      label: "ボタン",
+      uri: "",
+      color: DEFAULT_STATE.theme.baseColor
+    }),
+    order: sanitizeOrder(source.order)
+  };
+}
+
+function normalizeItems(items, fallback, defaults) {
+  const source = Array.isArray(items) && items.length > 0 ? items : fallback;
+
+  return source.map((item) => ({
+    id: item.id || createId(),
+    ...defaults,
+    ...item
+  }));
 }
 
 function sanitizeOrder(order) {
@@ -271,6 +349,8 @@ function persistState() {
 
 function applyStateToForm() {
   els.titleInput.value = state.title;
+  els.subtitleInput.value = state.subtitle;
+  els.bodyInput.value = state.body;
   els.useBadgesInput.checked = state.useBadges;
   els.useImageInput.checked = state.useImage;
   els.imageUrlInput.value = state.imageUrl;
@@ -298,6 +378,7 @@ function syncColorInputs() {
 }
 
 function syncAccordions() {
+  els.useImageActionInput.disabled = !state.useImage;
   toggleHidden(els.badgesDetail, !state.useBadges);
   toggleHidden(els.imageDetail, !state.useImage);
   toggleHidden(els.imageActionDetail, !state.useImageAction);
@@ -318,6 +399,8 @@ function renderAll() {
   renderPreview();
   renderJson();
   updateCountLabels();
+  renderValidationSummary();
+  updateSendButtonState();
 }
 
 function renderLists() {
@@ -325,6 +408,127 @@ function renderLists() {
   renderBlocks();
   renderButtons();
   updateCountLabels();
+}
+
+function renderValidationSummary() {
+  const items = [
+    createValidationItem(getLiffStatusTone(), getLiffStatusTitle(), liffState.message),
+    ...getValidationItems()
+  ];
+
+  els.sendReadinessPill.textContent = getSendReadinessLabel(items);
+  els.sendReadinessPill.className = `send-pill ${getSendReadinessClass(items)}`;
+  els.envText.textContent = getEnvironmentText();
+  els.validationSummary.innerHTML = items.map((item) => `
+    <li class="${item.className}">
+      <strong>${escapeHtml(item.label)}</strong>${escapeHtml(item.message)}
+    </li>
+  `).join("");
+}
+
+function getValidationItems() {
+  const items = [];
+
+  if (!state.title.trim()) {
+    items.push(createValidationItem("error", "必須", "タイトルを入力してください。"));
+  }
+
+  if (state.useImage && !state.imageUrl.trim()) {
+    items.push(createValidationItem("warning", "画像", "画像表示がONですが、画像URLが未入力です。"));
+  }
+
+  if (state.useImage && state.imageUrl.trim() && !isValidImageUrl(state.imageUrl)) {
+    items.push(createValidationItem("error", "画像", "画像URLはHTTPSで始まる公開URLを指定してください。"));
+  }
+
+  if (state.useImageAction && !state.useImage) {
+    items.push(createValidationItem("error", "画像アクション", "画像タップ遷移を使うには写真表示をONにしてください。"));
+  }
+
+  if (state.useImageAction && !state.imageActionUrl.trim()) {
+    items.push(createValidationItem("error", "画像アクション", "画像タップ時のURLを入力してください。"));
+  }
+
+  if (state.useImageAction && state.imageActionUrl.trim() && !isValidActionUrl(state.imageActionUrl)) {
+    items.push(createValidationItem("error", "画像アクション", "画像タップ時URLの形式が不正です。"));
+  }
+
+  const incompleteButtons = getIncompleteButtons();
+  if (state.useButtons && incompleteButtons.length > 0) {
+    items.push(createValidationItem("warning", "ボタン", "未完成のボタンは送信JSONに含まれません。"));
+  }
+
+  if (state.useButtons && getActiveButtons().length === 0) {
+    items.push(createValidationItem("info", "ボタン", "有効なURIボタンがまだありません。"));
+  }
+
+  if (!hasBodyLikeContent()) {
+    items.push(createValidationItem("info", "内容", "現在のメッセージはヘッダー中心です。"));
+  }
+
+  if (items.length === 0) {
+    items.push(createValidationItem("success", "OK", "送信前の入力チェックを通過しています。"));
+  }
+
+  return items;
+}
+
+function createValidationItem(tone, label, message) {
+  return {
+    label,
+    message,
+    className: `is-${tone}`,
+    tone
+  };
+}
+
+function getEnvironmentText() {
+  if (liffState.phase === "ready") {
+    return "Flex JSONとLIFF環境の両方が送信可能な状態です。";
+  }
+
+  if (liffState.phase === "login_required") {
+    return "共有ボタン押下時にLINEログインへ遷移し、その後送信を続けられます。";
+  }
+
+  if (liffState.phase === "loading" || liffState.phase === "idle") {
+    return "LIFF初期化が完了するまで共有ボタンは待機します。";
+  }
+
+  return "LIFF環境に問題があるため、この端末では共有できない可能性があります。";
+}
+
+function getLiffStatusTone() {
+  if (liffState.phase === "ready") return "success";
+  if (liffState.phase === "login_required" || liffState.phase === "loading" || liffState.phase === "idle") return "info";
+  return "error";
+}
+
+function getLiffStatusTitle() {
+  if (liffState.phase === "ready") return "LIFF";
+  if (liffState.phase === "login_required") return "ログイン";
+  if (liffState.phase === "loading") return "初期化";
+  return "LIFF";
+}
+
+function getSendReadinessLabel(items) {
+  if (items.some((item) => item.tone === "error")) return "要修正";
+  if (liffState.phase === "loading" || liffState.phase === "idle") return "準備中";
+  if (liffState.phase === "login_required") return "ログイン待ち";
+  if (items.some((item) => item.tone === "warning")) return "確認推奨";
+  return "送信可能";
+}
+
+function getSendReadinessClass(items) {
+  if (items.some((item) => item.tone === "error")) return "is-error";
+  if (liffState.phase === "loading" || liffState.phase === "idle" || liffState.phase === "login_required") return "is-warning";
+  if (items.some((item) => item.tone === "warning")) return "is-warning";
+  return "is-ready";
+}
+
+function updateSendButtonState() {
+  const hasBlockingError = getLiffStatusTone() === "error" || getValidationItems().some((item) => item.tone === "error");
+  els.sendButton.disabled = hasBlockingError || liffState.phase === "loading" || liffState.phase === "idle";
 }
 
 function renderBadges() {
@@ -643,15 +847,16 @@ function setBlockEnabled(key, enabled) {
 
 function updateCountLabels() {
   const activeBadges = state.badges.filter((badge) => badge.enabled && badge.text.trim()).length;
-  const activeButtons = state.buttons.filter((button) => button.enabled && button.label.trim() && button.uri.trim()).length;
+  const activeButtons = getActiveButtons().length;
 
   els.badgeCountLabel.textContent = `バッジ ${activeBadges}/${state.badges.length}`;
   els.buttonCountLabel.textContent = `ボタン ${activeButtons}/${state.buttons.length}`;
 }
 
 function createFlexMessage() {
-  if (!state.title.trim()) {
-    throw new Error("タイトルは必須です。");
+  const blockingIssue = getValidationItems().find((item) => item.tone === "error");
+  if (blockingIssue) {
+    throw new Error(`${blockingIssue.label}: ${blockingIssue.message}`);
   }
 
   const bubble = {
@@ -746,7 +951,7 @@ function createBlockContent(key) {
         backgroundColor: badge.color,
         cornerRadius: "999px",
         paddingAll: "xs",
-        width: "fit",
+        flex: 0,
         contents: [
           {
             type: "text",
@@ -891,24 +1096,92 @@ function getActiveBadges() {
 }
 
 function getActiveButtons() {
-  return state.buttons.filter((button) => button.enabled && button.label.trim() && button.uri.trim()).slice(0, 3);
+  return state.buttons
+    .filter((button) => button.enabled && button.label.trim() && button.uri.trim() && isValidActionUrl(button.uri))
+    .slice(0, 3);
+}
+
+function getIncompleteButtons() {
+  return state.buttons.filter((button) => {
+    if (!button.enabled) return false;
+
+    const hasLabel = Boolean(button.label.trim());
+    const hasUri = Boolean(button.uri.trim());
+    const validUri = !hasUri || isValidActionUrl(button.uri);
+
+    return !hasLabel || !hasUri || !validUri;
+  });
+}
+
+function hasBodyLikeContent() {
+  return Boolean(
+    (state.useBadges && getActiveBadges().length > 0)
+    || (state.useSubtitle && state.subtitle.trim())
+    || (state.useBody && state.body.trim())
+    || (state.useImage && state.imageUrl.trim())
+    || (state.useButtons && getActiveButtons().length > 0)
+  );
+}
+
+function isValidImageUrl(value) {
+  return isValidUrl(value, ["https:"]);
+}
+
+function isValidActionUrl(value) {
+  return isValidUrl(value, ["https:", "http:", "line:", "tel:", "mailto:"]);
+}
+
+function isValidUrl(value, protocols) {
+  try {
+    const parsed = new URL(value.trim());
+    return protocols.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function updateLiffState(phase, message, options = {}) {
+  liffState.phase = phase;
+  liffState.message = message;
+  liffState.loggedIn = options.loggedIn ?? liffState.loggedIn;
+  liffState.canShare = options.canShare ?? liffState.canShare;
 }
 
 async function sendFlex() {
   try {
-    const message = createFlexMessage();
+    if (els.sendButton.disabled) {
+      setStatus("送信チェックのエラーを解消してください。");
+      return;
+    }
 
-    if (!window.liff || !liff.isInClient()) {
-      setStatus("LINEアプリ内LIFFで開くと送信できます。");
+    if (!window.liff || liffState.phase === "idle" || liffState.phase === "loading") {
+      setStatus("LIFF初期化完了まで少し待ってから再度お試しください。");
+      return;
+    }
+
+    if (typeof liff.isLoggedIn === "function" && !liff.isLoggedIn()) {
+      setStatus("LINEログインへ移動します。ログイン後にもう一度共有してください。");
+      liff.login();
       return;
     }
 
     if (!liff.isApiAvailable("shareTargetPicker")) {
+      updateLiffState("error", "この環境ではshareTargetPickerを利用できません。", {
+        loggedIn: true,
+        canShare: false
+      });
+      renderAll();
       setStatus("この環境ではshareTargetPickerを利用できません。");
       return;
     }
 
+    const message = createFlexMessage();
     const result = await liff.shareTargetPicker([message]);
+    updateLiffState("ready", liff.isInClient() ? "LINEアプリ内で送信できます。" : "共有先選択で送信できます。", {
+      loggedIn: true,
+      canShare: true
+    });
+    renderAll();
     setStatus(result ? "送信しました。" : "送信がキャンセルされました。");
   } catch (error) {
     console.error(error);
@@ -982,10 +1255,7 @@ function loadTemplate() {
     return;
   }
 
-  state = {
-    ...structuredClone(DEFAULT_STATE),
-    ...template.config
-  };
+  state = hydrateState(template.config);
 
   applyStateToForm();
   renderLists();

@@ -23,7 +23,7 @@
       <div class="header-actions">
         <button id="jumpTemplateButton" type="button">テンプレート</button>
         <button id="copyJsonButton" type="button">JSONコピー</button>
-        <button id="sendButton" class="primary" type="button">LINEで送信</button>
+        <button id="sendButton" class="primary" type="button">LINEで共有</button>
       </div>
     </header>
 
@@ -49,6 +49,17 @@
             <label for="titleInput">タイトル <b>必須</b></label>
             <input id="titleInput" type="text" required aria-required="true" placeholder="例）本日のおすすめ" />
           </div>
+        </section>
+
+        <section class="card checklist-card">
+          <div class="card-title">
+            <span>✅</span>
+            <h2>送信チェック</h2>
+            <small id="sendReadinessPill">確認中</small>
+          </div>
+
+          <p id="envText" class="hint"></p>
+          <ul id="validationSummary" class="validation-list"></ul>
         </section>
 
         <section class="card">
@@ -111,6 +122,24 @@
           </div>
 
           <div id="blockList" class="item-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-title">
+            <span>✍️</span>
+            <h2>テキスト内容</h2>
+          </div>
+
+          <div class="field">
+            <label for="subtitleInput">サブタイトル</label>
+            <input id="subtitleInput" type="text" placeholder="例）数量限定メニュー" />
+          </div>
+
+          <div class="field">
+            <label for="bodyInput">本文</label>
+            <textarea id="bodyInput" rows="5" placeholder="例）こだわりの一品をぜひお試しください。"></textarea>
+            <p class="hint">サブタイトル・本文は本文ブロック設定で表示のON/OFFと並び順を切り替えられます。</p>
+          </div>
         </section>
 
         <section class="card">
@@ -213,7 +242,7 @@
             </summary>
 
             <div class="json-toolbar">
-              <button id="copyJsonButton" type="button">コピー</button>
+              <button id="copyJsonPreviewButton" type="button">コピー</button>
             </div>
 
             <pre id="jsonPreview"></pre>
@@ -230,6 +259,8 @@
             <li>バッジ・ボタンは複数追加できます。</li>
             <li>タイトルはヘッダー固定、画像はhero、その他はbodyに入ります。</li>
             <li>本文ブロック設定でbody内の表示順を調整できます。</li>
+            <li>送信チェックにエラーが出ている間は共有ボタンを無効化します。</li>
+            <li>外部ブラウザでは共有時にLINEログインへ進む場合があります。</li>
             <li>カラー候補はカード内の見た目も配色に連動します。</li>
           </ul>
         </section>
