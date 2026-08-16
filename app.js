@@ -46,7 +46,74 @@ const THEMES = {
   }
 };
 
+const FORMAT_TEMPLATES = {
+  emergency: {
+    label: "緊急",
+    summary: "重要なお知らせを最優先で伝える",
+    description: "障害告知、営業時間変更、至急確認など",
+    themeKey: "orange",
+    title: "【緊急】重要なお知らせ",
+    subtitle: "ご確認をお願いします",
+    body: "現在、重要なご案内があります。詳細をご確認のうえ、必要な対応をお願いいたします。",
+    useImage: false,
+    useImageAction: false,
+    useButtons: true,
+    badges: [
+      { enabled: true, text: "至急", color: "#DC2626" },
+      { enabled: true, text: "重要", color: "#F97316" }
+    ],
+    buttons: [
+      { enabled: true, label: "詳細を確認", uri: "https://example.com/urgent", color: "#DC2626" },
+      { enabled: true, label: "担当へ連絡", uri: "tel:0000000000", color: "#B91C1C" }
+    ],
+    order: ["badges", "subtitle", "body"]
+  },
+  share: {
+    label: "共有",
+    summary: "社内外に案内や資料を共有する",
+    description: "資料共有、周知、キャンペーン案内など",
+    themeKey: "blue",
+    title: "共有のお知らせ",
+    subtitle: "関係者へ展開してください",
+    body: "共有用の情報をまとめました。必要に応じてメンバーへ展開し、内容をご確認ください。",
+    useImage: true,
+    useImageAction: false,
+    useButtons: true,
+    badges: [
+      { enabled: true, text: "共有", color: "#2563EB" },
+      { enabled: true, text: "案内", color: "#0EA5E9" }
+    ],
+    buttons: [
+      { enabled: true, label: "資料を見る", uri: "https://example.com/share", color: "#2563EB" },
+      { enabled: true, label: "メンバーへ送る", uri: "https://example.com/forward", color: "#0F766E" }
+    ],
+    order: ["badges", "subtitle", "body"]
+  },
+  link: {
+    label: "リンク誘導",
+    summary: "WebやLP、予約先へ自然に誘導する",
+    description: "キャンペーン、予約、商品詳細、記事導線など",
+    themeKey: "green",
+    title: "こちらからご確認ください",
+    subtitle: "詳細ページへスムーズにご案内",
+    body: "詳しい内容はリンク先にまとめています。気になる方は以下のボタンからご確認ください。",
+    useImage: true,
+    useImageAction: true,
+    useButtons: true,
+    badges: [
+      { enabled: true, text: "LINK", color: "#16A34A" },
+      { enabled: true, text: "CHECK", color: "#0F766E" }
+    ],
+    buttons: [
+      { enabled: true, label: "詳細ページへ", uri: "https://example.com/link", color: "#16A34A" },
+      { enabled: true, label: "予約する", uri: "https://example.com/reserve", color: "#15803D" }
+    ],
+    order: ["subtitle", "body", "badges"]
+  }
+};
+
 const DEFAULT_STATE = {
+  formatKey: "",
   title: "",
   subtitle: "数量限定メニュー",
   body: "こだわりの一品をぜひお試しください。",
@@ -60,6 +127,7 @@ const DEFAULT_STATE = {
   useImage: true,
   useImageAction: false,
   useButtons: true,
+  bubbleSize: "mega",
   themeKey: "purple",
   theme: {
     baseColor: THEMES.purple.baseColor,
@@ -96,6 +164,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
   applyStateToForm();
   renderThemePresets();
+  renderBubbleSizePresets();
+  renderFormatTemplates();
   renderLists();
   renderTemplateOptions();
   renderAll();
@@ -125,6 +195,7 @@ function bindElements() {
     "buttonCountLabel",
     "addButtonButton",
     "themePresetGrid",
+    "bubbleSizeGrid",
     "baseColorInput",
     "baseColorText",
     "backgroundColorInput",
@@ -144,6 +215,8 @@ function bindElements() {
     "sendReadinessPill",
     "envText",
     "validationSummary",
+    "patternPresetGrid",
+    "patternSummary",
     "templatePanel",
     "templateNameInput",
     "templateSelect",
@@ -197,6 +270,9 @@ function bindEvents() {
 function bindText(id, key) {
   els[id].addEventListener("input", (event) => {
     state[key] = event.target.value;
+    if (id === "titleInput" || id === "subtitleInput" || id === "bodyInput") {
+      state.formatKey = "";
+    }
     renderAll();
   });
 }
@@ -204,6 +280,7 @@ function bindText(id, key) {
 function bindCheck(id, key) {
   els[id].addEventListener("change", (event) => {
     state[key] = event.target.checked;
+    state.formatKey = "";
 
     if (key === "useImage" && !state.useImage) {
       state.useImageAction = false;
@@ -218,6 +295,7 @@ function bindColor(colorId, textId, key) {
     state.theme[key] = event.target.value;
     els[textId].value = event.target.value;
     state.themeKey = "custom";
+    state.formatKey = "";
     renderAll();
   });
 
@@ -229,6 +307,7 @@ function bindColor(colorId, textId, key) {
     els[colorId].value = value;
     els[textId].value = value;
     state.themeKey = "custom";
+    state.formatKey = "";
     renderAll();
   });
 }
@@ -396,6 +475,8 @@ function renderAll() {
   syncColorInputs();
   syncAccordions();
   renderThemePresets();
+  renderBubbleSizePresets();
+  renderFormatTemplates();
   renderPreview();
   renderJson();
   updateCountLabels();
@@ -408,6 +489,76 @@ function renderLists() {
   renderBlocks();
   renderButtons();
   updateCountLabels();
+}
+
+function renderFormatTemplates() {
+  if (!els.patternPresetGrid) return;
+
+  els.patternPresetGrid.innerHTML = Object.entries(FORMAT_TEMPLATES).map(([key, template]) => {
+    const active = state.formatKey === key ? "is-active" : "";
+
+    return `
+      <button type="button" class="pattern-card ${active}" data-format-template="${key}">
+        <span class="pattern-label">${escapeHtml(template.label)}</span>
+        <strong>${escapeHtml(template.summary)}</strong>
+        <small>${escapeHtml(template.description)}</small>
+      </button>
+    `;
+  }).join("");
+
+  els.patternPresetGrid.querySelectorAll("[data-format-template]").forEach((button) => {
+    button.addEventListener("click", () => {
+      applyFormatTemplate(button.dataset.formatTemplate);
+    });
+  });
+
+  if (els.patternSummary) {
+    els.patternSummary.textContent = getPatternSummaryLabel();
+  }
+}
+
+function getPatternSummaryLabel() {
+  if (!state.formatKey) return "用途に合わせて選択";
+
+  const template = FORMAT_TEMPLATES[state.formatKey];
+  return template ? `${template.label}を適用中` : "用途に合わせて選択";
+}
+
+function applyFormatTemplate(formatKey) {
+  const template = FORMAT_TEMPLATES[formatKey];
+  if (!template) return;
+
+  const theme = THEMES[template.themeKey] || THEMES.purple;
+
+  state = hydrateState({
+    ...structuredClone(DEFAULT_STATE),
+    formatKey,
+    title: template.title,
+    subtitle: template.subtitle,
+    body: template.body,
+    imageUrl: "",
+    imageActionUrl: template.useImageAction ? "https://example.com" : "",
+    useBadges: true,
+    useSubtitle: true,
+    useBody: true,
+    useImage: template.useImage,
+    useImageAction: template.useImageAction,
+    useButtons: template.useButtons,
+    themeKey: template.themeKey,
+    theme: {
+      baseColor: theme.baseColor,
+      backgroundColor: theme.backgroundColor,
+      textColor: theme.textColor
+    },
+    badges: template.badges,
+    buttons: template.buttons,
+    order: template.order
+  });
+
+  applyStateToForm();
+  renderLists();
+  renderAll();
+  setStatus(`送信パターン「${template.label}」を適用しました。`);
 }
 
 function renderValidationSummary() {
@@ -559,6 +710,7 @@ function renderBadges() {
     input.addEventListener("change", () => {
       const badge = findById(state.badges, input.dataset.badgeToggle);
       if (!badge) return;
+      state.formatKey = "";
       badge.enabled = input.checked;
       renderAll();
     });
@@ -568,6 +720,7 @@ function renderBadges() {
     input.addEventListener("input", () => {
       const badge = findById(state.badges, input.dataset.badgeText);
       if (!badge) return;
+      state.formatKey = "";
       badge.text = input.value;
       renderAll();
     });
@@ -577,6 +730,7 @@ function renderBadges() {
     input.addEventListener("input", () => {
       const badge = findById(state.badges, input.dataset.badgeColor);
       if (!badge) return;
+      state.formatKey = "";
       badge.color = input.value;
       renderBadges();
       renderAll();
@@ -591,6 +745,7 @@ function renderBadges() {
       const badge = findById(state.badges, input.dataset.badgeColorText);
       if (!badge) return;
 
+      state.formatKey = "";
       badge.color = color;
       renderBadges();
       renderAll();
@@ -600,6 +755,7 @@ function renderBadges() {
   els.badgeList.querySelectorAll("[data-badge-move]").forEach((button) => {
     button.addEventListener("click", () => {
       const [index, direction] = button.dataset.badgeMove.split(",").map(Number);
+      state.formatKey = "";
       moveArrayItem(state.badges, index, direction);
       renderBadges();
       renderAll();
@@ -608,6 +764,7 @@ function renderBadges() {
 
   els.badgeList.querySelectorAll("[data-badge-delete]").forEach((button) => {
     button.addEventListener("click", () => {
+      state.formatKey = "";
       state.badges = state.badges.filter((badge) => badge.id !== button.dataset.badgeDelete);
       renderBadges();
       renderAll();
@@ -643,6 +800,7 @@ function renderBlocks() {
 
   els.blockList.querySelectorAll("[data-block-toggle]").forEach((input) => {
     input.addEventListener("change", () => {
+      state.formatKey = "";
       setBlockEnabled(input.dataset.blockToggle, input.checked);
       applyStateToForm();
       renderAll();
@@ -652,6 +810,7 @@ function renderBlocks() {
   els.blockList.querySelectorAll("[data-block-move]").forEach((button) => {
     button.addEventListener("click", () => {
       const [index, direction] = button.dataset.blockMove.split(",").map(Number);
+      state.formatKey = "";
       moveArrayItem(state.order, index, direction);
       renderBlocks();
       renderAll();
@@ -690,6 +849,7 @@ function renderButtons() {
     input.addEventListener("change", () => {
       const item = findById(state.buttons, input.dataset.buttonToggle);
       if (!item) return;
+      state.formatKey = "";
       item.enabled = input.checked;
       renderAll();
     });
@@ -699,6 +859,7 @@ function renderButtons() {
     input.addEventListener("input", () => {
       const item = findById(state.buttons, input.dataset.buttonLabel);
       if (!item) return;
+      state.formatKey = "";
       item.label = input.value;
       renderAll();
     });
@@ -708,6 +869,7 @@ function renderButtons() {
     input.addEventListener("input", () => {
       const item = findById(state.buttons, input.dataset.buttonUri);
       if (!item) return;
+      state.formatKey = "";
       item.uri = input.value;
       renderAll();
     });
@@ -717,6 +879,7 @@ function renderButtons() {
     input.addEventListener("input", () => {
       const item = findById(state.buttons, input.dataset.buttonColor);
       if (!item) return;
+      state.formatKey = "";
       item.color = input.value;
       renderButtons();
       renderAll();
@@ -731,6 +894,7 @@ function renderButtons() {
       const item = findById(state.buttons, input.dataset.buttonColorText);
       if (!item) return;
 
+      state.formatKey = "";
       item.color = color;
       renderButtons();
       renderAll();
@@ -740,6 +904,7 @@ function renderButtons() {
   els.buttonList.querySelectorAll("[data-button-move]").forEach((button) => {
     button.addEventListener("click", () => {
       const [index, direction] = button.dataset.buttonMove.split(",").map(Number);
+      state.formatKey = "";
       moveArrayItem(state.buttons, index, direction);
       renderButtons();
       renderAll();
@@ -748,6 +913,7 @@ function renderButtons() {
 
   els.buttonList.querySelectorAll("[data-button-delete]").forEach((button) => {
     button.addEventListener("click", () => {
+      state.formatKey = "";
       state.buttons = state.buttons.filter((item) => item.id !== button.dataset.buttonDelete);
       renderButtons();
       renderAll();
@@ -788,6 +954,7 @@ function renderThemePresets() {
       const key = button.dataset.theme;
       const theme = THEMES[key];
 
+      state.formatKey = "";
       state.themeKey = key;
       state.theme = {
         baseColor: theme.baseColor,
@@ -801,10 +968,31 @@ function renderThemePresets() {
   });
 }
 
+const BUBBLE_SIZES = ["nano", "micro", "kilo", "mega", "giga"];
+
+function renderBubbleSizePresets() {
+  if (!els.bubbleSizeGrid) return;
+
+  els.bubbleSizeGrid.innerHTML = BUBBLE_SIZES.map((size) => {
+    const active = state.bubbleSize === size ? "is-active" : "";
+    return `<button type="button" class="size-pill ${active}" data-bubble-size="${size}">${size}</button>`;
+  }).join("");
+
+  els.bubbleSizeGrid.querySelectorAll("[data-bubble-size]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.bubbleSize = button.dataset.bubbleSize;
+      state.formatKey = "";
+      renderBubbleSizePresets();
+      renderAll();
+    });
+  });
+}
+
 function addBadge() {
   const colors = ["#FF6B35", "#22C55E", "#3B82F6", "#FF4D7D", "#64748B"];
   const next = state.badges.length + 1;
 
+  state.formatKey = "";
   state.badges.push({
     id: createId(),
     enabled: true,
@@ -820,6 +1008,7 @@ function addButton() {
   const colors = [state.theme.baseColor, "#FF4D6D", "#22C55E", "#3B82F6"];
   const next = state.buttons.length + 1;
 
+  state.formatKey = "";
   state.buttons.push({
     id: createId(),
     enabled: true,
@@ -861,7 +1050,7 @@ function createFlexMessage() {
 
   const bubble = {
     type: "bubble",
-    size: "mega",
+    size: state.bubbleSize || "mega",
     header: {
       type: "box",
       layout: "vertical",
