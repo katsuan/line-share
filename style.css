@@ -874,15 +874,21 @@ input.is-required-missing:focus {
   background-color: rgba(15, 23, 42, 0.05);
 }
 
+.flex-badge[contenteditable="true"]:hover,
+.flex-badge[contenteditable="true"]:focus,
+.flex-button[contenteditable="true"]:hover,
+.flex-button[contenteditable="true"]:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: -2px;
+}
+
 [contenteditable="true"]:empty::before {
   content: attr(data-placeholder);
   opacity: 0.55;
 }
 
 .flex-hero,
-.flex-badge,
-.preview-badge-row,
-.flex-button {
+.preview-badge-row:has(.flex-badge-empty) {
   cursor: pointer;
 }
 

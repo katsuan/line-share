@@ -1217,10 +1217,12 @@ function renderPreview() {
             target="_blank"
             rel="noreferrer"
             style="background:${escapeAttr(button.color)}"
-            data-jump="URIボタン設定"
-          >
-            ${escapeHtml(button.label)}
-          </a>
+            contenteditable="true"
+            tabindex="0"
+            data-editable="button"
+            data-button-id="${button.id}"
+            data-placeholder="ボタン文言"
+          >${escapeHtml(button.label)}</a>
         `).join("")}
       </div>
     `
@@ -1262,11 +1264,17 @@ function renderPreviewBlock(key) {
     }
 
     return `
-      <div class="preview-badge-row" data-jump="バッジ設定">
+      <div class="preview-badge-row">
         ${badges.map((badge) => `
-          <div class="flex-badge" style="background:${escapeAttr(badge.color)}">
-            ${escapeHtml(badge.text)}
-          </div>
+          <div
+            class="flex-badge"
+            style="background:${escapeAttr(badge.color)}"
+            contenteditable="true"
+            tabindex="0"
+            data-editable="badge"
+            data-badge-id="${badge.id}"
+            data-placeholder="バッジ"
+          >${escapeHtml(badge.text)}</div>
         `).join("")}
       </div>
     `;
@@ -1288,20 +1296,46 @@ function renderPreviewBlock(key) {
 
 function bindPreviewInteractions() {
   els.previewArea.querySelectorAll("[data-editable]").forEach((node) => {
+    const key = node.dataset.editable;
+
+    if (node.tagName === "A") {
+      node.addEventListener("click", (event) => event.preventDefault());
+    }
+
     node.addEventListener("input", () => {
-      const key = node.dataset.editable;
-      state[key] = node.innerText;
+      const text = node.innerText;
       state.formatKey = "";
 
-      if (key === "title") els.titleInput.value = state.title;
-      if (key === "subtitle") els.subtitleInput.value = state.subtitle;
-      if (key === "body") els.bodyInput.value = state.body;
+      if (key === "title") {
+        state.title = text;
+        els.titleInput.value = text;
+      } else if (key === "subtitle") {
+        state.subtitle = text;
+        els.subtitleInput.value = text;
+      } else if (key === "body") {
+        state.body = text;
+        els.bodyInput.value = text;
+      } else if (key === "badge") {
+        const badge = findById(state.badges, node.dataset.badgeId);
+        if (badge) {
+          badge.text = text;
+          const formInput = els.badgeList.querySelector(`[data-badge-text="${badge.id}"]`);
+          if (formInput) formInput.value = text;
+        }
+      } else if (key === "button") {
+        const item = findById(state.buttons, node.dataset.buttonId);
+        if (item) {
+          item.label = text;
+          const formInput = els.buttonList.querySelector(`[data-button-label="${item.id}"]`);
+          if (formInput) formInput.value = text;
+        }
+      }
 
       renderLight();
     });
 
     node.addEventListener("keydown", (event) => {
-      if (node.dataset.editable !== "body" && event.key === "Enter") {
+      if (key !== "body" && event.key === "Enter") {
         event.preventDefault();
         node.blur();
       }
