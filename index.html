@@ -22,7 +22,7 @@
 
       <div class="header-actions">
         <button id="jumpTemplateButton" type="button">テンプレート</button>
-        <button id="mobilePreviewButton" class="mobile-preview-button" type="button">👁 プレビュー</button>
+        <button id="mobilePreviewButton" class="mobile-preview-button" type="button">✎ 編集</button>
         <button id="copyJsonButton" type="button">JSONコピー</button>
         <button id="sendButton" class="primary" type="button">LINEで共有</button>
       </div>
@@ -292,6 +292,10 @@
       title.addEventListener('click', () => {
         title.closest('.card').classList.toggle('is-collapsed');
       });
+    });
+
+    document.getElementById('mobilePreviewButton').addEventListener('click', () => {
+      document.querySelector('.editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   </script>
 </body>

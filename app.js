@@ -1185,21 +1185,19 @@ function createBlockContent(key) {
 }
 
 function renderPreview() {
-  if (!state.title.trim()) {
-    els.previewArea.innerHTML = `
-      <div class="empty-preview">
-        タイトルを入力すると<br>プレビューが表示されます。
-      </div>
-    `;
-    return;
-  }
-
-  const hero = state.useImage && state.imageUrl.trim()
-    ? `
-      <div class="flex-hero">
-        <img src="${escapeAttr(state.imageUrl.trim())}" alt="">
-      </div>
-    `
+  const hasImage = state.useImage && state.imageUrl.trim();
+  const hero = state.useImage
+    ? hasImage
+      ? `
+        <div class="flex-hero" data-jump="写真設定">
+          <img src="${escapeAttr(state.imageUrl.trim())}" alt="">
+        </div>
+      `
+      : `
+        <div class="flex-hero flex-hero-empty" data-jump="写真設定">
+          タップして写真を設定
+        </div>
+      `
     : "";
 
   const bodyHtml = state.order
@@ -1219,6 +1217,7 @@ function renderPreview() {
             target="_blank"
             rel="noreferrer"
             style="background:${escapeAttr(button.color)}"
+            data-jump="URIボタン設定"
           >
             ${escapeHtml(button.label)}
           </a>
@@ -1229,9 +1228,14 @@ function renderPreview() {
 
   els.previewArea.innerHTML = `
     <div class="flex-bubble" style="background:${escapeAttr(state.theme.backgroundColor)}">
-      <div class="flex-header" style="background:${escapeAttr(state.theme.baseColor)}">
-        ${escapeHtml(state.title)}
-      </div>
+      <div
+        class="flex-header"
+        style="background:${escapeAttr(state.theme.baseColor)}"
+        contenteditable="true"
+        tabindex="0"
+        data-editable="title"
+        data-placeholder="タイトルを入力"
+      >${escapeHtml(state.title)}</div>
       ${hero}
       <div class="flex-body" style="background:${escapeAttr(state.theme.backgroundColor)}">
         ${bodyHtml || `<div class="flex-empty-body">bodyに表示する要素がありません。</div>`}
@@ -1239,16 +1243,26 @@ function renderPreview() {
       ${footer}
     </div>
   `;
+
+  bindPreviewInteractions();
 }
 
 function renderPreviewBlock(key) {
   if (key === "badges") {
+    if (!state.useBadges) return "";
+
     const badges = getActiveBadges();
 
-    if (!state.useBadges || badges.length === 0) return "";
+    if (badges.length === 0) {
+      return `
+        <div class="preview-badge-row" data-jump="バッジ設定">
+          <div class="flex-badge flex-badge-empty">＋ バッジを設定</div>
+        </div>
+      `;
+    }
 
     return `
-      <div class="preview-badge-row">
+      <div class="preview-badge-row" data-jump="バッジ設定">
         ${badges.map((badge) => `
           <div class="flex-badge" style="background:${escapeAttr(badge.color)}">
             ${escapeHtml(badge.text)}
@@ -1260,16 +1274,69 @@ function renderPreviewBlock(key) {
 
 
   if (key === "subtitle") {
-    if (!state.useSubtitle || !state.subtitle.trim()) return "";
-    return `<div class="flex-subtitle">${escapeHtml(state.subtitle)}</div>`;
+    if (!state.useSubtitle) return "";
+    return `<div class="flex-subtitle" contenteditable="true" tabindex="0" data-editable="subtitle" data-placeholder="サブタイトルを入力">${escapeHtml(state.subtitle)}</div>`;
   }
 
   if (key === "body") {
-    if (!state.useBody || !state.body.trim()) return "";
-    return `<div class="flex-text">${escapeHtml(state.body)}</div>`;
+    if (!state.useBody) return "";
+    return `<div class="flex-text" contenteditable="true" tabindex="0" data-editable="body" data-placeholder="本文を入力">${escapeHtml(state.body)}</div>`;
   }
 
   return "";
+}
+
+function bindPreviewInteractions() {
+  els.previewArea.querySelectorAll("[data-editable]").forEach((node) => {
+    node.addEventListener("input", () => {
+      const key = node.dataset.editable;
+      state[key] = node.innerText;
+      state.formatKey = "";
+
+      if (key === "title") els.titleInput.value = state.title;
+      if (key === "subtitle") els.subtitleInput.value = state.subtitle;
+      if (key === "body") els.bodyInput.value = state.body;
+
+      renderLight();
+    });
+
+    node.addEventListener("keydown", (event) => {
+      if (node.dataset.editable !== "body" && event.key === "Enter") {
+        event.preventDefault();
+        node.blur();
+      }
+    });
+
+    node.addEventListener("blur", () => {
+      renderPreview();
+    });
+  });
+
+  els.previewArea.querySelectorAll("[data-jump]").forEach((node) => {
+    node.addEventListener("click", (event) => {
+      if (node.tagName === "A") event.preventDefault();
+      jumpToCard(node.dataset.jump);
+    });
+  });
+}
+
+function jumpToCard(heading) {
+  const card = Array.from(document.querySelectorAll(".card[data-collapsible]"))
+    .find((candidate) => candidate.querySelector("h2")?.textContent === heading);
+
+  if (!card) return;
+
+  card.classList.remove("is-collapsed");
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderLight() {
+  updateTitleRequiredState();
+  persistState();
+  renderJson();
+  updateCountLabels();
+  renderValidationSummary();
+  updateSendButtonState();
 }
 
 function renderJson() {

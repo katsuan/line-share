@@ -659,14 +659,6 @@ select:focus {
   font-weight: 800;
 }
 
-.empty-preview {
-  display: grid;
-  place-items: center;
-  min-height: 420px;
-  color: var(--muted);
-  text-align: center;
-}
-
 pre {
   overflow: auto;
   max-height: 420px;
@@ -746,7 +738,8 @@ pre {
   }
 
   .layout {
-    display: block;
+    display: flex;
+    flex-direction: column;
     padding: 12px;
     padding-bottom: 84px;
   }
@@ -793,21 +786,9 @@ pre {
   }
 
   .preview-column {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 40;
-    overflow: auto;
-    padding: 12px;
-    background: var(--page-bg);
-  }
-
-  .preview-column.is-open {
-    display: block;
-  }
-
-  .preview-close {
-    display: block;
+    position: static;
+    order: -1;
+    margin-bottom: 4px;
   }
 
   .phone {
@@ -872,6 +853,54 @@ input.is-required-missing:focus {
   font-weight: 900;
   line-height: 1.4;
   word-break: break-word;
+}
+
+[contenteditable="true"] {
+  cursor: text;
+  outline: none;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.flex-header[contenteditable="true"]:hover,
+.flex-header[contenteditable="true"]:focus {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.flex-subtitle[contenteditable="true"]:hover,
+.flex-subtitle[contenteditable="true"]:focus,
+.flex-text[contenteditable="true"]:hover,
+.flex-text[contenteditable="true"]:focus {
+  background-color: rgba(15, 23, 42, 0.05);
+}
+
+[contenteditable="true"]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.55;
+}
+
+.flex-hero,
+.flex-badge,
+.preview-badge-row,
+.flex-button {
+  cursor: pointer;
+}
+
+.flex-hero-empty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  border: 1.5px dashed rgba(0, 0, 0, 0.18);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.flex-badge-empty {
+  background: transparent !important;
+  border: 1.5px dashed rgba(0, 0, 0, 0.18);
+  color: var(--muted) !important;
 }
 
 .flex-empty-body {
