@@ -154,6 +154,32 @@ button:disabled {
   color: var(--primary);
 }
 
+.card[data-collapsible] .card-title {
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.card[data-collapsible] .card-title::after {
+  content: "▾";
+  margin-left: auto;
+  padding-left: 8px;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.card[data-collapsible].is-collapsed .card-title::after {
+  transform: rotate(-90deg);
+}
+
+.card[data-collapsible] > *:not(.card-title) {
+  margin-top: 16px;
+}
+
+.card[data-collapsible].is-collapsed > *:not(.card-title) {
+  display: none;
+}
+
 .card-title em,
 .card-title small {
   margin-left: auto;
@@ -707,7 +733,7 @@ pre {
     bottom: 0;
     z-index: 25;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     padding: 10px;
     background: rgba(255, 255, 255, 0.96);
@@ -715,8 +741,8 @@ pre {
   }
 
   .header-actions button {
-    padding: 11px 8px;
-    font-size: 12px;
+    padding: 11px 6px;
+    font-size: 11px;
   }
 
   .layout {
@@ -761,14 +787,9 @@ pre {
 
   .mobile-preview-button {
     display: block;
-    position: fixed;
-    right: 12px;
-    top: 72px;
-    z-index: 24;
-    border: none;
+    border-color: var(--primary);
     background: var(--primary);
     color: #ffffff;
-    box-shadow: var(--shadow);
   }
 
   .preview-column {

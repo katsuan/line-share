@@ -22,14 +22,11 @@
 
       <div class="header-actions">
         <button id="jumpTemplateButton" type="button">テンプレート</button>
+        <button id="mobilePreviewButton" class="mobile-preview-button" type="button">👁 プレビュー</button>
         <button id="copyJsonButton" type="button">JSONコピー</button>
         <button id="sendButton" class="primary" type="button">LINEで共有</button>
       </div>
     </header>
-
-    <button id="mobilePreviewButton" class="mobile-preview-button" type="button">
-      👁 プレビュー
-    </button>
 
     <main class="layout">
       <section class="editor">
@@ -62,7 +59,7 @@
           <ul id="validationSummary" class="validation-list"></ul>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>🧭</span>
             <h2>送信パターン</h2>
@@ -73,7 +70,7 @@
           <div id="patternPresetGrid" class="pattern-grid"></div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>🏷️</span>
             <h2>バッジ設定</h2>
@@ -94,7 +91,7 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>🖼️</span>
             <h2>写真設定</h2>
@@ -126,7 +123,7 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>📚</span>
             <h2>本文ブロック設定</h2>
@@ -153,7 +150,7 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>🔘</span>
             <h2>URIボタン設定</h2>
@@ -174,7 +171,7 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>🎨</span>
             <h2>カラー設定</h2>
@@ -209,7 +206,7 @@
           </div>
         </section>
 
-        <section class="card">
+        <section class="card is-collapsed" data-collapsible>
           <div class="card-title">
             <span>📐</span>
             <h2>カードサイズ</h2>
@@ -290,6 +287,13 @@
 
   <script src="./config.js"></script>
   <script src="./app.js"></script>
+  <script>
+    document.querySelectorAll('.card[data-collapsible] .card-title').forEach((title) => {
+      title.addEventListener('click', () => {
+        title.closest('.card').classList.toggle('is-collapsed');
+      });
+    });
+  </script>
 </body>
 
 </html>
