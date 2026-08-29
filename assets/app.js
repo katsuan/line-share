@@ -716,7 +716,8 @@ function isHttpUrl_(value) {
 }
 
 function getErrorMessage_(error) {
-  return error && error.message ? error.message : String(error);
+  console.error(error);
+  return "時間をおいてもう一度お試しください。";
 }
 
 function escapeHtml_(value) {
