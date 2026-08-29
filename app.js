@@ -64,7 +64,8 @@ async function main() {
             await resolveMapInfo();
         }
     } catch (error) {
-        showError_(error.message || '初期化に失敗しました。');
+        console.error(error);
+        showError_('初期化に失敗しました。時間をおいてもう一度お試しください。');
     }
 }
 
@@ -95,6 +96,7 @@ async function resolveMapInfo() {
         elTitle.value = data.title || 'Google Maps';
         setAddressPreview_(resolvedAddress);
     } catch (error) {
+        console.error(error);
         showError_(error.message || '地図情報の取得に失敗しました。');
     } finally {
         setResolving_(false);
