@@ -484,7 +484,7 @@
           return;
         }
 
-        if (!isDebugMode && tone !== "error") {
+        if (!isDebugMode) {
           debugInfoElement.hidden = true;
           debugInfoElement.textContent = "";
           debugInfoElement.dataset.tone = "default";
@@ -706,7 +706,7 @@
           await initLiff();
 
           if (!state.liffInitialized) {
-            setStatus("先に LIFF を初期化してください。", "error");
+            setStatus("画面の準備が完了していません。もう一度開き直してください。", "error");
             return;
           }
         }
@@ -720,7 +720,7 @@
           const { imageUrl } = await uploadImage(exportDataUrl);
           setDebugInfo("アップロード済み画像 URL: " + imageUrl, "success");
 
-          setStatus("Share Target Picker を開いています...");
+          setStatus("送信先を選択しています...");
           const result = await liff.shareTargetPicker([
             {
               type: "image",
@@ -730,7 +730,7 @@
           ]);
 
           if (result === null) {
-            setStatus("Share Target Picker が閉じられました。", "default");
+            setStatus("送信はキャンセルされました。", "default");
             setDebugInfo("送信はキャンセルされました。画像 URL: " + imageUrl, "default");
           } else {
             setStatus("画像を送信しました。", "success");
@@ -743,7 +743,7 @@
           }
         } catch (error) {
           console.error(error);
-          setStatus(error.message || "共有処理に失敗しました。", "error");
+          setStatus("共有処理に失敗しました。時間をおいてもう一度お試しください。", "error");
           setDebugInfo(
             "詳細: " +
               (error && error.code ? error.code + " / " : "") +
