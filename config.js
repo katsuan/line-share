@@ -16,5 +16,7 @@ window.LINE_SHARE_CONFIG = {
   showCredit: true,
 
   // Created by を出さない LINE ユーザー（ユーザーIDの SHA-256。?credit=whoami を付けて LINE で開くと表示される）
-  creditFreeUsers: []
+  creditFreeUsers: [
+    "24f2d88d2332937479e0e0275c2f8713d029cdf4a7fe788a136178b456e5b519" // katsuan
+  ]
 };
