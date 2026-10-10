@@ -109,6 +109,23 @@
                 <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
               </label>
               <p id="imageWarning" class="ls-hint is-error" hidden>写真のURLは https:// から始まる公開URLを入力してください。</p>
+              <div id="photoShapeField" class="ls-field" hidden>
+                <span class="ls-label">写真の形</span>
+                <div class="ls-chips" role="radiogroup" aria-label="写真の形">
+                  <label class="ls-chip"><input type="radio" name="imageShape" value="auto" />元のまま</label>
+                  <label class="ls-chip"><input type="radio" name="imageShape" value="wide" />横長</label>
+                  <label class="ls-chip"><input type="radio" name="imageShape" value="square" />正方形</label>
+                  <label class="ls-chip"><input type="radio" name="imageShape" value="tall" />縦長</label>
+                </div>
+              </div>
+              <div id="photoFitField" class="ls-field" hidden>
+                <span class="ls-label">収め方</span>
+                <div class="ls-chips" role="radiogroup" aria-label="収め方">
+                  <label class="ls-chip"><input type="radio" name="imageFit" value="cover" />切り取って埋める</label>
+                  <label class="ls-chip"><input type="radio" name="imageFit" value="fit" />全体を表示</label>
+                </div>
+              </div>
+              <p id="photoShapeHint" class="ls-hint" hidden></p>
               <label class="ls-field">
                 <span class="ls-label">写真をタップしたときのリンク（任意）</span>
                 <input id="imageActionUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" />

@@ -64,6 +64,11 @@ const PRESETS = {
   }
 };
 
+// 写真の形。auto は写真そのものの縦横比（読み込んだときに imageRatio に入れる）
+const IMAGE_SHAPES = { auto: "", wide: "20:13", square: "1:1", tall: "3:4" };
+// LINE の hero 画像は「縦が横の3倍まで」
+const MAX_TALL_RATIO = 3;
+
 const BLANK_STATE = {
   theme: "sunset",
   customColor: DEFAULT_CUSTOM_COLOR,
@@ -76,6 +81,9 @@ const BLANK_STATE = {
   showDetail: true,
   imageUrl: "",
   imageActionUrl: "",
+  imageShape: "auto",
+  imageFit: "cover",
+  imageRatio: "",
   badges: [],
   buttons: []
 };
@@ -98,6 +106,7 @@ async function init() {
     "showDateToggle", "showDetailToggle", "customColorInput",
     "imageUrlInput", "imageActionUrlInput", "imageWarning",
     "photoFileInput", "photoClearButton", "photoStatus",
+    "photoShapeField", "photoShapeHint", "photoFitField",
     "badgeList", "badgeInput", "addBadgeButton",
     "buttonList", "addButtonButton", "buttonWarning",
     "presetGrid", "templateNameInput", "templateSelect",
@@ -136,6 +145,9 @@ function hydrate(source = {}) {
     theme: Object.hasOwn(THEMES, source.theme) ? source.theme : "sunset",
     customColor: normalizeHexColor(source.customColor),
     bubbleSize: BUBBLE_SIZES.includes(source.bubbleSize) ? source.bubbleSize : "giga",
+    imageShape: Object.hasOwn(IMAGE_SHAPES, source.imageShape) ? source.imageShape : "auto",
+    imageFit: source.imageFit === "fit" ? "fit" : "cover",
+    imageRatio: /^\d+:\d+$/.test(source.imageRatio || "") ? source.imageRatio : "",
     showDate: source.showDate !== false,
     showDetail: source.showDetail !== false,
     badges: (Array.isArray(source.badges) ? source.badges : [])
@@ -207,6 +219,8 @@ function applyStateToEditor() {
   els.imageUrlInput.value = state.imageUrl;
   els.imageActionUrlInput.value = state.imageActionUrl;
   checkRadio("theme", state.theme);
+  checkRadio("imageShape", state.imageShape);
+  checkRadio("imageFit", state.imageFit);
   checkRadio("bubbleSize", state.bubbleSize);
   renderBadgeList();
   renderButtonList();
@@ -234,6 +248,14 @@ function render() {
   if (imageUrl && els.heroImage.getAttribute("src") !== imageUrl) {
     els.heroImage.src = imageUrl;
   }
+  const hero = getHeroSpec(palette);
+  els.heroImage.style.aspectRatio = hero.ratio.replace(":", " / ");
+  els.heroImage.style.objectFit = hero.mode === "fit" ? "contain" : "cover";
+  els.heroImage.style.background = hero.mode === "fit" ? hero.background : "";
+  els.photoShapeField.hidden = !imageUrl;
+  els.photoFitField.hidden = !imageUrl || state.imageShape === "auto";
+  els.photoShapeHint.textContent = hero.note;
+  els.photoShapeHint.hidden = !imageUrl || !hero.note;
   els.imageWarning.hidden = photo.uploading || !imageUrl || isHttpsUrl(imageUrl);
   els.photoClearButton.hidden = !imageUrl;
 
@@ -526,7 +548,15 @@ function buildFlexMessage() {
   };
 
   if (state.imageUrl) {
-    bubble.hero = { type: "image", url: state.imageUrl, size: "full", aspectRatio: "20:13", aspectMode: "cover" };
+    const hero = getHeroSpec(palette);
+    bubble.hero = {
+      type: "image",
+      url: state.imageUrl,
+      size: "full",
+      aspectRatio: hero.ratio,
+      aspectMode: hero.mode,
+      ...(hero.mode === "fit" ? { backgroundColor: hero.background } : {})
+    };
     const imageAction = getSendableUrl(state.imageActionUrl);
     if (imageAction) {
       bubble.hero.action = { type: "uri", uri: imageAction };
@@ -658,6 +688,46 @@ async function initLiff() {
   updateShareButtonState();
 }
 
+// ---- 写真の形 ----
+
+/**
+ * カードの写真の縦横比と収め方を決める。
+ * 「元のまま」は写真の比率をそのまま使うので切れない（縦が横の3倍を超える分だけ上下を切る）。
+ */
+function getHeroSpec(palette) {
+  const background = palette.detailBg;
+  if (state.imageShape !== "auto") {
+    const mode = state.imageFit === "fit" ? "fit" : "cover";
+    const note =
+      mode === "cover"
+        ? "はみ出した部分は切り取られます（中央が残ります）。"
+        : "写真全体が入り、余白はカードの色で埋まります。";
+    return { ratio: IMAGE_SHAPES[state.imageShape], mode, background, note };
+  }
+
+  const [width, height] = (state.imageRatio || "20:13").split(":").map(Number);
+  if (height > width * MAX_TALL_RATIO) {
+    return {
+      ratio: `${width}:${width * MAX_TALL_RATIO}`,
+      mode: "cover",
+      background,
+      note: "縦にとても長い写真のため、LINEの上限に合わせて上下を少し切り取ります。"
+    };
+  }
+  return { ratio: `${width}:${height}`, mode: "cover", background, note: "" };
+}
+
+// 写真を読み込んだら縦横比を覚えておく（URL の写真でも使える）
+function rememberImageRatio() {
+  const { naturalWidth: width, naturalHeight: height } = els.heroImage;
+  if (!width || !height) return;
+  const ratio = `${width}:${height}`;
+  if (state.imageRatio !== ratio) {
+    state.imageRatio = ratio;
+    render();
+  }
+}
+
 // ---- 端末の写真 ----
 
 const PHOTO_MAX_SIDE = 1200;
@@ -692,6 +762,7 @@ async function uploadPhoto(file) {
     }
 
     state.imageUrl = data.imageUrl;
+    state.imageRatio = "";
     els.imageUrlInput.value = data.imageUrl;
     setPhotoStatus("写真を入れました。");
   } catch (error) {
@@ -819,6 +890,7 @@ function bindEvents() {
   for (const [id, key] of textFields) {
     els[id].addEventListener("input", () => {
       state[key] = els[id].value.trim();
+      if (key === "imageUrl") state.imageRatio = "";
       render();
     });
   }
@@ -851,6 +923,19 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll('input[name="imageShape"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.imageShape = input.value;
+      render();
+    });
+  });
+  document.querySelectorAll('input[name="imageFit"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.imageFit = input.value;
+      render();
+    });
+  });
+
   els.photoFileInput.addEventListener("change", () => {
     const file = els.photoFileInput.files?.[0];
     els.photoFileInput.value = "";
@@ -858,6 +943,7 @@ function bindEvents() {
   });
   els.photoClearButton.addEventListener("click", () => {
     state.imageUrl = "";
+    state.imageRatio = "";
     els.imageUrlInput.value = "";
     setPhotoStatus("");
     render();
@@ -869,6 +955,7 @@ function bindEvents() {
     els.imageWarning.textContent = "写真を読み込めませんでした。URLを確認してください。";
   });
   els.heroImage.addEventListener("load", () => {
+    rememberImageRatio();
     els.imageWarning.textContent = "写真のURLは https:// から始まる公開URLを入力してください。";
     els.imageWarning.hidden = isHttpsUrl(state.imageUrl);
   });
