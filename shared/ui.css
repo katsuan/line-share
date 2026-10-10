@@ -813,3 +813,23 @@ body.is-typing .ls-sendbar {
 html[data-credit="off"] .ls-credit {
   display: none;
 }
+
+/* クレジットを消せる人だけに出る「Created by を付ける」スイッチ（shared/credit.js） */
+.ls-credit-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ls-credit-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--ls-accent);
+}
