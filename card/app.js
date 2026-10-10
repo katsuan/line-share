@@ -572,8 +572,8 @@ function buildFlexMessage() {
 }
 
 async function share() {
-  if (!window.liff || !liff.isApiAvailable("shareTargetPicker")) {
-    setStatus("LINE アプリ内で開いてください。", true);
+  if (!window.LineShareLiff.canShare()) {
+    setStatus(window.LineShareLiff.MESSAGES.notInLine, true);
     return;
   }
 
@@ -661,14 +661,15 @@ async function initLiff() {
     setStatus("LIFF ID が未設定です（リポジトリ直下の config.js）。カードの作成とJSONコピーは使えます。", true);
     return;
   }
-  try {
-    await liff.init({ liffId: config.liffId });
-    window.LineShareCredit?.checkUser();
+  // LIFF の準備は shared/liff.js。ログインはさせず、送るときに LINE アプリ内か確かめる
+  const { MESSAGES } = window.LineShareLiff;
+  setStatus(MESSAGES.connecting);
+  const { ready } = await window.LineShareLiff.init({ login: "none" });
+  if (ready) {
     shareReady = true;
     els.shareButton.addEventListener("click", share);
-  } catch (error) {
-    console.error(error);
-    setStatus("LIFF の初期化に失敗しました。", true);
+  } else {
+    setStatus(MESSAGES.failed, true);
   }
   updateShareButtonState();
 }
