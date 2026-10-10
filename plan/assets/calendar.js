@@ -1,25 +1,58 @@
-const CONFIG = {
-  liffId: "2009951859-cAKdolhm"
-};
+import {
+  app,
+  assertUriLength,
+  escapeHtml,
+  formatPlaceLocation,
+  isGoogleMapsUrl,
+  isHttpUrl,
+  resolveMapInfo,
+  setMessage,
+  shareFlex,
+  toUserMessage,
+  UserError
+} from "./common.js";
+import { MAX_URI_LENGTH } from "./config.js";
+import { createEventFlex } from "./flex.js";
 
 const dom = {};
 const state = {
-  liffReady: false,
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Tokyo",
   endEdited: false,
   selectedDurationMinutes: 60,
-  followStartDuration: true
+  followStartDuration: true,
+  // Google Maps から取り込んだ場所の情報
+  place: { mapUrl: "", photoUrl: "" }
 };
 
-document.addEventListener("DOMContentLoaded", async () => {
+export function initCalendarTab() {
   cacheDom_();
   setDefaultDateTime_();
   dom.timezone.value = state.timezone;
   addCustomParamRow_();
   bindEvents_();
-  updateUi_();
-  await initializeLiff_();
-});
+  refreshCalendarTab();
+}
+
+/**
+ * 地図タブや URL パラメータから場所を受け取って予定に反映する。
+ */
+export async function applyPlace({ mapUrl, title, address, photoUrl }) {
+  dom.locationMapUrl.value = mapUrl;
+  state.place = { mapUrl, photoUrl };
+  dom.location.value = formatPlaceLocation({ title, address });
+  dom.locationAccordion.open = true;
+  refreshCalendarTab();
+
+  if (mapUrl && !title) {
+    await resolveLocation_();
+  }
+}
+
+export function focusCalendarTitle() {
+  if (!dom.title.value.trim()) {
+    dom.title.focus();
+  }
+}
 
 function cacheDom_() {
   dom.form = document.getElementById("eventForm");
@@ -29,6 +62,9 @@ function cacheDom_() {
   dom.endDate = document.getElementById("endDate");
   dom.endTime = document.getElementById("endTime");
   dom.location = document.getElementById("location");
+  dom.locationAccordion = document.getElementById("locationAccordion");
+  dom.locationMapUrl = document.getElementById("locationMapUrl");
+  dom.locationResolveButton = document.getElementById("locationResolveButton");
   dom.url = document.getElementById("url");
   dom.details = document.getElementById("details");
   dom.locationState = document.getElementById("locationState");
@@ -47,20 +83,22 @@ function cacheDom_() {
   dom.previewCard = document.getElementById("previewCard");
   dom.customParamsList = document.getElementById("customParamsList");
   dom.addParamButton = document.getElementById("addParamButton");
-  dom.liffBadge = document.getElementById("liffBadge");
   dom.durationSummary = document.getElementById("durationSummary");
   dom.durationButtons = Array.from(document.querySelectorAll("[data-duration-minutes]"));
 }
 
 function bindEvents_() {
-  dom.form.addEventListener("input", updateUi_);
+  dom.form.addEventListener("input", refreshCalendarTab);
+  dom.form.addEventListener("submit", (event) => event.preventDefault());
   dom.startDate.addEventListener("change", handleStartDateTimeChange_);
   dom.startTime.addEventListener("change", handleStartDateTimeChange_);
   dom.endDate.addEventListener("change", handleEndDateTimeEdit_);
   dom.endTime.addEventListener("change", handleEndDateTimeEdit_);
+  dom.locationMapUrl.addEventListener("input", handleLocationMapUrlInput_);
+  dom.locationResolveButton.addEventListener("click", resolveLocation_);
   dom.addParamButton.addEventListener("click", () => {
     addCustomParamRow_();
-    updateUi_();
+    refreshCalendarTab();
   });
   for (const button of dom.durationButtons) {
     button.addEventListener("click", handleDurationButtonClick_);
@@ -71,50 +109,27 @@ function bindEvents_() {
   dom.shareTargetButton.addEventListener("click", shareToTargetPicker_);
 }
 
-async function initializeLiff_() {
-  try {
-    await liff.init({ liffId: CONFIG.liffId });
+export function refreshCalendarTab() {
+  updateOptionalCount_();
+  updateOptionalFieldStates_();
 
-    if (!liff.isLoggedIn()) {
-      setMessage_("利用を続けるためにログインします。", "default");
-      liff.login();
-      return;
-    }
-
-    state.liffReady = true;
-    setLiffBadge_(liff.isInClient() ? "このトークで送れます" : "ブラウザで確認中");
-    setMessage_("入力すると共有用の予定リンクを作れます。", "default");
-  } catch (error) {
-    state.liffReady = false;
-    setLiffBadge_("接続エラー", true);
-    setMessage_(`画面の準備に失敗しました。\n${getErrorMessage_(error)}`, "error");
-  } finally {
-    updateUi_();
-  }
-}
-
-function updateUi_() {
   try {
     const data = getFormData_();
     const calendarUrl = createGoogleCalendarUrl_(data);
 
     dom.generatedUrl.value = calendarUrl;
-    dom.openUrlButton.disabled = !calendarUrl;
-    dom.copyUrlButton.disabled = !calendarUrl;
-    dom.shareTargetButton.disabled = !calendarUrl || !state.liffReady;
+    dom.openUrlButton.disabled = false;
+    dom.copyUrlButton.disabled = false;
+    dom.shareTargetButton.disabled = !app.liffReady;
 
     renderPreview_(data, calendarUrl);
-    updateOptionalCount_();
-    updateOptionalFieldStates_();
 
-    if (!state.liffReady) {
-      return;
-    }
-
-    if (!liff.isInClient()) {
-      setMessage_("このブラウザではリンク作成と共有先の選択が使えます。", "default");
+    if (calendarUrl.length > MAX_URI_LENGTH) {
+      setMessage(dom.statusMessage, "リンクが長すぎるためLINEでは送れません。詳細などを短くしてください。", "error");
+    } else if (app.liffReady) {
+      setMessage(dom.statusMessage, "共有先を選んで送れます。");
     } else {
-      setMessage_("共有先を選んで送れます。", "default");
+      setMessage(dom.statusMessage, "リンクの作成とコピーができます。LINEで送るときはLINEアプリ内で開いてください。");
     }
   } catch (error) {
     dom.generatedUrl.value = "";
@@ -122,12 +137,10 @@ function updateUi_() {
     dom.copyUrlButton.disabled = true;
     dom.shareTargetButton.disabled = true;
     renderPreviewEmpty_();
-    updateOptionalCount_();
-    updateOptionalFieldStates_();
     if (hasAnyRequiredInput_()) {
-      setMessage_(getErrorMessage_(error), "error");
-    } else if (state.liffReady) {
-      setMessage_("件名と開始・完了日時を入力すると共有用リンクを作れます。", "default");
+      setMessage(dom.statusMessage, toUserMessage(error), "error");
+    } else {
+      setMessage(dom.statusMessage, "件名と開始・完了日時を入力すると共有用リンクを作れます。");
     }
   }
 }
@@ -137,6 +150,7 @@ function getFormData_() {
   const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
   const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
   const location = dom.location.value.trim();
+  const mapUrl = dom.locationMapUrl.value.trim();
   const url = dom.url.value.trim();
   const details = dom.details.value.trim();
   const timezone = dom.timezone.value.trim();
@@ -146,27 +160,31 @@ function getFormData_() {
   const customParams = getCustomParams_();
 
   if (!title) {
-    throw new Error("件名を入力してください。");
+    throw new UserError("件名を入力してください。");
   }
 
   if (!start) {
-    throw new Error("開始日時を入力してください。");
+    throw new UserError("開始日時を入力してください。");
   }
 
   if (!end) {
-    throw new Error("完了日時を入力してください。");
+    throw new UserError("完了日時を入力してください。");
   }
 
   if (start >= end) {
-    throw new Error("完了日時は開始日時より後にしてください。");
+    throw new UserError("完了日時は開始日時より後にしてください。");
   }
 
-  if (url && !isHttpUrl_(url)) {
-    throw new Error("関連URLは http:// または https:// から入力してください。");
+  if (mapUrl && !isGoogleMapsUrl(mapUrl)) {
+    throw new UserError("場所の地図URLはGoogle MapsのURLを入力してください。");
   }
 
-  if (sourceUrl && !isHttpUrl_(sourceUrl)) {
-    throw new Error("参照元URLは http:// または https:// から入力してください。");
+  if (url && !isHttpUrl(url)) {
+    throw new UserError("関連URLは http:// または https:// から入力してください。");
+  }
+
+  if (sourceUrl && !isHttpUrl(sourceUrl)) {
+    throw new UserError("参照元URLは http:// または https:// から入力してください。");
   }
 
   return {
@@ -174,6 +192,8 @@ function getFormData_() {
     start,
     end,
     location,
+    mapUrl,
+    photoUrl: mapUrl && mapUrl === state.place.mapUrl ? state.place.photoUrl : "",
     url,
     details,
     timezone,
@@ -186,7 +206,7 @@ function getFormData_() {
 
 function createGoogleCalendarUrl_(data) {
   const params = new URLSearchParams();
-  const detailLines = [];
+  const detailBlocks = [];
 
   params.set("action", "TEMPLATE");
   params.set("text", data.title);
@@ -197,19 +217,19 @@ function createGoogleCalendarUrl_(data) {
   }
 
   if (data.details) {
-    detailLines.push(data.details);
+    detailBlocks.push(data.details);
+  }
+
+  if (data.mapUrl) {
+    detailBlocks.push(`地図:\n${data.mapUrl}`);
   }
 
   if (data.url) {
-    if (data.details) {
-      detailLines.push("");
-    }
-    detailLines.push("関連URL:");
-    detailLines.push(data.url);
+    detailBlocks.push(`関連URL:\n${data.url}`);
   }
 
-  if (detailLines.length > 0) {
-    params.set("details", detailLines.join("\n"));
+  if (detailBlocks.length > 0) {
+    params.set("details", detailBlocks.join("\n\n"));
   }
 
   if (data.timezone) {
@@ -235,145 +255,59 @@ function createGoogleCalendarUrl_(data) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-function createFlexMessage_(data, calendarUrl) {
-  const durationLabel = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
-  const bodyContents = [
-    {
-      type: "text",
-      text: data.title,
-      wrap: true,
-      size: "xl",
-      weight: "bold",
-      color: "#1F1F1C"
-    },
-    createInfoRow_("開始", formatDateTimeLabel_(data.start)),
-    createInfoRow_("所要時間", durationLabel)
-  ];
-
-  if (data.location) {
-    bodyContents.push(createInfoRow_("場所", data.location));
-  }
-
-  if (data.details) {
-    bodyContents.push(createInfoRow_("詳細", data.details));
-  }
-
+function getFlexLabels_(data) {
   return {
-    type: "flex",
-    altText: `予定を共有: ${data.title}`,
-    contents: {
-      type: "bubble",
-      size: "mega",
-      body: {
-        type: "box",
-        layout: "vertical",
-        spacing: "md",
-        paddingAll: "18px",
-        contents: bodyContents
-      },
-      footer: {
-        type: "box",
-        layout: "vertical",
-        spacing: "sm",
-        paddingAll: "16px",
-        contents: [
-          {
-            type: "button",
-            style: "primary",
-            color: "#2F2F2B",
-            action: {
-              type: "uri",
-              label: "Googleカレンダーに予定を追加",
-              uri: calendarUrl
-            }
-          },
-          ...(data.url
-            ? [
-                {
-                  type: "button",
-                  style: "secondary",
-                  action: {
-                    type: "uri",
-                    label: "関連URLを開く",
-                    uri: data.url
-                  }
-                }
-              ]
-            : [])
-        ]
-      }
-    }
-  };
-}
-
-function createInfoRow_(label, value) {
-  return {
-    type: "box",
-    layout: "baseline",
-    spacing: "md",
-    paddingAll: "12px",
-    backgroundColor: "#F4F4F1",
-    cornerRadius: "12px",
-    contents: [
-      {
-        type: "text",
-        text: label,
-        size: "xs",
-        color: "#6B6860",
-        weight: "bold",
-        flex: 2
-      },
-      {
-        type: "text",
-        text: value,
-        size: "sm",
-        color: "#1F1F1C",
-        wrap: true,
-        flex: 5
-      }
-    ]
+    start: formatDateTimeLabel_(data.start),
+    duration: formatDurationLabel_(data.start, data.end).replace("所要時間 ", "")
   };
 }
 
 function renderPreview_(data, calendarUrl) {
-  const relatedUrlLink =
-    data.url && isHttpUrl_(data.url)
-      ? `<a class="preview-link secondary" href="${escapeHtml_(data.url)}" target="_blank" rel="noreferrer">関連URL</a>`
-      : "";
   const durationLabel = formatDurationLabel_(data.start, data.end);
   const spansMultipleDays = !isSameCalendarDate_(data.start, data.end);
+  const secondaryLinks = [
+    data.mapUrl ? ["地図を開く", data.mapUrl] : null,
+    data.url ? ["関連URL", data.url] : null
+  ]
+    .filter(Boolean)
+    .map(
+      ([label, href]) =>
+        `<a class="preview-link secondary" href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${label}</a>`
+    )
+    .join("");
 
   dom.previewCard.innerHTML = `
+    ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" />` : ""}
     <span class="preview-pill">送信プレビュー</span>
-    <h3 class="preview-title">${escapeHtml_(data.title)}</h3>
+    <h3 class="preview-title">${escapeHtml(data.title)}</h3>
     <div class="preview-grid">
       <div class="preview-item">
         <div class="preview-key">開始日時</div>
-        <div class="preview-value">${escapeHtml_(formatDateTimeLabel_(data.start))}</div>
+        <div class="preview-value">${escapeHtml(formatDateTimeLabel_(data.start))}</div>
       </div>
       <div class="preview-item">
         <div class="preview-key">所要時間</div>
-        <div class="preview-value">${escapeHtml_(spansMultipleDays ? `${durationLabel} / 複数日にまたがる予定` : durationLabel)}</div>
+        <div class="preview-value">${escapeHtml(spansMultipleDays ? `${durationLabel} / 複数日にまたがる予定` : durationLabel)}</div>
       </div>
       ${
         data.location
-          ? `<div class="preview-item"><div class="preview-key">場所</div><div class="preview-value">${escapeHtml_(data.location)}</div></div>`
+          ? `<div class="preview-item"><div class="preview-key">場所</div><div class="preview-value">${escapeHtml(data.location)}</div></div>`
           : ""
       }
       ${
         data.details
-          ? `<div class="preview-item"><div class="preview-key">詳細</div><div class="preview-value">${escapeHtml_(data.details)}</div></div>`
+          ? `<div class="preview-item"><div class="preview-key">詳細</div><div class="preview-value">${escapeHtml(data.details)}</div></div>`
           : ""
       }
       ${
         data.customParams.length
-          ? `<div class="preview-item"><div class="preview-key">追加設定</div><div class="preview-value">${escapeHtml_(data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"))}</div></div>`
+          ? `<div class="preview-item"><div class="preview-key">追加設定</div><div class="preview-value">${escapeHtml(data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"))}</div></div>`
           : ""
       }
     </div>
     <div class="preview-actions">
-      <a class="preview-link primary" href="${escapeHtml_(calendarUrl)}" target="_blank" rel="noreferrer">Googleカレンダーに予定を追加</a>
-      ${relatedUrlLink}
+      <a class="preview-link primary" href="${escapeHtml(calendarUrl)}" target="_blank" rel="noreferrer">Googleカレンダーに予定を追加</a>
+      ${secondaryLinks}
     </div>
   `;
 }
@@ -404,13 +338,36 @@ function updateOptionalCount_() {
 }
 
 function updateOptionalFieldStates_() {
-  updateFieldStateChip_(dom.locationState, dom.location.value.trim());
+  updateFieldStateChip_(dom.locationState, dom.location.value.trim() || dom.locationMapUrl.value.trim());
   updateFieldStateChip_(dom.urlState, dom.url.value.trim());
   updateFieldStateChip_(dom.detailsState, dom.details.value.trim());
 }
 
 function updateFieldStateChip_(element, value) {
   element.textContent = value ? "入力済み" : "未入力";
+}
+
+function handleLocationMapUrlInput_() {
+  if (dom.locationMapUrl.value.trim() !== state.place.mapUrl) {
+    state.place = { mapUrl: "", photoUrl: "" };
+  }
+}
+
+async function resolveLocation_() {
+  dom.locationResolveButton.disabled = true;
+  dom.locationResolveButton.textContent = "取得中...";
+  try {
+    const info = await resolveMapInfo(dom.locationMapUrl.value.trim());
+    state.place = { mapUrl: info.mapUrl, photoUrl: info.photoUrl };
+    dom.location.value = formatPlaceLocation(info) || dom.location.value;
+  } catch (error) {
+    setMessage(dom.statusMessage, toUserMessage(error), "error");
+    return;
+  } finally {
+    dom.locationResolveButton.disabled = false;
+    dom.locationResolveButton.textContent = "取得";
+  }
+  refreshCalendarTab();
 }
 
 function updateDurationSummary_() {
@@ -439,12 +396,12 @@ function addCustomParamRow_(key = "", value = "") {
   row.className = "param-row";
   row.innerHTML = `
     <div class="field field-compact">
-      <input type="text" data-param-key aria-label="追加パラメータのキー" placeholder="キー 例：trp" value="${escapeHtml_(key)}" />
+      <input type="text" data-param-key aria-label="追加パラメータのキー" placeholder="キー 例：trp" value="${escapeHtml(key)}" />
     </div>
     <div class="field field-compact">
-      <input type="text" data-param-value aria-label="追加パラメータの値" placeholder="値 例：false" value="${escapeHtml_(value)}" />
+      <input type="text" data-param-value aria-label="追加パラメータの値" placeholder="値 例：false" value="${escapeHtml(value)}" />
     </div>
-    <button class="button button-soft button-remove" type="button" data-remove-param>×</button>
+    <button class="button button-soft button-remove" type="button" data-remove-param aria-label="この項目を削除">×</button>
   `;
   dom.customParamsList.appendChild(row);
 }
@@ -461,7 +418,7 @@ function handleCustomParamClick_(event) {
     addCustomParamRow_();
   }
 
-  updateUi_();
+  refreshCalendarTab();
 }
 
 function getCustomParams_() {
@@ -477,15 +434,16 @@ function getCustomParams_() {
 async function shareToTargetPicker_() {
   try {
     const data = getFormData_();
-    const message = createFlexMessage_(data, createGoogleCalendarUrl_(data));
-    const result = await liff.shareTargetPicker([message]);
-    if (result) {
-      setMessage_("送信先を選んで共有しました。", "success");
-      return;
-    }
-    setMessage_("共有はキャンセルされました。", "default");
+    const calendarUrl = createGoogleCalendarUrl_(data);
+    assertUriLength(calendarUrl, "カレンダー登録用のリンク");
+    const sent = await shareFlex(createEventFlex(data, calendarUrl, getFlexLabels_(data)));
+    setMessage(
+      dom.statusMessage,
+      sent ? "送信先を選んで共有しました。" : "共有はキャンセルされました。",
+      sent ? "success" : "default"
+    );
   } catch (error) {
-    setMessage_(getErrorMessage_(error), "error");
+    setMessage(dom.statusMessage, toUserMessage(error, "送信に失敗しました。"), "error");
   }
 }
 
@@ -503,8 +461,8 @@ function copyGeneratedUrl_() {
 
   navigator.clipboard
     .writeText(dom.generatedUrl.value)
-    .then(() => setMessage_("共有リンクをコピーしました。", "success"))
-    .catch((error) => setMessage_(getErrorMessage_(error), "error"));
+    .then(() => setMessage(dom.statusMessage, "共有リンクをコピーしました。", "success"))
+    .catch((error) => setMessage(dom.statusMessage, toUserMessage(error), "error"));
 }
 
 function setDefaultDateTime_() {
@@ -528,7 +486,7 @@ function handleStartDateTimeChange_() {
 
   if (!start) {
     updateDurationSummary_();
-    updateUi_();
+    refreshCalendarTab();
     return;
   }
 
@@ -537,7 +495,7 @@ function handleStartDateTimeChange_() {
   }
 
   updateDurationSummary_();
-  updateUi_();
+  refreshCalendarTab();
 }
 
 function handleEndDateTimeEdit_() {
@@ -545,7 +503,7 @@ function handleEndDateTimeEdit_() {
   state.followStartDuration = false;
   syncDurationButtons_();
   updateDurationSummary_();
-  updateUi_();
+  refreshCalendarTab();
 }
 
 function handleDurationButtonClick_(event) {
@@ -565,7 +523,7 @@ function handleDurationButtonClick_(event) {
 
   syncDurationButtons_();
   updateDurationSummary_();
-  updateUi_();
+  refreshCalendarTab();
 }
 
 function setEndFromStart_(start, minutes) {
@@ -673,43 +631,4 @@ function isSameCalendarDate_(left, right) {
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
   );
-}
-
-function setLiffBadge_(label, muted = false) {
-  dom.liffBadge.textContent = label;
-  dom.liffBadge.classList.toggle("is-muted", muted);
-}
-
-function setMessage_(message, tone) {
-  dom.statusMessage.textContent = message;
-  dom.statusMessage.classList.remove("is-error", "is-success");
-  if (tone === "error") {
-    dom.statusMessage.classList.add("is-error");
-  }
-  if (tone === "success") {
-    dom.statusMessage.classList.add("is-success");
-  }
-}
-
-function isHttpUrl_(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-function getErrorMessage_(error) {
-  console.error(error);
-  return "時間をおいてもう一度お試しください。";
-}
-
-function escapeHtml_(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }

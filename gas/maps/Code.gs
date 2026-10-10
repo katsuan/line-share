@@ -8,7 +8,8 @@ const LINE = {
 const GOOGLE_MAPS_API_KEY = PROPS.getProperty('GOOGLE_MAPS_API_KEY');
 
 const APP = {
-  LIFF_PAGE_URL: 'https://liff.line.me/2009965829-2KRcrwks',
+  // スクリプトプロパティ LIFF_PAGE_URL で上書き可能（統合版LIFFのURLを設定する）
+  LIFF_PAGE_URL: PROPS.getProperty('LIFF_PAGE_URL') || 'https://liff.line.me/2009965829-2KRcrwks',
 };
 
 /**
@@ -96,11 +97,13 @@ function createMapFlex_(info) {
   const photoUrl = info.photoUrl || '';
   const mapUrl = info.originalUrl || info.url;
 
-  const liffUrl = APP.LIFF_PAGE_URL
-    + '?mapUrl=' + encodeURIComponent(mapUrl)
+  const placeQuery = '?mapUrl=' + encodeURIComponent(mapUrl)
     + '&title=' + encodeURIComponent(title)
-    + '&address=' + encodeURIComponent(address)
+    + '&address=' + encodeURIComponent(address);
+  const liffUrl = APP.LIFF_PAGE_URL + placeQuery
     + '&photoUrl=' + encodeURIComponent(photoUrl);
+  // 予定タブは写真を GAS から取り直すため photoUrl を付けず、URI の 1000 文字制限に収める
+  const liffEventUrl = APP.LIFF_PAGE_URL + placeQuery + '&tab=calendar';
 
   const bodyContents = [
     {
@@ -127,7 +130,7 @@ function createMapFlex_(info) {
   bodyContents.push(
     {
       type: 'text',
-      text: 'コメントを付けて、別のトークへ共有できます。',
+      text: 'コメントを付けて別のトークへ共有したり、この場所で予定を作ったりできます。',
       size: 'sm',
       color: '#666666',
       flex: 0,
@@ -192,6 +195,15 @@ function createMapFlex_(info) {
               type: 'uri',
               label: 'コメントを付けて共有',
               uri: liffUrl
+            }
+          },
+          {
+            type: 'button',
+            style: 'secondary',
+            action: {
+              type: 'uri',
+              label: 'この場所で予定を作る',
+              uri: liffEventUrl
             }
           }
         ]
