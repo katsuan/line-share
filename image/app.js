@@ -76,7 +76,7 @@ let animationFrame = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   [
-    "canvas", "canvasFrame", "modeText", "modeDraw", "textPanel", "drawPanel",
+    "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
     "penColors", "penSizes", "undoButton", "clearButton",
     "outlineList", "outlineWidthList", "backgroundList", "motionList", "backdropList",
@@ -468,7 +468,8 @@ function applyState_() {
   els.textPanel.hidden = isDraw;
   els.drawPanel.hidden = !isDraw;
   els.canvasFrame.classList.toggle("is-drawing", isDraw);
-  els.canvasFrame.dataset.backdrop = state.backdrop;
+  // 「背景で確認」はトーク画面にあたるプレビュー枠全体の色を変える（画像そのものの背景は「仕上げ → 背景」）
+  els.previewStage.dataset.backdrop = state.backdrop;
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
   syncChoices_();
