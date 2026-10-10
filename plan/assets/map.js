@@ -1,6 +1,6 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610101958";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610101958";
-import { createPlaceFlex } from "./flex.js?v=202610101958";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610101959";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610101959";
+import { createPlaceFlex } from "./flex.js?v=202610101959";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -99,6 +99,10 @@ export function loadPlace({ mapUrl, title, address, photoUrl }) {
 export function refreshMapTab() {
   const place = getPlace_();
   const hasUrl = isGoogleMapsUrl(place.mapUrl);
+
+  // 任意項目のアコーディオンの見出しに、今の状態を出す
+  document.getElementById("badgeMeta").textContent = place.badges.length ? `${place.badges.length}個` : "なし";
+  document.getElementById("commentMeta").textContent = place.comment ? "入力済み" : "未入力";
 
   dom.address.textContent = place.address;
   dom.address.hidden = !place.address;
