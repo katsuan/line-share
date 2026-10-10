@@ -272,11 +272,11 @@ function renderPreview_(place, hasUrl) {
     <div class="preview-actions">
       <a class="preview-link primary" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">地図を開く</a>
     </div>
-    <p class="ls-credit">Created by LINEで送る ›</p>
+    <p class="ls-credit">Created by おくるカード ›</p>
   `;
 }
 
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
-  dom.shareButton.textContent = isSending ? "送信中..." : "LINEで送る";
+  dom.shareButton.textContent = isSending ? "送信中..." : "トークに送る";
 }

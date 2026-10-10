@@ -3,13 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>LINEで送る</title>
-    <meta name="description" content="場所・予定・カード・文字アイコン・手書きを、LINEのトークへ送れるツール集です。" />
+    <link rel="icon" href="./shared/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./shared/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#f4f3ef" />
+    <title>おくるカード</title>
+    <meta name="description" content="場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れます。" />
     <link rel="stylesheet" href="./shared/ui.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="./config.js"></script>
     <style>
       .hub-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         margin: 0;
         padding: 28px 4px 20px;
         font-size: 24px;
@@ -64,10 +71,10 @@
   </head>
   <body>
     <main id="hub" class="ls-page">
-      <h1 class="hub-title">LINEで送る</h1>
+      <h1 class="hub-title"><img src="./shared/icon.svg" alt="" width="36" height="36" />おくるカード</h1>
       <ul class="hub-tools">
         <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定</a></li>
-        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span>カード</a></li>
+        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span>お知らせカード</a></li>
         <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き</a></li>
       </ul>
     </main>

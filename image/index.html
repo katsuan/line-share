@@ -3,8 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>文字・手書きを送る</title>
-    <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークへ画像で送れるページです。" />
+    <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <meta name="theme-color" content="#f4f3ef" />
+    <title>文字・手書き｜おくるカード</title>
+    <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークに送れます。" />
     <link rel="stylesheet" href="../shared/ui.css" />
     <link rel="stylesheet" href="./style.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -16,7 +20,7 @@
   <body class="ls-has-sendbar">
     <main class="ls-page">
       <header class="ls-topbar">
-        <a class="ls-back" href="../">ツール一覧</a>
+        <a class="ls-back" href="../">おくるカード</a>
         <h1 class="ls-title">文字・手書き</h1>
         <span class="ls-topbar-end"></span>
       </header>
@@ -98,7 +102,7 @@
         <p id="status" class="ls-status" aria-live="polite"></p>
         <div class="ls-sendbar-row">
           <button id="saveButton" class="ls-send ls-send-secondary" type="button">保存</button>
-          <button id="sendButton" class="ls-send" type="button" disabled>LINEで送る</button>
+          <button id="sendButton" class="ls-send" type="button" disabled>トークに送る</button>
         </div>
       </div>
     </div>
@@ -121,7 +125,7 @@
         <img id="sendPreview" class="sheet-preview ls-checker" alt="送る画像" />
         <p class="ls-hint"><strong>画像</strong>：そのまま画像で届きます。<br /><strong>カード</strong>：トーク上でカードとして表示され、動きも再生されます。</p>
         <p id="sendMotionNote" class="ls-hint is-warn" hidden>動きは「カード」で送ったときだけ再生されます（画像では止まった状態になります）。</p>
-        <p class="ls-hint">カードで送ると、末尾に「Created by LINEで送る」（このツールへのリンク）が付きます。送信後の修正はできません。</p>
+        <p class="ls-hint">カードで送ると、末尾に「Created by おくるカード」（このツールへのリンク）が付きます。送信後の修正はできません。</p>
         <div class="ls-sheet-actions">
           <button id="sendAsImage" class="ls-send ls-send-secondary" type="button">画像で送る</button>
           <button id="sendAsCard" class="ls-send" type="button">カードで送る</button>

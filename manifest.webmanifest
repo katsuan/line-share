@@ -1,0 +1,16 @@
+{
+  "name": "おくるカード",
+  "short_name": "おくるカード",
+  "description": "場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れるツール",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f3ef",
+  "theme_color": "#f4f3ef",
+  "icons": [
+    { "src": "shared/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "shared/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "shared/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

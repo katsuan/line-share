@@ -3,8 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>場所と予定をLINEで共有</title>
-    <meta name="description" content="Google Mapsの場所や予定を、見やすいカードにしてLINEで送れるページです。" />
+    <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <meta name="theme-color" content="#f4f3ef" />
+    <title>場所・予定｜おくるカード</title>
+    <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
     <link rel="stylesheet" href="../shared/ui.css" />
     <link rel="stylesheet" href="./assets/styles.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -16,8 +20,8 @@
   <body class="ls-has-sendbar">
     <main class="ls-page">
       <header class="ls-topbar">
-        <a class="ls-back" href="../">ツール一覧</a>
-        <h1 class="ls-title">場所と予定</h1>
+        <a class="ls-back" href="../">おくるカード</a>
+        <h1 class="ls-title">場所・予定</h1>
         <span class="ls-topbar-end"></span>
       </header>
 
@@ -87,7 +91,7 @@
           </label>
         </section>
 
-        <button id="mapShareButton" type="button" hidden>LINEで送る</button>
+        <button id="mapShareButton" type="button" hidden>トークに送る</button>
         <p id="mapMessage" class="message" hidden></p>
       </div>
 
@@ -219,7 +223,7 @@
             </div>
           </section>
 
-          <button id="shareTargetButton" type="button" hidden>LINEで送る</button>
+          <button id="shareTargetButton" type="button" hidden>トークに送る</button>
           <p id="statusMessage" class="message" hidden></p>
         </form>
       </div>
@@ -228,7 +232,7 @@
     <div class="ls-sendbar">
       <div class="ls-sendbar-inner">
         <p id="sendBarMessage" class="ls-status" aria-live="polite"></p>
-        <button id="sendBarButton" class="ls-send" type="button" disabled>LINEで送る</button>
+        <button id="sendBarButton" class="ls-send" type="button" disabled>トークに送る</button>
       </div>
     </div>
   </body>

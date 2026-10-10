@@ -635,7 +635,7 @@ async function send_() {
   } finally {
     state.busy = false;
     els.sendButton.disabled = !state.liffReady;
-    els.sendButton.textContent = "LINEで送る";
+    els.sendButton.textContent = "トークに送る";
   }
 }
 
