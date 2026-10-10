@@ -3,6 +3,23 @@
 (function () {
   const LABEL = "Created by おくるカード ›";
 
+  // 「Created by」を出すかどうか。config.js の showCredit: false で消せる。
+  // 将来、有償プランで消す場合は、購入状態を確認できたときに setEnabled(false) を呼ぶ。
+  let enabled = !(window.LINE_SHARE_CONFIG && window.LINE_SHARE_CONFIG.showCredit === false);
+
+  function applyToPage() {
+    document.documentElement.dataset.credit = enabled ? "on" : "off";
+  }
+
+  function setEnabled(value) {
+    enabled = Boolean(value);
+    applyToPage();
+  }
+
+  function isEnabled() {
+    return enabled;
+  }
+
   function topUrl() {
     const liffId = window.LINE_SHARE_CONFIG && window.LINE_SHARE_CONFIG.liffId;
     return liffId ? `https://liff.line.me/${liffId}` : "https://katsuan.github.io/line-share/";
@@ -28,7 +45,7 @@
 
   // Flex のバブルにだけ付ける（画像メッセージはリンクを持てないのでそのまま）
   function withCredit(message) {
-    if (!message || message.type !== "flex" || message.contents?.type !== "bubble") {
+    if (!enabled || !message || message.type !== "flex" || message.contents?.type !== "bubble") {
       return message;
     }
     const bubble = message.contents;
@@ -38,5 +55,6 @@
     return { ...message, contents: { ...bubble, footer } };
   }
 
-  window.LineShareCredit = { LABEL, topUrl, withCredit };
+  applyToPage();
+  window.LineShareCredit = { LABEL, topUrl, withCredit, enabled: isEnabled, setEnabled };
 })();

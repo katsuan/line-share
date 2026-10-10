@@ -10,5 +10,8 @@ window.LINE_SHARE_CONFIG = {
   googleMapsApiKey: "",
 
   // 画像（文字アイコン・お絵描き）のアップロード先。server/ を Render にデプロイしたURL
-  imageApiBaseUrl: "https://liff-image.onrender.com"
+  imageApiBaseUrl: "https://liff-image.onrender.com",
+
+  // 送るカードに「Created by おくるカード」を付けるか（false で消える）
+  showCredit: true
 };
