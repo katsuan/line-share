@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./style.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="../config.js"></script>
+    <script src="../shared/credit.js"></script>
     <script src="../shared/ui.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
@@ -37,6 +38,7 @@
               <textarea id="detailInput" class="bubble-input bubble-detail" rows="1" maxlength="1000" placeholder="詳細（表示設定でOFF可）" aria-label="詳細"></textarea>
               <div id="buttonStack" class="bubble-actions" hidden></div>
             </div>
+            <p class="ls-credit">Created by LINEで送る ›</p>
           </div>
           <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真やボタンは下の設定から。</p>
         </section>
@@ -90,8 +92,16 @@
           <details class="ls-fold">
             <summary>写真</summary>
             <div class="ls-fold-body">
+              <div class="ls-actions">
+                <label class="ls-button is-primary photo-pick">
+                  📷 端末から選ぶ
+                  <input id="photoFileInput" type="file" accept="image/*" />
+                </label>
+                <button id="photoClearButton" class="ls-button is-danger" type="button" hidden>写真を外す</button>
+              </div>
+              <p id="photoStatus" class="ls-hint" hidden></p>
               <label class="ls-field">
-                <span class="ls-label">写真のURL</span>
+                <span class="ls-label">または写真のURL</span>
                 <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
               </label>
               <p id="imageWarning" class="ls-hint is-error" hidden>写真のURLは https:// から始まる公開URLを入力してください。</p>

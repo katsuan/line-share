@@ -775,3 +775,12 @@ body.is-typing .ls-sendbar {
 .ls-fold > summary:has(.ls-fold-meta)::after {
   margin-left: 4px;
 }
+
+/* 送るカードの末尾に付く「Created by」（shared/credit.js）をプレビューにも表示する */
+.ls-credit {
+  margin: 0;
+  padding: 2px 0 10px;
+  color: #9aa0a6;
+  font-size: 10px;
+  text-align: center;
+}

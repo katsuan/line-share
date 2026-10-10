@@ -87,7 +87,7 @@ export async function shareFlex(message) {
   if (!app.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
     throw new UserError("この環境では送信機能を利用できません。LINEアプリ内で開いてください。");
   }
-  const result = await liff.shareTargetPicker([message]);
+  const result = await liff.shareTargetPicker([window.LineShareCredit.withCredit(message)]);
   return result?.status === "success";
 }
 

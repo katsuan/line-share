@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="./style.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="../config.js"></script>
+    <script src="../shared/credit.js"></script>
     <script src="../shared/ui.js" defer></script>
     <script type="module" src="./app.js"></script>
   </head>
@@ -120,7 +121,7 @@
         <img id="sendPreview" class="sheet-preview ls-checker" alt="送る画像" />
         <p class="ls-hint"><strong>画像</strong>：そのまま画像で届きます。<br /><strong>カード</strong>：トーク上でカードとして表示され、動きも再生されます。</p>
         <p id="sendMotionNote" class="ls-hint is-warn" hidden>動きは「カード」で送ったときだけ再生されます（画像では止まった状態になります）。</p>
-        <p class="ls-hint">送信後の修正はできません。</p>
+        <p class="ls-hint">カードで送ると、末尾に「Created by LINEで送る」（このツールへのリンク）が付きます。送信後の修正はできません。</p>
         <div class="ls-sheet-actions">
           <button id="sendAsImage" class="ls-send ls-send-secondary" type="button">画像で送る</button>
           <button id="sendAsCard" class="ls-send" type="button">カードで送る</button>

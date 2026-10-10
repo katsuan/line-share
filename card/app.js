@@ -85,6 +85,8 @@ let state = structuredClone(BLANK_STATE);
 // クエリ由来のURL（許可ドメイン以外は送信しない）
 const queryUrls = new Set();
 let hasTriedShare = false;
+// 端末から選んだ写真のアップロード状態（アップロード中は手元の画像でプレビューする）
+const photo = { uploading: false, localUrl: "" };
 let shareReady = false;
 
 document.addEventListener("DOMContentLoaded", init);
@@ -95,6 +97,7 @@ async function init() {
     "heroArea", "heroImage", "badgeRow", "buttonStack",
     "showDateToggle", "showDetailToggle", "customColorInput",
     "imageUrlInput", "imageActionUrlInput", "imageWarning",
+    "photoFileInput", "photoClearButton", "photoStatus",
     "badgeList", "badgeInput", "addBadgeButton",
     "buttonList", "addButtonButton", "buttonWarning",
     "presetGrid", "templateNameInput", "templateSelect",
@@ -226,12 +229,13 @@ function render() {
   els.detailInput.hidden = !state.showDetail;
   els.detailInput.disabled = !state.showDetail;
 
-  const imageUrl = state.imageUrl.trim();
+  const imageUrl = photo.uploading ? photo.localUrl : state.imageUrl.trim();
   els.heroArea.hidden = !imageUrl;
   if (imageUrl && els.heroImage.getAttribute("src") !== imageUrl) {
     els.heroImage.src = imageUrl;
   }
-  els.imageWarning.hidden = !imageUrl || isHttpsUrl(imageUrl);
+  els.imageWarning.hidden = photo.uploading || !imageUrl || isHttpsUrl(imageUrl);
+  els.photoClearButton.hidden = !imageUrl;
 
   els.badgeRow.replaceChildren(
     ...state.badges.map((text) => {
@@ -423,6 +427,7 @@ function getSendableUrl(value) {
 // ---- 入力チェックと送信 ----
 
 function getValidation() {
+  if (photo.uploading) return { message: "写真をアップロードしています。少しお待ちください。", fieldId: "photoFileInput" };
   if (!state.headerTitle) return { message: "タイトルを入力してください。", fieldId: "headerInput" };
   if (!state.title) return { message: "本文タイトルを入力してください。", fieldId: "titleInput" };
   if (state.showDate && !state.date) {
@@ -573,7 +578,7 @@ async function share() {
 
   try {
     setStatus("共有先を開いています…");
-    const message = buildFlexMessage();
+    const message = window.LineShareCredit.withCredit(buildFlexMessage());
     const result = await liff.shareTargetPicker([message], { isMultiple: true });
 
     if (!result) {
@@ -651,6 +656,83 @@ async function initLiff() {
     setStatus("LIFF の初期化に失敗しました。", true);
   }
   updateShareButtonState();
+}
+
+// ---- 端末の写真 ----
+
+const PHOTO_MAX_SIDE = 1200;
+
+async function uploadPhoto(file) {
+  if (!file.type.startsWith("image/")) {
+    setPhotoStatus("画像ファイルを選んでください。", true);
+    return;
+  }
+  const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
+  if (!base) {
+    setPhotoStatus("写真のアップロード先が未設定です（config.js の imageApiBaseUrl）。", true);
+    return;
+  }
+
+  try {
+    const dataUrl = await resizePhoto(file);
+    photo.uploading = true;
+    photo.localUrl = dataUrl;
+    setPhotoStatus("アップロードしています…（初回は30秒ほどかかることがあります）");
+    render();
+
+    const response = await fetch(`${base}/api/upload`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageData: dataUrl })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !isHttpsUrl(data.imageUrl)) {
+      console.error("photo upload failed", response.status, data);
+      throw new Error("upload failed");
+    }
+
+    state.imageUrl = data.imageUrl;
+    els.imageUrlInput.value = data.imageUrl;
+    setPhotoStatus("写真を入れました。");
+  } catch (error) {
+    console.error(error);
+    setPhotoStatus("写真をアップロードできませんでした。時間をおいてもう一度お試しください。", true);
+  } finally {
+    photo.uploading = false;
+    photo.localUrl = "";
+    render();
+  }
+}
+
+// 長い辺を 1200px までに縮めて JPEG にする（アップロードを軽くし、カードに十分な大きさを保つ）
+function resizePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, PHOTO_MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("画像を読み込めませんでした。"));
+    };
+    img.src = url;
+  });
+}
+
+function setPhotoStatus(message, isError = false) {
+  els.photoStatus.textContent = message;
+  els.photoStatus.hidden = !message;
+  els.photoStatus.classList.toggle("is-error", isError);
 }
 
 // ---- テンプレート ----
@@ -769,7 +851,20 @@ function bindEvents() {
     });
   });
 
+  els.photoFileInput.addEventListener("change", () => {
+    const file = els.photoFileInput.files?.[0];
+    els.photoFileInput.value = "";
+    if (file) uploadPhoto(file);
+  });
+  els.photoClearButton.addEventListener("click", () => {
+    state.imageUrl = "";
+    els.imageUrlInput.value = "";
+    setPhotoStatus("");
+    render();
+  });
+
   els.heroImage.addEventListener("error", () => {
+    if (photo.uploading) return;
     els.imageWarning.hidden = false;
     els.imageWarning.textContent = "写真を読み込めませんでした。URLを確認してください。";
   });

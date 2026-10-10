@@ -161,3 +161,16 @@
 .modal-check {
   justify-self: start;
 }
+
+/* 端末の写真を選ぶボタン（中の file input は見せない） */
+.photo-pick {
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-pick input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
