@@ -1048,27 +1048,27 @@
         return stroke.outline ? stroke.size + stroke.outline.size * 2 : stroke.size;
       }
 
-      // 縁取りが同じペン色の線を切らないよう、縁取りの範囲にある同色のペン部分を上に描き戻す
-      function restoreSameColorInk(targetContext, stroke) {
+      // 縁取りが同じペン色の線を切らないよう、同色のペン部分をくり抜いた縁取りを描く。
+      // 描いた後に上から描き戻すと、縁取りの端のアンチエイリアスで細い継ぎ目が出るため
+      function drawOutline(targetContext, stroke) {
         const layer = state.inkLayers.get(stroke.color);
         if (!layer) {
+          strokePath(targetContext, stroke, outerWidth(stroke), stroke.outline.color);
           return;
         }
 
         const maskContext = maskCanvas.getContext("2d");
-        maskContext.globalCompositeOperation = "source-over";
         maskContext.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        strokePath(maskContext, stroke, outerWidth(stroke), stroke.outline.color);
+        maskContext.globalCompositeOperation = "destination-out";
         maskContext.drawImage(layer, 0, 0);
-        maskContext.globalCompositeOperation = "destination-in";
-        strokePath(maskContext, stroke, outerWidth(stroke), "#000");
         maskContext.globalCompositeOperation = "source-over";
         targetContext.drawImage(maskCanvas, 0, 0);
       }
 
       function drawStroke(targetContext, stroke) {
         if (stroke.outline) {
-          strokePath(targetContext, stroke, outerWidth(stroke), stroke.outline.color);
-          restoreSameColorInk(targetContext, stroke);
+          drawOutline(targetContext, stroke);
         }
         strokePath(targetContext, stroke, stroke.size, stroke.color);
       }
