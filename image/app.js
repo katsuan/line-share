@@ -626,7 +626,8 @@ async function send_() {
     els.sendButton.textContent = "準備中...";
     setStatus_("画像を準備しています…");
     const imageUrl = await uploadImage_(blob);
-    const result = await liff.shareTargetPicker([buildMessage_(mode, imageUrl, animated)], { isMultiple: true });
+    const message = window.LineShareCredit.withCredit(buildMessage_(mode, imageUrl, animated));
+    const result = await liff.shareTargetPicker([message], { isMultiple: true });
     setStatus_(result ? "送信しました。" : "送信をやめました。", result ? "success" : "");
   } catch (error) {
     console.error(error);

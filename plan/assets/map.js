@@ -272,6 +272,7 @@ function renderPreview_(place, hasUrl) {
     <div class="preview-actions">
       <a class="preview-link primary" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">地図を開く</a>
     </div>
+    <p class="ls-credit">Created by LINEで送る ›</p>
   `;
 }
 
