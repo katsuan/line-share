@@ -58,7 +58,7 @@ const DEFAULT_PREFS = {
   background: null,
   motion: "none",
   shape: "1:1",
-  backdrop: "checker"
+  backdrop: "light"
 };
 
 const state = {
@@ -374,9 +374,11 @@ function buildControls_() {
   buildChoices_(
     els.backdropList,
     [
-      { label: "透過", value: "checker" },
-      { label: "明るいトーク", value: "light" },
-      { label: "暗いトーク", value: "dark" }
+      { label: "トーク明", value: "light" },
+      { label: "トーク暗", value: "dark" },
+      { label: "白", value: "white" },
+      { label: "黒", value: "black" },
+      { label: "透過", value: "checker" }
     ],
     () => state.backdrop,
     (value) => (state.backdrop = value),
@@ -556,6 +558,7 @@ async function openSaveSheet_() {
   const { blob } = await buildImage_();
   const url = URL.createObjectURL(blob);
   els.savePreview.src = url;
+  els.savePreview.dataset.backdrop = state.backdrop;
   els.saveDownload.href = url;
   els.saveDownload.download = `line-share-${Date.now()}.png`;
   openSheet_(els.saveSheet);
@@ -574,6 +577,7 @@ function closeSheet_(sheet) {
 
 function chooseSendMode_(previewUrl, animated) {
   els.sendPreview.src = previewUrl;
+  els.sendPreview.dataset.backdrop = state.backdrop;
   els.sendMotionNote.hidden = !animated;
   openSheet_(els.sendSheet);
 
