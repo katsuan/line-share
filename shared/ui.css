@@ -198,7 +198,7 @@ textarea {
 .ls-hint {
   margin: 0;
   color: var(--ls-subtext);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -517,7 +517,7 @@ input[type="time"].ls-input {
 
 .ls-fold-meta {
   color: var(--ls-faint);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -559,7 +559,7 @@ input[type="time"].ls-input {
 
 .ls-list-item small {
   color: var(--ls-subtext);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.5;
 }
@@ -584,14 +584,14 @@ input[type="time"].ls-input {
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.18);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .ls-preview-note {
   margin: 0;
   color: rgba(255, 255, 255, 0.92);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   text-align: center;
 }
@@ -822,7 +822,7 @@ html[data-credit="off"] .ls-credit {
   gap: 6px;
   min-height: 28px;
   color: var(--ls-subtext);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }

@@ -15,7 +15,7 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 | `/image/` | 💬👆 文字・手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
 | `server/` | 画像アップロード用 API（Render で動かす Node.js） |
 
-全ページ共通のデザイン（`shared/ui.css`）、送るカード末尾の「Created by おくるカード」（`shared/credit.js`）、アイコンは `shared/` にあります。
+全ページ共通のデザイン（`shared/ui.css`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるカード」（`shared/credit.js`）、アイコンは `shared/` にあります。
 
 ## 設定
 

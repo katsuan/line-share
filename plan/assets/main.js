@@ -1,7 +1,6 @@
-import { CONFIG } from "./config.js?v=202610102002";
-import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610102002";
-import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610102002";
-import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610102002";
+import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610102321";
+import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610102321";
+import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610102321";
 
 const TABS = ["map", "calendar"];
 
@@ -23,20 +22,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyQuery_(new URLSearchParams(location.search));
 });
 
+// LIFF の準備は shared/liff.js。LINE の外ではログイン画面へ移る
 async function initializeLiff_() {
   try {
-    if (!CONFIG.liffId) return;
-    await liff.init({ liffId: CONFIG.liffId });
-
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
-    }
-
-    app.liffReady = true;
-    window.LineShareCredit?.checkUser();
-  } catch (error) {
-    console.error(error);
+    const { ready } = await window.LineShareLiff.init({ login: "redirect" });
+    app.liffReady = ready;
   } finally {
     refreshMapTab();
     refreshCalendarTab();

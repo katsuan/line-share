@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610102002";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610102002";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610102321";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610102321";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -706,8 +706,8 @@ async function send_() {
 // 作った画像・送った画像のどちらも、ここから送る
 async function sendImage_(item) {
   if (state.busy) return;
-  if (!state.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
-    setStatus_("LINEアプリ内で開くと送れます。", "error");
+  if (!state.liffReady || !window.LineShareLiff.canShare()) {
+    setStatus_(window.LineShareLiff.MESSAGES.notInLine, "error");
     return;
   }
 
@@ -789,15 +789,18 @@ async function initLiff_() {
     setStatus_("LIFF ID が未設定です（config.js）。画像の作成と保存は使えます。");
     return;
   }
-  try {
-    await liff.init({ liffId: config.liffId, withLoginOnExternalBrowser: true });
-    window.LineShareCredit?.checkUser();
-    state.liffReady = true;
-    els.sendButton.disabled = false;
-  } catch (error) {
-    console.error(error);
-    setStatus_("LINEとの接続に失敗しました。LINEアプリから開き直してください。", "error");
+  // LIFF の準備は shared/liff.js。LINE の外のブラウザでもログインして送れるようにする
+  const { MESSAGES } = window.LineShareLiff;
+  setStatus_(MESSAGES.connecting);
+  const { ready } = await window.LineShareLiff.init({ login: "external" });
+  if (!ready) {
+    setStatus_(MESSAGES.failed, "error");
+    return;
   }
+  state.liffReady = true;
+  els.sendButton.disabled = false;
+  // 準備中の表示だけ消す（その間に出た別のお知らせは残す）
+  if (els.status.textContent === MESSAGES.connecting) setStatus_("");
 }
 
 // ---- 設定の保存（使えない環境でも動くように） ----

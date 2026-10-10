@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>おくるカード</title>
     <meta name="description" content="場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れます。" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610102002" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610102321" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610102002"></script>
-    <script src="./shared/credit.js?v=202610102002"></script>
+    <script src="./config.js?v=202610102321"></script>
+    <script src="./shared/credit.js?v=202610102321"></script>
     <style>
       .hub-title {
         display: flex;
@@ -64,6 +64,21 @@
         outline-offset: 2px;
       }
 
+      .hub-lead {
+        margin: -10px 4px 16px;
+        color: var(--ls-subtext);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      /* ツール名の下の一言。何ができるかを名前だけに頼らない */
+      .hub-tool-desc {
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.4;
+      }
+
       .hub-icon {
         font-size: 30px;
         line-height: 1;
@@ -78,7 +93,7 @@
       .hub-more-title {
         margin: 0 4px 8px;
         color: var(--ls-subtext);
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 800;
       }
 
@@ -131,7 +146,7 @@
       .hub-link-desc {
         display: block;
         color: var(--ls-subtext);
-        font-size: 12px;
+        font-size: 13px;
       }
 
       .hub-link-arrow {
@@ -149,10 +164,11 @@
   <body>
     <main id="hub" class="ls-page">
       <h1 class="hub-title"><img src="./shared/icon.svg" alt="" width="36" height="36" />おくるカード</h1>
+      <p class="hub-lead">LINEのトークに、カードや画像で送れます。</p>
       <ul class="hub-tools">
-        <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定</a></li>
-        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span><span>お知らせ<wbr />カード</span></a></li>
-        <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き</a></li>
+        <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定<span class="hub-tool-desc">地図や予定を<wbr />カードで</span></a></li>
+        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span><span>お知らせ<wbr />カード</span><span class="hub-tool-desc">写真やボタン<wbr />付きで</span></a></li>
+        <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き<span class="hub-tool-desc">スタンプ風の<wbr />画像に</span></a></li>
       </ul>
 
       <section class="hub-more" aria-labelledby="hubMoreTitle">
