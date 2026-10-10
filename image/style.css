@@ -165,3 +165,8 @@
 .sheet-preview[data-backdrop="dark"] { background: var(--ls-talk-dark); }
 .sheet-preview[data-backdrop="white"] { background: #ffffff; box-shadow: inset 0 0 0 1px var(--ls-line); }
 .sheet-preview[data-backdrop="black"] { background: #000000; }
+
+.motion-toggle {
+  justify-self: center;
+  background: rgba(255, 255, 255, 0.92);
+}
