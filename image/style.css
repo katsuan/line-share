@@ -31,6 +31,14 @@
   background: var(--ls-talk-dark);
 }
 
+.canvas-frame[data-backdrop="white"] {
+  background: #ffffff;
+}
+
+.canvas-frame[data-backdrop="black"] {
+  background: #000000;
+}
+
 .canvas-frame canvas {
   display: block;
   width: 100%;
@@ -66,8 +74,26 @@
   pointer-events: none;
 }
 
+.backdrop-row {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.backdrop-label {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .backdrop-chips {
+  flex-wrap: nowrap;
   justify-content: center;
+  gap: 6px;
+}
+
+.backdrop-chips .ls-chip {
+  padding: 0 10px;
 }
 
 .text-input {
@@ -129,3 +155,9 @@
   line-height: 1;
   cursor: pointer;
 }
+
+/* 保存・送信シートのプレビューも、選んだ背景で見せる */
+.sheet-preview[data-backdrop="light"] { background: var(--ls-talk-bg); }
+.sheet-preview[data-backdrop="dark"] { background: var(--ls-talk-dark); }
+.sheet-preview[data-backdrop="white"] { background: #ffffff; box-shadow: inset 0 0 0 1px var(--ls-line); }
+.sheet-preview[data-backdrop="black"] { background: #000000; }

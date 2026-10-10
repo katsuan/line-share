@@ -33,11 +33,14 @@
       <div class="ls-stack">
         <section class="ls-preview">
           <span class="ls-preview-label">送信プレビュー</span>
-          <div id="canvasFrame" class="canvas-frame" data-backdrop="checker">
+          <div id="canvasFrame" class="canvas-frame" data-backdrop="light">
             <canvas id="canvas" aria-label="プレビュー"></canvas>
             <p id="drawHint" class="draw-hint" hidden>ここを指でなぞって描けます</p>
           </div>
-          <div id="backdropList" class="ls-chips backdrop-chips" aria-label="プレビューの背景"></div>
+          <div class="backdrop-row">
+            <span class="backdrop-label">背景で確認</span>
+            <div id="backdropList" class="ls-chips backdrop-chips" aria-label="プレビューの背景"></div>
+          </div>
         </section>
 
         <section id="textPanel" class="ls-panel" role="tabpanel" aria-labelledby="modeText">
