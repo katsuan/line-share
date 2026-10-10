@@ -17,7 +17,7 @@
     <main class="app-shell">
       <section class="hero">
         <div class="hero-top">
-          <p class="hero-kicker">LINEで共有する</p>
+          <a class="back-link" href="../">← ツール一覧</a>
           <span id="liffBadge" class="badge">接続確認中</span>
         </div>
         <h1>場所と予定を送りやすくする</h1>
@@ -280,5 +280,12 @@
         </section>
       </div>
     </main>
+
+    <div class="send-bar">
+      <div class="send-bar-inner">
+        <p id="sendBarMessage" class="send-bar-message" aria-live="polite"></p>
+        <button id="sendBarButton" class="button button-main" type="button" disabled>ほかのトークに送る</button>
+      </div>
+    </div>
   </body>
 </html>

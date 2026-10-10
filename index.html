@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>LINEで共有</title>
+    <meta name="description" content="場所・予定・カード・文字アイコン・お絵描きを、LINEのトークへ送れるツール集です。" />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="./config.js"></script>
+    <style>
+      :root {
+        --bg: #f5f5f3;
+        --card: #ffffff;
+        --text: #1f1f1c;
+        --subtext: #66665f;
+        --line: #d9d7d0;
+        --accent: #3f6db5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      main {
+        width: min(100%, 640px);
+        margin: 0 auto;
+        padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.7rem;
+        line-height: 1.25;
+      }
+
+      .lead {
+        margin: 8px 0 20px;
+        color: var(--subtext);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .tools {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .tool {
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        min-height: 76px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--card);
+        color: inherit;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(20, 20, 18, 0.04);
+      }
+
+      .tool:active {
+        transform: translateY(1px);
+      }
+
+      .tool:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .tool-icon {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: #f2efe7;
+        font-size: 26px;
+      }
+
+      .tool-name {
+        display: block;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+
+      .tool-desc {
+        display: block;
+        margin-top: 2px;
+        color: var(--subtext);
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+
+      .tool-arrow {
+        color: var(--subtext);
+        font-size: 1.2rem;
+      }
+
+      .redirecting {
+        color: var(--subtext);
+        text-align: center;
+        padding-top: 30vh;
+      }
+    </style>
+  </head>
+  <body>
+    <main id="hub">
+      <h1>LINEで共有</h1>
+      <p class="lead">送りたいものを選んでください。どれも、選んだトークへカードや画像で送れます。</p>
+
+      <ul class="tools">
+        <li>
+          <a class="tool" href="./plan/?tab=map">
+            <span class="tool-icon" aria-hidden="true">📍</span>
+            <span><span class="tool-name">場所を送る</span><span class="tool-desc">Google Mapsの場所に写真・バッジ・コメントを付けて送る</span></span>
+            <span class="tool-arrow" aria-hidden="true">›</span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="./plan/?tab=calendar">
+            <span class="tool-icon" aria-hidden="true">📅</span>
+            <span><span class="tool-name">予定を送る</span><span class="tool-desc">Googleカレンダーにそのまま追加できる予定カードを送る</span></span>
+            <span class="tool-arrow" aria-hidden="true">›</span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="./card/">
+            <span class="tool-icon" aria-hidden="true">🪧</span>
+            <span><span class="tool-name">カードを送る</span><span class="tool-desc">見出し・写真・バッジ・リンクボタン付きのお知らせカード</span></span>
+            <span class="tool-arrow" aria-hidden="true">›</span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="./icon/">
+            <span class="tool-icon" aria-hidden="true">💬</span>
+            <span><span class="tool-name">文字アイコンを送る</span><span class="tool-desc">文字入りのスタンプ風画像を作って送る</span></span>
+            <span class="tool-arrow" aria-hidden="true">›</span>
+          </a>
+        </li>
+        <li>
+          <a class="tool" href="./draw/">
+            <span class="tool-icon" aria-hidden="true">✏️</span>
+            <span><span class="tool-name">手書きで送る</span><span class="tool-desc">指で描いた絵をそのまま画像で送る</span></span>
+            <span class="tool-arrow" aria-hidden="true">›</span>
+          </a>
+        </li>
+      </ul>
+    </main>
+
+    <script>
+      // https://liff.line.me/<LIFF ID>/plan/ のようなリンクは、まずこのトップに liff.state 付きで届く。
+      // liff.init() が該当ツールのページへ転送する。
+      (function () {
+        const params = new URLSearchParams(location.search);
+        const liffId = window.LINE_SHARE_CONFIG && window.LINE_SHARE_CONFIG.liffId;
+        if (!params.has("liff.state") || !liffId || !window.liff) return;
+
+        const hub = document.getElementById("hub");
+        hub.innerHTML = '<p class="redirecting">開いています…</p>';
+        liff.init({ liffId }).catch((error) => {
+          console.error(error);
+          location.replace(location.pathname);
+        });
+      })();
+    </script>
+  </body>
+</html>
