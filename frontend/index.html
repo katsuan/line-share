@@ -137,6 +137,10 @@
 
       button:disabled {
         opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      button[aria-busy="true"] {
         cursor: wait;
       }
 
@@ -204,6 +208,8 @@
       canvas {
         display: block;
         width: 100%;
+        max-width: 820px;
+        margin: 0 auto;
         aspect-ratio: 1 / 1;
         border-radius: 18px;
         background:
@@ -217,6 +223,10 @@
         box-shadow: inset 0 0 0 1px rgba(24, 34, 47, 0.08);
       }
 
+      canvas.is-filled {
+        background: var(--canvas-fill, white);
+      }
+
       .board-actions {
         display: flex;
         flex-wrap: wrap;
@@ -225,7 +235,11 @@
       }
 
       .board-actions button {
-        flex: 1 1 180px;
+        flex: 1 1 120px;
+      }
+
+      .board-actions .primary {
+        flex: 2 1 240px;
       }
 
       .board-status {
@@ -295,6 +309,7 @@
 
       .quick-tools .field select {
         height: var(--tool-height);
+        padding: 0 6px;
       }
 
       .color-swatch input[type="color"] {
@@ -335,12 +350,8 @@
       }
 
       @media (max-width: 560px) {
-        .board-actions {
-          flex-direction: column;
-        }
-
-        .board-actions button {
-          flex: none;
+        .board-actions .primary {
+          flex-basis: 100%;
         }
       }
     </style>
@@ -376,14 +387,14 @@
         <section class="panel board">
           <div class="quick-tools">
             <div class="field">
-              <label for="brushColor">Brush</label>
+              <label for="brushColor">ペンの色</label>
               <label class="color-swatch" for="brushColor">
                 <input id="brushColor" type="color" value="#18222f" />
               </label>
             </div>
 
             <div class="field">
-              <label for="brushSize">Size</label>
+              <label for="brushSize">太さ</label>
               <select id="brushSize">
                 <option value="4">4 px</option>
                 <option value="8" selected>8 px</option>
@@ -393,37 +404,37 @@
             </div>
 
             <div class="field">
-              <label for="backgroundColor">Background</label>
+              <label for="transparentToggle">背景を透明</label>
+              <label id="transparentToggleButton" class="toggle-button" for="transparentToggle">
+                <input id="transparentToggle" type="checkbox" checked />
+                <span id="transparentToggleText">オン</span>
+              </label>
+            </div>
+
+            <div class="field">
+              <label for="backgroundColor">背景色</label>
               <label class="color-swatch" for="backgroundColor">
                 <input id="backgroundColor" type="color" value="#ffffff" />
               </label>
             </div>
 
             <div class="field">
-              <label for="transparentToggle">Transparent</label>
-              <label id="transparentToggleButton" class="toggle-button" for="transparentToggle">
-                <input id="transparentToggle" type="checkbox" checked />
-                <span id="transparentToggleText">On</span>
-              </label>
-            </div>
-
-            <div class="field">
-              <label for="outlineToggle">Outline</label>
+              <label for="outlineToggle">縁取り</label>
               <label id="outlineToggleButton" class="toggle-button" for="outlineToggle">
                 <input id="outlineToggle" type="checkbox" />
-                <span id="outlineToggleText">Off</span>
+                <span id="outlineToggleText">オフ</span>
               </label>
             </div>
 
             <div class="field">
-              <label for="outlineColor">Outline Color</label>
+              <label for="outlineColor">縁の色</label>
               <label class="color-swatch" for="outlineColor">
                 <input id="outlineColor" type="color" value="#ffffff" />
               </label>
             </div>
 
             <div class="field">
-              <label for="outlineSize">Outline Size</label>
+              <label for="outlineSize">縁の太さ</label>
               <select id="outlineSize">
                 <option value="2">2 px</option>
                 <option value="4" selected>4 px</option>
@@ -438,12 +449,13 @@
           </div>
 
           <div class="board-actions">
-            <button id="shareButton" class="primary" type="button">Share Image</button>
-            <button id="clearButton" class="secondary" type="button">Clear Canvas</button>
+            <button id="shareButton" class="primary" type="button">トークに送る</button>
+            <button id="undoButton" class="secondary" type="button" disabled>元に戻す</button>
+            <button id="clearButton" class="secondary" type="button">全部消す</button>
           </div>
 
-          <div id="status" class="status compact-status" data-tone="default">
-            LIFF を初期化しています...
+          <div id="status" class="status compact-status" data-tone="default" role="status" aria-live="polite">
+            準備しています...
           </div>
 
           <div id="debugInfo" class="status compact-status" data-tone="default" hidden></div>
@@ -474,11 +486,17 @@
       const isDebugMode = searchParams.get("debug") === "1";
       const isMockMode = searchParams.get("mock") === "1";
 
+      // 1 枚あたり 1024x1024 の canvas を保持するため、端末メモリを考えて上限を小さめにする
+      const maxHistory = 10;
+
       const state = {
         liffInitialized: false,
         drawing: false,
+        pointerId: null,
         strokePoints: [],
         strokeBase: null,
+        isBlank: true,
+        history: [],
       };
 
       const statusElement = document.getElementById("status");
@@ -500,6 +518,7 @@
       const saveConfigButton = document.getElementById("saveConfigButton");
       const shareButton = document.getElementById("shareButton");
       const clearButton = document.getElementById("clearButton");
+      const undoButton = document.getElementById("undoButton");
       const configPanel = document.getElementById("configPanel");
       const canvas = document.getElementById("drawCanvas");
       const context = canvas.getContext("2d");
@@ -532,6 +551,18 @@
         debugInfoElement.dataset.tone = tone;
       }
 
+      function showError(message, debugDetail) {
+        setStatus(message, "error");
+        setDebugInfo(debugDetail, "error");
+      }
+
+      function describeError(error) {
+        return (
+          (error && error.code ? error.code + " / " : "") +
+          (error && error.message ? error.message : String(error))
+        );
+      }
+
       function saveConfig() {
         localStorage.setItem(storageKeys.liffId, liffIdInput.value.trim());
         localStorage.setItem(storageKeys.apiBaseUrl, apiBaseUrlInput.value.trim());
@@ -561,14 +592,6 @@
         outlineSizeInput.value = localStorage.getItem(storageKeys.outlineSize) || "4";
       }
 
-      function configureBrush() {
-        context.lineCap = "round";
-        context.lineJoin = "round";
-        context.strokeStyle = brushColorInput.value;
-        context.lineWidth = Number(brushSizeInput.value);
-        saveDrawPreferences();
-      }
-
       function updateOutlineControls() {
         const enabled = outlineToggleInput.checked;
         outlineColorInput.disabled = !enabled;
@@ -576,49 +599,59 @@
         outlineColorField.classList.toggle("is-disabled", !enabled);
         outlineSizeField.classList.toggle("is-disabled", !enabled);
         outlineToggleButton.classList.toggle("is-active", enabled);
-        outlineToggleText.textContent = enabled ? "On" : "Off";
+        outlineToggleText.textContent = enabled ? "オン" : "オフ";
         saveDrawPreferences();
       }
 
       function updateCanvasPreviewBackground() {
-        if (transparentToggleInput.checked) {
-          canvas.style.background =
-            "linear-gradient(45deg, rgba(24, 34, 47, 0.04) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.04) 75%, rgba(24, 34, 47, 0.04)), linear-gradient(45deg, rgba(24, 34, 47, 0.04) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.04) 75%, rgba(24, 34, 47, 0.04))";
-          canvas.style.backgroundPosition = "0 0, 14px 14px";
-          canvas.style.backgroundSize = "28px 28px";
-        } else {
-          canvas.style.background = backgroundColorInput.value;
-          canvas.style.backgroundPosition = "0 0";
-          canvas.style.backgroundSize = "auto";
-        }
+        const transparent = transparentToggleInput.checked;
 
-        backgroundColorInput.disabled = transparentToggleInput.checked;
-        backgroundColorField.classList.toggle("is-disabled", transparentToggleInput.checked);
-        transparentToggleButton.classList.toggle("is-active", transparentToggleInput.checked);
-        transparentToggleText.textContent = transparentToggleInput.checked ? "On" : "Off";
+        canvas.classList.toggle("is-filled", !transparent);
+        canvas.style.setProperty("--canvas-fill", backgroundColorInput.value);
+        backgroundColorInput.disabled = transparent;
+        backgroundColorField.classList.toggle("is-disabled", transparent);
+        transparentToggleButton.classList.toggle("is-active", transparent);
+        transparentToggleText.textContent = transparent ? "オン" : "オフ";
         saveDrawPreferences();
       }
 
-      function resetCanvas() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        configureBrush();
-      }
-
-      function resizeCanvas() {
+      function snapshotCanvas() {
         const snapshot = document.createElement("canvas");
         snapshot.width = canvas.width;
         snapshot.height = canvas.height;
         snapshot.getContext("2d").drawImage(canvas, 0, 0);
+        return snapshot;
+      }
 
-        const displaySize = Math.min(window.innerWidth - 64, 820);
-        const nextSize = Math.max(320, displaySize);
-        canvas.width = 1024;
-        canvas.height = 1024;
-        canvas.style.maxWidth = nextSize + "px";
-        canvas.style.maxHeight = nextSize + "px";
+      function pushHistory(image) {
+        state.history.push({ image, isBlank: state.isBlank });
+        if (state.history.length > maxHistory) {
+          state.history.shift();
+        }
+        undoButton.disabled = false;
+      }
 
-        context.drawImage(snapshot, 0, 0);
-        configureBrush();
+      function undo() {
+        const entry = state.history.pop();
+        if (!entry) {
+          return;
+        }
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(entry.image, 0, 0);
+        state.isBlank = entry.isBlank;
+        undoButton.disabled = state.history.length === 0;
+      }
+
+      function clearCanvas() {
+        if (state.isBlank) {
+          return;
+        }
+
+        pushHistory(snapshotCanvas());
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        state.isBlank = true;
+        setStatus("全部消しました。「元に戻す」で戻せます。");
       }
 
       function getPoint(event) {
@@ -664,23 +697,29 @@
 
       function handlePointerDown(event) {
         event.preventDefault();
+
+        // 2 本目の指で別のストロークが始まって線が乱れないよう、描画中は他のポインターを無視する
+        if (state.drawing || !event.isPrimary) {
+          return;
+        }
+
         canvas.setPointerCapture(event.pointerId);
 
-        const base = document.createElement("canvas");
-        base.width = canvas.width;
-        base.height = canvas.height;
-        base.getContext("2d").drawImage(canvas, 0, 0);
+        const base = snapshotCanvas();
+        pushHistory(base);
 
         state.drawing = true;
+        state.pointerId = event.pointerId;
         state.strokeBase = base;
         state.strokePoints = [getPoint(event)];
+        state.isBlank = false;
         renderCurrentStroke();
       }
 
       function handlePointerMove(event) {
         event.preventDefault();
 
-        if (!state.drawing) {
+        if (!state.drawing || event.pointerId !== state.pointerId) {
           return;
         }
 
@@ -688,8 +727,13 @@
         renderCurrentStroke();
       }
 
-      function handlePointerUp() {
+      function handlePointerUp(event) {
+        if (event.pointerId !== state.pointerId) {
+          return;
+        }
+
         state.drawing = false;
+        state.pointerId = null;
         state.strokePoints = [];
         state.strokeBase = null;
       }
@@ -709,8 +753,7 @@
         return canvas.toDataURL("image/png");
       }
 
-      async function initLiff(options = {}) {
-        const { silent = false } = options;
+      async function initLiff() {
         const liffId = liffIdInput.value.trim();
 
         if (isMockMode) {
@@ -720,23 +763,20 @@
         }
 
         if (!liffId) {
-          if (!silent) {
-            setStatus("LIFF ID を入力してください。", "error");
-          }
+          showError("画面の準備に失敗しました。LINE アプリから開き直してください。", "LIFF ID が未設定です。");
           return;
         }
 
         if (typeof liff === "undefined") {
-          if (!silent) {
-            setStatus("LIFF SDK の読み込みに失敗しました。", "error");
-          }
+          showError(
+            "読み込みに失敗しました。通信環境を確認して開き直してください。",
+            "LIFF SDK の読み込みに失敗しました。",
+          );
           return;
         }
 
         try {
-          if (!silent) {
-            setStatus("LIFF を初期化しています...");
-          }
+          setStatus("準備しています...");
           await liff.init({ liffId });
 
           if (!liff.isLoggedIn()) {
@@ -745,19 +785,22 @@
           }
 
           if (!liff.isApiAvailable("shareTargetPicker")) {
-            setStatus("この環境では Share Target Picker を利用できません。", "error");
+            showError(
+              "この画面からは送信できません。LINE アプリで開いてください。",
+              "shareTargetPicker が利用できない環境です。",
+            );
             return;
           }
 
           state.liffInitialized = true;
-          setStatus("描いた画像を PNG として送信できます。", "success");
+          setStatus("描けたら「トークに送る」で送信できます。", "success");
+          setDebugInfo("");
         } catch (error) {
           console.error(error);
-          if (!silent) {
-            setStatus("LIFF 初期化に失敗しました。LIFF ID を確認してください。", "error");
-          } else {
-            setStatus("LIFF 初期化に失敗しました。`?debug=1` で設定を確認してください。", "error");
-          }
+          showError(
+            "画面の準備に失敗しました。LINE アプリから開き直してください。",
+            "LIFF 初期化に失敗しました: " + describeError(error),
+          );
         }
       }
 
@@ -785,25 +828,32 @@
       }
 
       async function shareImage() {
+        if (state.isBlank) {
+          setStatus("先に絵を描いてください。", "error");
+          return;
+        }
+
         if (isMockMode) {
           setStatus("Mock mode では送信しません。UI 確認専用です。", "default");
           return;
         }
 
+        // 失敗理由は initLiff 側で表示済み
         if (!state.liffInitialized) {
           await initLiff();
 
           if (!state.liffInitialized) {
-            setStatus("画面の準備が完了していません。もう一度開き直してください。", "error");
             return;
           }
         }
 
         shareButton.disabled = true;
+        shareButton.setAttribute("aria-busy", "true");
+        shareButton.textContent = "送信中...";
         setDebugInfo("");
 
         try {
-          setStatus("画像をアップロードしています...");
+          setStatus("画像を準備しています...");
           const exportDataUrl = buildExportDataUrl();
           const { imageUrl } = await uploadImage(exportDataUrl);
           setDebugInfo("アップロード済み画像 URL: " + imageUrl, "success");
@@ -832,14 +882,11 @@
         } catch (error) {
           console.error(error);
           setStatus("共有処理に失敗しました。時間をおいてもう一度お試しください。", "error");
-          setDebugInfo(
-            "詳細: " +
-              (error && error.code ? error.code + " / " : "") +
-              (error && error.message ? error.message : String(error)),
-            "error",
-          );
+          setDebugInfo("詳細: " + describeError(error), "error");
         } finally {
           shareButton.disabled = false;
+          shareButton.removeAttribute("aria-busy");
+          shareButton.textContent = "トークに送る";
         }
       }
 
@@ -847,23 +894,23 @@
       document.body.classList.toggle("debug-mode", isDebugMode);
       configPanel.hidden = !isDebugMode;
       debugInfoElement.hidden = !isDebugMode;
-      resizeCanvas();
-      resetCanvas();
+      context.lineCap = "round";
+      context.lineJoin = "round";
       updateCanvasPreviewBackground();
       updateOutlineControls();
 
-      window.addEventListener("resize", resizeCanvas);
-      brushColorInput.addEventListener("change", configureBrush);
-      brushSizeInput.addEventListener("change", configureBrush);
+      brushColorInput.addEventListener("change", saveDrawPreferences);
+      brushSizeInput.addEventListener("change", saveDrawPreferences);
       transparentToggleInput.addEventListener("change", updateCanvasPreviewBackground);
       backgroundColorInput.addEventListener("change", updateCanvasPreviewBackground);
       outlineToggleInput.addEventListener("change", updateOutlineControls);
       outlineColorInput.addEventListener("change", saveDrawPreferences);
       outlineSizeInput.addEventListener("change", saveDrawPreferences);
       saveConfigButton.addEventListener("click", saveConfig);
-      initLiffButton.addEventListener("click", initLiff);
+      initLiffButton.addEventListener("click", () => initLiff());
       shareButton.addEventListener("click", shareImage);
-      clearButton.addEventListener("click", resetCanvas);
+      undoButton.addEventListener("click", undo);
+      clearButton.addEventListener("click", clearCanvas);
 
       canvas.addEventListener("pointerdown", handlePointerDown);
       canvas.addEventListener("pointermove", handlePointerMove);
@@ -873,7 +920,7 @@
       canvas.addEventListener("dragstart", (event) => event.preventDefault());
       canvas.addEventListener("selectstart", (event) => event.preventDefault());
 
-      initLiff({ silent: true });
+      initLiff();
     </script>
   </body>
 </html>
