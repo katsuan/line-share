@@ -636,10 +636,23 @@ function buildMessage_(mode, imageUrl, item) {
         aspectRatio: `${item.width}:${item.height}`,
         aspectMode: "fit",
         animated: item.animated,
+        backgroundColor: "#00000000",
         // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く
         ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
       },
-      styles: { hero: { backgroundColor: "#00000000" } }
+      // 本文がないと LINE が白い背景を描くため、透明な空の本文を置く（元の文字アイコンと同じ構造）
+      body: {
+        type: "box",
+        layout: "vertical",
+        paddingAll: "0px",
+        spacing: "none",
+        backgroundColor: "#00000000",
+        contents: [{ type: "filler" }]
+      },
+      styles: {
+        hero: { backgroundColor: "#00000000" },
+        body: { backgroundColor: "#00000000" }
+      }
     }
   };
 }
