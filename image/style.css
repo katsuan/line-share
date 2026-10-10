@@ -170,3 +170,19 @@
   justify-self: center;
   background: rgba(255, 255, 255, 0.92);
 }
+
+/* 送り方の説明 */
+.send-modes {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ls-subtext);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.send-modes strong {
+  color: var(--ls-text);
+}
