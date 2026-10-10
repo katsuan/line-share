@@ -337,7 +337,7 @@ function renderPreview_(data, calendarUrl) {
       <a class="preview-link primary" href="${escapeHtml(calendarUrl)}" target="_blank" rel="noreferrer">Googleカレンダーに予定を追加</a>
       ${secondaryLinks}
     </div>
-    <p class="ls-credit">Created by LINEで送る ›</p>
+    <p class="ls-credit">Created by おくるカード ›</p>
   `;
 }
 

@@ -1,7 +1,7 @@
 // 送るカード（Flex）の末尾に「Created by」を付け、タップでこの LIFF のツール一覧を開く。
 // 受け取った人が「どうやって作ったんだろう？」と思ったときに辿れるようにする。
 (function () {
-  const LABEL = "Created by LINEで送る ›";
+  const LABEL = "Created by おくるカード ›";
 
   function topUrl() {
     const liffId = window.LINE_SHARE_CONFIG && window.LINE_SHARE_CONFIG.liffId;
@@ -20,7 +20,7 @@
           size: "xxs",
           color: "#9AA0A6",
           align: "center",
-          action: { type: "uri", label: "LINEで送る", uri: topUrl() }
+          action: { type: "uri", label: "おくるカード", uri: topUrl() }
         }
       ]
     };
