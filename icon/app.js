@@ -15,15 +15,12 @@ const config = window.TEXT_ICON_SENDER_CONFIG || {};
 const isLocalMode = location.protocol === "file:";
 const debugMode = new URLSearchParams(location.search).get("debug") === "1";
 const STORAGE_KEYS = {
-  historyCollapsed: "texticon_sender_history_collapsed",
   styleCollapsed: "texticon_sender_style_collapsed",
   styleSettings: "texticon_sender_style_settings",
   textDraft: "texticon_sender_text_draft",
 };
 
 const TEXT_WARN_THRESHOLD = 24;
-const HISTORY_PAGE_SIZE = 12;
-const HISTORY_LIMIT_MAX = 60;
 
 const els = {
   text: document.getElementById("text"),
@@ -45,7 +42,6 @@ const els = {
   motionWrapX: document.getElementById("motionWrapX"),
   flexBubbleSize: document.getElementById("flexBubbleSize"),
   download: document.getElementById("download"),
-  saveTest: document.getElementById("saveTest"),
   send: document.getElementById("send"),
   sendModeDialog: document.getElementById("sendModeDialog"),
   sendModeAnimatedNote: document.getElementById("sendModeAnimatedNote"),
@@ -59,20 +55,11 @@ const els = {
   flexIncludeCaveatNote: document.getElementById("flexIncludeCaveatNote"),
   flexIncludeLiffLink: document.getElementById("flexIncludeLiffLink"),
   flexIncludeAltTextSuffix: document.getElementById("flexIncludeAltTextSuffix"),
-  deleteHistoryDialog: document.getElementById("deleteHistoryDialog"),
-  deleteFlexWarning: document.getElementById("deleteFlexWarning"),
-  refreshHistory: document.getElementById("refreshHistory"),
-  historyList: document.getElementById("historyList"),
-  historySection: document.getElementById("historySection"),
-  historyBody: document.getElementById("historyBody"),
-  historyToggle: document.getElementById("historyToggle"),
-  historySummary: document.getElementById("historySummary"),
   styleSection: document.getElementById("styleSection"),
   styleBody: document.getElementById("styleBody"),
   styleToggle: document.getElementById("styleToggle"),
   styleSummary: document.getElementById("styleSummary"),
   localStatusSection: document.getElementById("localStatusSection"),
-  localCaption: document.getElementById("localCaption"),
   status: document.getElementById("status"),
 };
 
@@ -85,7 +72,6 @@ const stylePanels = Array.from(document.querySelectorAll(".style-panel"));
 const previewTabs = Array.from(document.querySelectorAll(".preview-tab"));
 const previewPanels = Array.from(document.querySelectorAll(".preview-mobile-panel"));
 const textCounterEl = document.getElementById("textCounter");
-const loadMoreHistoryButton = document.getElementById("loadMoreHistory");
 const segmenter = typeof Intl !== "undefined" && Intl.Segmenter
   ? new Intl.Segmenter("ja", { granularity: "grapheme" })
   : null;
@@ -93,15 +79,8 @@ const segmenter = typeof Intl !== "undefined" && Intl.Segmenter
 const state = {
   liffReady: false,
   liffError: "",
-  userKey: "",
-  historyItems: [],
-  historyLoaded: false,
-  historyDirty: true,
-  historyLimit: HISTORY_PAGE_SIZE,
-  historyHasMore: false,
   textDirty: false,
   sections: {
-    historyCollapsed: false,
     styleCollapsed: false,
   },
 };
@@ -545,27 +524,6 @@ async function download() {
   }
 }
 
-async function saveHistoryItem(item) {
-  const imageUrl = item.originalContentUrl || item.previewImageUrl;
-  if (!imageUrl) {
-    throw new Error("保存する画像が見つかりません。");
-  }
-
-  const response = await fetch(imageUrl);
-  if (!response.ok) {
-    throw new Error(`画像の取得に失敗しました (${response.status})`);
-  }
-
-  const blob = await response.blob();
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const safe = (item.text || "texticon").replace(/[^\p{L}\p{N}_-]+/gu, "_");
-  link.href = objectUrl;
-  link.download = `${safe || "texticon_sender"}.png`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-}
-
 function setStatus(message, tone = "info", options = {}) {
   els.status.textContent = message;
   els.status.className = `status-box is-${tone}`;
@@ -603,10 +561,6 @@ function setButtonLoading(button, loading, idleLabel) {
 
 function setSendLoading(loading) {
   setButtonLoading(els.send, loading, "送信");
-}
-
-function setSaveTestDisabled(disabled) {
-  els.saveTest.disabled = disabled;
 }
 
 function loadStoredBoolean(key, fallback = false) {
@@ -797,44 +751,15 @@ function applyStyleSettings(settings) {
 
 function updateToggleButton(button, collapsed) {
   if (!button) return;
-  const sectionName = button === els.historyToggle ? "History" : "Style";
+  const sectionName = "Style";
   button.textContent = collapsed ? "▸" : "▾";
   button.setAttribute("aria-expanded", String(!collapsed));
   button.setAttribute("aria-label", collapsed ? `${sectionName} を開く` : `${sectionName} を閉じる`);
   button.classList.toggle("is-collapsed", collapsed);
 }
 
-async function ensureHistoryLoadedIfNeeded(force = false) {
-  if (!hasGasConfig() || state.sections.historyCollapsed) return;
-  if (!force && state.historyLoaded && !state.historyDirty) return;
-  renderHistoryLoading();
-  await refreshHistory();
-}
-
 function setSectionCollapsed(name, collapsed, options = {}) {
-  const { persist = true, skipLoad = false } = options;
-
-  if (name === "history") {
-    state.sections.historyCollapsed = collapsed;
-    if (els.historyBody) {
-      els.historyBody.hidden = collapsed;
-      els.historyBody.setAttribute("aria-hidden", String(collapsed));
-    }
-    if (els.historySection) {
-      els.historySection.dataset.collapsed = String(collapsed);
-    }
-    if (els.historySummary) {
-      els.historySummary.hidden = collapsed;
-    }
-    updateToggleButton(els.historyToggle, collapsed);
-    if (persist) {
-      saveStoredBoolean(STORAGE_KEYS.historyCollapsed, collapsed);
-    }
-    if (!collapsed && !skipLoad) {
-      void ensureHistoryLoadedIfNeeded();
-    }
-    return;
-  }
+  const { persist = true } = options;
 
   state.sections.styleCollapsed = collapsed;
   if (els.styleBody) {
@@ -854,15 +779,8 @@ function setSectionCollapsed(name, collapsed, options = {}) {
 }
 
 function initializeSectionState() {
-  state.sections.historyCollapsed = loadStoredBoolean(STORAGE_KEYS.historyCollapsed, true);
   state.sections.styleCollapsed = loadStoredBoolean(STORAGE_KEYS.styleCollapsed, false);
-  setSectionCollapsed("history", state.sections.historyCollapsed, { persist: false, skipLoad: true });
   setSectionCollapsed("style", state.sections.styleCollapsed, { persist: false });
-  els.refreshHistory.disabled = !hasGasConfig();
-  state.historyDirty = true;
-  if (!state.sections.historyCollapsed) {
-    void ensureHistoryLoadedIfNeeded(true);
-  }
 }
 
 function applyLocalModeVisibility() {
@@ -871,55 +789,6 @@ function applyLocalModeVisibility() {
     els.localStatusSection.hidden = !showStatus;
     els.localStatusSection.setAttribute("aria-hidden", String(!showStatus));
   }
-  if (els.saveTest) {
-    els.saveTest.hidden = !(isLocalMode && debugMode);
-  }
-  if (els.localCaption) {
-    els.localCaption.hidden = !(isLocalMode && debugMode);
-  }
-}
-
-function sanitizeIdentityKey(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[^\p{L}\p{N}_-]+/gu, "_")
-    .slice(0, 120);
-}
-
-function getEffectiveUserKey() {
-  return state.userKey
-    || sanitizeIdentityKey(config.testUserKey || config.localTestUserKey || "")
-    || "local_debug";
-}
-
-function buildAssetKey() {
-  return JSON.stringify({
-    text: els.text.value || "",
-    align: els.align.value,
-    autoFit: els.autoFit.checked,
-    fontFamily: els.fontFamily.value,
-    fontSize: Number(els.fontSize.value),
-    bgColor: getEffectiveColorValue(els.bgColor),
-    fillColor: getEffectiveColorValue(els.fillColor),
-    outlineEnabled: els.outlineEnabled.checked,
-    outlineWidth: Number(els.outlineWidth.value),
-    stroke1Color: getEffectiveColorValue(els.stroke1Color),
-    stroke2Color: getEffectiveColorValue(els.stroke2Color),
-    size: `${canvas.width}x${canvas.height}`,
-    motionPreset: els.motionPreset.value,
-    motionWrapX: els.motionWrapX.checked,
-  });
-}
-
-function formatHistoryDate(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ja-JP", {
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function escapeHtml(value) {
@@ -929,102 +798,6 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function renderHistoryLoading() {
-  els.historyList.innerHTML = '<p class="sender-help loading-note">履歴を読み込んでいます。</p>';
-}
-
-function updateLoadMoreButton(items) {
-  if (!loadMoreHistoryButton) return;
-  state.historyHasMore = items.length >= state.historyLimit && state.historyLimit < HISTORY_LIMIT_MAX;
-  loadMoreHistoryButton.hidden = !state.historyHasMore;
-}
-
-function renderHistoryList(items) {
-  state.historyItems = items;
-  updateLoadMoreButton(items);
-  if (!items.length) {
-    els.historyList.innerHTML = '<p class="sender-help">履歴がまだありません。</p>';
-    return;
-  }
-
-  els.historyList.innerHTML = items.map((item, index) => {
-    const sub = [
-      formatHistoryDate(item.createdAt),
-      item.flexLocked ? "Flex送信済み" : "",
-    ].filter(Boolean).join(" / ");
-    return `
-      <article class="history-item">
-        <div class="history-thumb">
-          <img src="${escapeHtml(item.previewImageUrl)}" alt="保存済み画像" loading="lazy" />
-        </div>
-        <div class="history-meta">
-          <div class="history-sub-row">
-            <div class="history-sub">${escapeHtml(sub)}</div>
-            <button class="secondary-action history-delete-pill" type="button" data-history-delete="${index}">削除</button>
-          </div>
-        </div>
-        <div class="history-controls">
-          <button class="secondary-action history-button" type="button" data-history-save="${index}">保存</button>
-          <button class="secondary-action history-button" type="button" data-history-send="${index}" ${state.liffReady ? "" : "disabled"}>送信</button>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  els.historyList.querySelectorAll("[data-history-save]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const index = Number(button.dataset.historySave);
-      const item = state.historyItems[index];
-      if (!item) return;
-      button.disabled = true;
-      try {
-        await saveHistoryItem(item);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setStatus(`履歴画像の保存に失敗しました: ${message}`, "error");
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
-
-  els.historyList.querySelectorAll("[data-history-send]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const index = Number(button.dataset.historySend);
-      const item = state.historyItems[index];
-      if (!item) return;
-      button.disabled = true;
-      try {
-        await sendHistoryItem(item);
-      } finally {
-        button.disabled = !state.liffReady;
-      }
-    });
-  });
-
-  els.historyList.querySelectorAll("[data-history-delete]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const index = Number(button.dataset.historyDelete);
-      const item = state.historyItems[index];
-      if (!item) return;
-      const confirmed = await confirmDeleteHistoryItem(Boolean(item.flexLocked));
-      if (!confirmed) return;
-      button.disabled = true;
-      try {
-        await deleteHistoryItem(item);
-        state.historyItems = state.historyItems.filter((entry) => entry.fileId !== item.fileId);
-        renderHistoryList(state.historyItems);
-        setStatus("履歴画像を削除しました。", "success");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        setStatus(`履歴画像の削除に失敗しました: ${message}`, "error");
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
 }
 
 function activateStyleTab(tabName) {
@@ -1056,11 +829,7 @@ function activatePreviewTab(tabName) {
 }
 
 function hasSenderConfig() {
-  return Boolean(config.liffId && config.gasWebAppUrl);
-}
-
-function hasGasConfig() {
-  return Boolean(config.gasWebAppUrl);
+  return Boolean(config.liffId && config.imageApiBaseUrl);
 }
 
 function supportsDialog() {
@@ -1188,53 +957,6 @@ function confirmFlexSend(previewSrc, isAnimated, sourceText = "") {
   });
 }
 
-function confirmDeleteHistoryItem(isFlexLocked) {
-  if (!(typeof HTMLDialogElement !== "undefined" && els.deleteHistoryDialog instanceof HTMLDialogElement)) {
-    const warning = isFlexLocked
-      ? "履歴画像を削除しますか？\nこの画像はFlex送信済みです。削除すると元に戻せず、送信済みのFlexメッセージの画像も表示・再生できなくなります(タップしてもこのページを開けなくなります)。"
-      : "履歴画像を削除しますか？\n削除すると元に戻せません。";
-    return Promise.resolve(window.confirm(warning));
-  }
-
-  if (els.deleteFlexWarning) {
-    els.deleteFlexWarning.hidden = !isFlexLocked;
-  }
-
-  return new Promise((resolve) => {
-    const dialog = els.deleteHistoryDialog;
-    const buttons = Array.from(dialog.querySelectorAll("[data-delete-confirm]"));
-
-    const cleanup = () => {
-      buttons.forEach((button) => button.removeEventListener("click", onClick));
-      dialog.removeEventListener("cancel", onCancel);
-      dialog.removeEventListener("close", onClose);
-    };
-
-    const finish = (confirmed) => {
-      cleanup();
-      resolve(confirmed);
-    };
-
-    const onClick = (event) => {
-      const target = event.currentTarget;
-      dialog.close(target?.dataset?.deleteConfirm || "cancel");
-    };
-
-    const onCancel = () => {
-      dialog.close("cancel");
-    };
-
-    const onClose = () => {
-      finish(dialog.returnValue === "delete");
-    };
-
-    buttons.forEach((button) => button.addEventListener("click", onClick));
-    dialog.addEventListener("cancel", onCancel);
-    dialog.addEventListener("close", onClose);
-    dialog.showModal();
-  });
-}
-
 function getLiffShareUrl() {
   if (typeof liff !== "undefined" && liff?.permanentLink?.createUrl) {
     try {
@@ -1253,21 +975,18 @@ async function initLiff() {
   if (!config.liffId) {
     setStatus("`config.js` の `liffId` が未設定です。PNG書き出しは使えます。", "warn");
     setSendDisabled(true);
-    setSaveTestDisabled(!hasGasConfig());
     return;
   }
 
   if (location.protocol === "file:") {
     setStatus("`file://` では LIFF を初期化できません。GitHub Pages など HTTPS で開いてください。", "warn");
     setSendDisabled(true);
-    setSaveTestDisabled(!hasGasConfig());
     return;
   }
 
   if (typeof liff === "undefined") {
     setStatus("LIFF SDK の読み込みに失敗しました。", "error");
     setSendDisabled(true);
-    setSaveTestDisabled(!hasGasConfig());
     return;
   }
 
@@ -1283,21 +1002,17 @@ async function initLiff() {
     }
 
     state.liffReady = true;
-    const decoded = typeof liff.getDecodedIDToken === "function" ? liff.getDecodedIDToken() : null;
-    state.userKey = sanitizeIdentityKey(decoded?.sub || "");
-    setSaveTestDisabled(!hasGasConfig());
-    if (config.gasWebAppUrl) {
-      setStatus("LIFF の初期化が完了しました。Google Drive 保存と共有を実行できます。", "success", { quiet: true });
+    if (config.imageApiBaseUrl) {
+      setStatus("LIFF の初期化が完了しました。送信できます。", "success", { quiet: true });
       setSendDisabled(false);
     } else {
-      setStatus("LIFF は初期化できましたが、`gasWebAppUrl` が未設定です。", "warn");
+      setStatus("画像のアップロード先が未設定です。", "warn");
       setSendDisabled(true);
     }
   } catch (error) {
     state.liffError = error instanceof Error ? error.message : String(error);
     setStatus(`LIFF 初期化に失敗しました: ${state.liffError}`, "error");
     setSendDisabled(true);
-    setSaveTestDisabled(!hasGasConfig());
   }
 }
 
@@ -1551,160 +1266,37 @@ function blobToBase64(blob) {
   });
 }
 
-async function uploadToGasWithOptions(blob, options = {}) {
-  const safe = (els.text.value || "texticon").replace(/[^\p{L}\p{N}_-]+/gu, "_");
-  const payload = {
-    fileName: `${safe || "texticon_sender"}.png`,
-    mimeType: "image/png",
-    folderLabel: config.defaultFolderLabel || "TextIconSender",
+// 画像は draw/server（Render）の /api/upload に送り、LINE から参照できる公開URLを受け取る
+async function uploadImage(blob, options = {}) {
+  if (!config.imageApiBaseUrl) {
+    throw new Error("画像のアップロード先が未設定です。");
+  }
+
+  const response = await fetch(`${config.imageApiBaseUrl.replace(/\/$/, "")}/api/upload`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageData: `data:image/png;base64,${await blobToBase64(blob)}` }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.imageUrl) {
+    console.error("upload failed", response.status, data);
+    throw new Error("画像のアップロードに失敗しました。時間をおいてもう一度お試しください。");
+  }
+
+  return {
+    originalContentUrl: data.imageUrl,
+    previewImageUrl: data.imageUrl,
     text: els.text.value || "",
-    userKey: getEffectiveUserKey(),
-    assetKey: buildAssetKey(),
-    keepHistory: true,
     width: canvas.width,
     height: canvas.height,
     animated: Boolean(options.animated),
-    imageBase64: await blobToBase64(blob),
   };
-
-  const response = await fetch(config.gasWebAppUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify(payload),
-    redirect: "follow",
-  });
-
-  if (!response.ok) {
-    throw new Error(`アップロードに失敗しました (${response.status})`);
-  }
-
-  const data = await response.json();
-  if (!data.ok) {
-    throw new Error(data.error || "GAS がエラーを返しました。");
-  }
-  return data;
-}
-
-async function markFlexHistoryItem(fileId) {
-  const response = await fetch(config.gasWebAppUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify({
-      action: "markFlex",
-      userKey: getEffectiveUserKey(),
-      fileId: fileId,
-    }),
-    redirect: "follow",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Flex履歴の更新に失敗しました (${response.status})`);
-  }
-
-  const data = await response.json();
-  if (!data.ok) {
-    throw new Error(data.error || "GAS が Flex履歴更新エラーを返しました。");
-  }
-  return data;
-}
-
-async function deleteHistoryItem(item) {
-  if (!hasGasConfig()) {
-    throw new Error("`config.js` の `gasWebAppUrl` が未設定です。");
-  }
-
-  const response = await fetch(config.gasWebAppUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify({
-      action: "delete",
-      userKey: getEffectiveUserKey(),
-      fileId: item.fileId,
-    }),
-    redirect: "follow",
-  });
-
-  if (!response.ok) {
-    throw new Error(`削除に失敗しました (${response.status})`);
-  }
-
-  const data = await response.json();
-  if (!data.ok) {
-    throw new Error(data.error || "GAS が削除エラーを返しました。");
-  }
-  return data;
-}
-
-async function fetchHistory() {
-  if (!hasGasConfig()) {
-    throw new Error("`config.js` の `gasWebAppUrl` が未設定です。");
-  }
-
-  const url = new URL(config.gasWebAppUrl);
-  url.searchParams.set("action", "history");
-  url.searchParams.set("userKey", getEffectiveUserKey());
-  url.searchParams.set("limit", String(state.historyLimit));
-
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    redirect: "follow",
-  });
-
-  if (!response.ok) {
-    throw new Error(`履歴取得に失敗しました (${response.status})`);
-  }
-
-  const data = await response.json();
-  if (!data.ok) {
-    throw new Error(data.error || "履歴取得で GAS がエラーを返しました。");
-  }
-  return data.items || [];
-}
-
-async function refreshHistory() {
-  if (!hasGasConfig()) {
-    setStatus("`config.js` の `gasWebAppUrl` が未設定です。", "warn");
-    return;
-  }
-
-  els.refreshHistory.disabled = true;
-  try {
-    setStatus("履歴を読み込んでいます。", "info");
-    const items = await fetchHistory();
-    renderHistoryList(items);
-    state.historyLoaded = true;
-    state.historyDirty = false;
-    setStatus(`履歴を更新しました。${items.length}件あります。`, "success", { quiet: true });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    setStatus(`履歴取得に失敗しました: ${message}`, "error");
-  } finally {
-    els.refreshHistory.disabled = !hasGasConfig();
-  }
-}
-
-function refreshHistorySilently() {
-  if (!hasGasConfig()) return;
-  state.historyDirty = true;
-  if (state.sections.historyCollapsed) return;
-  void fetchHistory()
-    .then((items) => {
-      renderHistoryList(items);
-      state.historyLoaded = true;
-      state.historyDirty = false;
-    })
-    .catch(() => {});
 }
 
 async function sendToLine() {
   if (!hasSenderConfig()) {
-    setStatus("`config.js` の `liffId` または `gasWebAppUrl` が未設定です。", "warn");
+    setStatus("LIFF ID または画像のアップロード先が未設定です（リポジトリ直下の config.js）。", "warn");
     return;
   }
   if (!state.liffReady) {
@@ -1739,12 +1331,12 @@ async function sendToLine() {
       }
     }
 
-    setStatus(`保存しています。${isFlex ? "Flex送信した画像は履歴に残ります(削除すると送信済みメッセージも見れなくなります)。" : ""}`, "info");
+    setStatus("画像を準備しています。", "info");
 
     if (!blob) {
       blob = await canvasToBlob(buildExportCanvas());
     }
-    const upload = await uploadToGasWithOptions(blob, {
+    const upload = await uploadImage(blob, {
       animated: isAnimated,
     });
     const message = isFlex
@@ -1761,21 +1353,17 @@ async function sendToLine() {
     });
 
     if (result) {
-      if (isFlex) {
-        await markFlexHistoryItem(upload.fileId);
-      }
-      setStatus(`${isFlex ? "Flex送信" : "画像送信"}できました。${upload.folderName} に${upload.reused ? "再利用" : "保存"}済みです。`, "success");
+      setStatus(`${isFlex ? "Flex送信" : "画像送信"}できました。`, "success");
       clearTextDraft();
     } else {
-      setStatus(`${isFlex ? "Flex送信" : "画像送信"}はキャンセルされました。画像は ${upload.folderName} に${upload.reused ? "再利用" : "保存"}されています。`, "warn");
+      setStatus(`${isFlex ? "Flex送信" : "画像送信"}はキャンセルされました。`, "warn");
     }
-    refreshHistorySilently();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setStatus(`送信に失敗しました: ${message}`, "error");
   } finally {
     setSendLoading(false);
-    setSendDisabled(!state.liffReady || !config.gasWebAppUrl);
+    setSendDisabled(!state.liffReady || !config.imageApiBaseUrl);
   }
 }
 
@@ -1856,86 +1444,6 @@ function buildFlexImageMessage(upload) {
   };
 }
 
-async function sendHistoryItem(item) {
-  if (!state.liffReady) {
-    setStatus("LIFF の初期化完了後に再度お試しください。", "warn");
-    return;
-  }
-
-  try {
-    const mode = await chooseSendMode();
-    if (mode === "cancel") {
-      setStatus("送信はキャンセルされました。", "warn");
-      return;
-    }
-    const isFlex = mode === "flex";
-
-    if (isFlex) {
-      const confirmSourceText = (item.text || els.text.value || "").replace(/\r?\n/g, " ").trim();
-      const isItemAnimated = Boolean(item.animated);
-      const previewSrc = isItemAnimated
-        ? (item.originalContentUrl || item.previewImageUrl)
-        : (item.previewImageUrl || item.originalContentUrl);
-      const confirmed = await confirmFlexSend(previewSrc, isItemAnimated, confirmSourceText);
-      if (!confirmed) {
-        setStatus("送信はキャンセルされました。", "warn");
-        return;
-      }
-    }
-
-    const message = isFlex
-      ? buildFlexImageMessage(item)
-      : {
-          type: "image",
-          originalContentUrl: item.originalContentUrl,
-          previewImageUrl: item.previewImageUrl,
-        };
-
-    setSendDisabled(true);
-    setStatus(`履歴画像の送信先を選択してください。${isFlex ? "Flex送信" : "画像送信"}します。`, "info");
-    const result = await liff.shareTargetPicker([message], {
-      isMultiple: true,
-    });
-
-    if (result) {
-      if (isFlex && !item.flexLocked) {
-        await markFlexHistoryItem(item.fileId);
-      }
-      setStatus(`履歴画像を${isFlex ? "Flex送信" : "画像送信"}できました。`, "success");
-    } else {
-      setStatus(`履歴画像の${isFlex ? "Flex送信" : "画像送信"}はキャンセルされました。`, "warn");
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    setStatus(`履歴画像の送信に失敗しました: ${message}`, "error");
-  } finally {
-    setSendDisabled(!state.liffReady || !config.gasWebAppUrl);
-  }
-}
-
-async function saveToDriveTest() {
-  if (!hasGasConfig()) {
-    setStatus("`config.js` の `gasWebAppUrl` が未設定です。", "warn");
-    return;
-  }
-
-  try {
-    setSaveTestDisabled(true);
-    setStatus("保存テストを実行しています。", "info");
-
-    const isAnimated = els.motionPreset.value !== "none";
-    const blob = isAnimated ? await buildAnimationBlob() : await canvasToBlob(buildExportCanvas());
-    const upload = await uploadToGasWithOptions(blob, { animated: isAnimated });
-    setStatus(`保存テスト成功: ${upload.folderName} / ${upload.fileName}${upload.reused ? " を再利用" : ""}`, "success");
-    refreshHistorySilently();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    setStatus(`Drive 保存テストに失敗しました: ${message}`, "error");
-  } finally {
-    setSaveTestDisabled(!hasGasConfig());
-  }
-}
-
 Object.values(els).forEach((el) => {
   if (!(el instanceof HTMLElement)) return;
   const eventName = el.tagName === "BUTTON" ? "click" : "input";
@@ -1950,7 +1458,7 @@ Object.values(els).forEach((el) => {
         });
     }
     syncOutputs();
-    if (el === els.download || el === els.saveTest || el === els.send) return;
+    if (el === els.download || el === els.send) return;
     generate();
   });
 });
@@ -2028,29 +1536,10 @@ presetButtons.forEach((button) => {
 });
 
 els.download.addEventListener("click", download);
-els.saveTest.addEventListener("click", saveToDriveTest);
 els.send.addEventListener("click", sendToLine);
-els.historyToggle.addEventListener("click", () => {
-  setSectionCollapsed("history", !state.sections.historyCollapsed);
-});
 els.styleToggle.addEventListener("click", () => {
   setSectionCollapsed("style", !state.sections.styleCollapsed);
 });
-els.refreshHistory.addEventListener("click", () => {
-  renderHistoryLoading();
-  void refreshHistory();
-});
-if (loadMoreHistoryButton) {
-  loadMoreHistoryButton.addEventListener("click", async () => {
-    state.historyLimit = Math.min(state.historyLimit + HISTORY_PAGE_SIZE, HISTORY_LIMIT_MAX);
-    loadMoreHistoryButton.disabled = true;
-    try {
-      await refreshHistory();
-    } finally {
-      loadMoreHistoryButton.disabled = false;
-    }
-  });
-}
 const restoredStyleSettings = applyStyleSettings(loadStyleSettings());
 if (!restoredStyleSettings) {
   [
@@ -2075,10 +1564,7 @@ generate();
 applyLocalModeVisibility();
 initializeSectionState();
 setSendDisabled(true);
-setSaveTestDisabled(!hasGasConfig());
 setStatus("`config.js` を確認しながら初期化しています。", "info");
 activateStyleTab("color");
 activatePreviewTab("transparent");
-void initLiff().finally(() => {
-  void ensureHistoryLoadedIfNeeded();
-});
+void initLiff();

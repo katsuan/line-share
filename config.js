@@ -4,14 +4,11 @@
 window.LINE_SHARE_CONFIG = {
   liffId: "",
 
-  // 地図情報の取得・Bot返信（gas/maps）
-  mapsGasUrl:
-    "https://script.google.com/macros/s/AKfycbyWJvdBist0kksEkE2DTvrFdZCrQEuy608y__R9NOLKExTHGTn4oKPYUR3WYdRjbVXJ7w/exec",
+  // 場所の検索に使う Google Maps JavaScript API のキー。
+  // Google Cloud でこのサイトのURLだけに使えるよう「HTTPリファラー」で制限して設定する。
+  // 空のときは場所名・住所を手入力する。
+  googleMapsApiKey: "",
 
-  // 文字アイコン画像の Drive 保存（gas/icon）
-  iconGasUrl:
-    "https://script.google.com/macros/s/AKfycbycFbrZz6JiiX36cOQ_RpGo-argzaxIydP41hnpiaqBt-u_vnzqXulsW3qS_eZtTmyQ/exec",
-
-  // お絵描き画像のアップロード先（draw/server を Render にデプロイしたURL）
-  drawApiBaseUrl: "https://liff-image.onrender.com"
+  // 画像（文字アイコン・お絵描き）のアップロード先。server/ を Render にデプロイしたURL
+  imageApiBaseUrl: "https://liff-image.onrender.com"
 };

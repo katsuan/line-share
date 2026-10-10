@@ -36,7 +36,7 @@ textarea {
 .page {
   width: min(100%, 640px);
   margin: 0 auto;
-  padding: 16px 12px 24px;
+  padding: 8px 12px 24px;
 }
 
 .hero {
@@ -44,20 +44,10 @@ textarea {
 }
 
 .hero p {
-  margin: 8px 0 0;
+  margin: 0;
   font-size: 14px;
   line-height: 1.7;
   color: var(--sub);
-}
-
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent-strong);
-  text-decoration: none;
 }
 
 .card {
@@ -600,48 +590,6 @@ details[open] > summary .accordion-label::before {
   margin-top: 0;
   flex: 0 0 auto;
   white-space: nowrap;
-}
-
-/* ---- 送信バー（画面下に固定、入力中は隠す） ---- */
-
-.actions {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 30;
-  background: rgba(255, 251, 235, 0.96);
-  backdrop-filter: blur(14px);
-  border-top: 1px solid var(--card-line);
-  box-shadow: 0 -10px 28px rgba(180, 83, 9, 0.14);
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-  transition: transform 0.18s ease;
-}
-
-body.is-typing .actions {
-  transform: translateY(100%);
-}
-
-.actions-inner {
-  width: min(100%, 640px);
-  margin: 0 auto;
-  display: grid;
-  gap: 8px;
-}
-
-.status {
-  font-size: 13px;
-  line-height: 1.5;
-  text-align: center;
-  color: var(--sub);
-}
-
-.status:empty {
-  display: none;
-}
-
-.status.error {
-  color: #b91c1c;
 }
 
 /* ---- 確認モーダル ---- */

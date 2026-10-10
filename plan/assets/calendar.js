@@ -5,7 +5,7 @@ import {
   formatPlaceLocation,
   isGoogleMapsUrl,
   isHttpUrl,
-  resolveMapInfo,
+  titleFromMapUrl,
   setMessage,
   shareFlex,
   toUserMessage,
@@ -13,6 +13,7 @@ import {
 } from "./common.js";
 import { MAX_URI_LENGTH } from "./config.js";
 import { createEventFlex } from "./flex.js";
+import { bindPlaceSearch } from "./place-search.js";
 
 const dom = {};
 const state = {
@@ -36,16 +37,12 @@ export function initCalendarTab() {
 /**
  * 地図タブや URL パラメータから場所を受け取って予定に反映する。
  */
-export async function applyPlace({ mapUrl, title, address, photoUrl }) {
+export function applyPlace({ mapUrl, title, address, photoUrl }) {
   dom.locationMapUrl.value = mapUrl;
   state.place = { mapUrl, photoUrl };
-  dom.location.value = formatPlaceLocation({ title, address });
+  dom.location.value = formatPlaceLocation({ title: title || titleFromMapUrl(mapUrl), address });
   dom.locationAccordion.open = true;
   refreshCalendarTab();
-
-  if (mapUrl && !title) {
-    await resolveLocation_();
-  }
 }
 
 export function focusCalendarTitle() {
@@ -64,7 +61,6 @@ function cacheDom_() {
   dom.location = document.getElementById("location");
   dom.locationAccordion = document.getElementById("locationAccordion");
   dom.locationMapUrl = document.getElementById("locationMapUrl");
-  dom.locationResolveButton = document.getElementById("locationResolveButton");
   dom.url = document.getElementById("url");
   dom.details = document.getElementById("details");
   dom.locationState = document.getElementById("locationState");
@@ -95,7 +91,13 @@ function bindEvents_() {
   dom.endDate.addEventListener("change", handleEndDateTimeEdit_);
   dom.endTime.addEventListener("change", handleEndDateTimeEdit_);
   dom.locationMapUrl.addEventListener("input", handleLocationMapUrlInput_);
-  dom.locationResolveButton.addEventListener("click", resolveLocation_);
+  bindPlaceSearch({
+    input: document.getElementById("locationSearchInput"),
+    button: document.getElementById("locationSearchButton"),
+    results: document.getElementById("locationSearchResults"),
+    message: dom.statusMessage,
+    onSelect: applyPlace
+  });
   dom.addParamButton.addEventListener("click", () => {
     addCustomParamRow_();
     refreshCalendarTab();
@@ -351,23 +353,6 @@ function handleLocationMapUrlInput_() {
   if (dom.locationMapUrl.value.trim() !== state.place.mapUrl) {
     state.place = { mapUrl: "", photoUrl: "" };
   }
-}
-
-async function resolveLocation_() {
-  dom.locationResolveButton.disabled = true;
-  dom.locationResolveButton.textContent = "取得中...";
-  try {
-    const info = await resolveMapInfo(dom.locationMapUrl.value.trim());
-    state.place = { mapUrl: info.mapUrl, photoUrl: info.photoUrl };
-    dom.location.value = formatPlaceLocation(info) || dom.location.value;
-  } catch (error) {
-    setMessage(dom.statusMessage, toUserMessage(error), "error");
-    return;
-  } finally {
-    dom.locationResolveButton.disabled = false;
-    dom.locationResolveButton.textContent = "取得";
-  }
-  refreshCalendarTab();
 }
 
 function updateDurationSummary_() {

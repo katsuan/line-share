@@ -311,29 +311,10 @@
         </div>
       </section>
 
-      <section id="historySection" class="sender-section panel">
-        <div class="section-head">
-          <div class="section-head-left">
-            <button id="historyToggle" class="section-toggle" type="button" aria-expanded="true" aria-controls="historyBody" aria-label="History を閉じる">▼</button>
-            <h2>History</h2>
-            <button id="refreshHistory" class="secondary-action history-action" type="button">更新</button>
-          </div>
-          <span id="historySummary">履歴を保存・送信できます</span>
-        </div>
-        <div id="historyBody" class="section-toggle-body">
-          <div id="historyList" class="history-list" aria-live="polite">
-            <p class="sender-help">履歴を開くと読み込みます。</p>
-          </div>
-          <button id="loadMoreHistory" class="secondary-action history-action history-load-more" type="button" hidden>もっと見る</button>
-        </div>
-      </section>
-
       <section class="sender-actions-bar panel">
         <button id="download" class="primary-action" type="button">保存</button>
         <button id="send" class="secondary-action" type="button">送信</button>
-        <button id="saveTest" class="secondary-action" type="button" hidden>Drive保存をテスト</button>
         <p class="sender-caption sender-send-caption">送信方法を選んだあとに、送信先を選べます。</p>
-        <p id="localCaption" class="sender-caption">`Drive保存をテスト` は `GAS Web App URL` だけで確認できます。`画像送信` と `Flex送信` は `LIFF ID` も必要です。</p>
       </section>
     </main>
 
@@ -345,7 +326,7 @@
         <p class="send-mode-copy">送信先の選択前に、送信方法を選んでください。</p>
         <div class="send-mode-notes">
           <p><strong>画像送信</strong> そのまま画像として送ります。透明背景も見え方を保ちやすいです。</p>
-          <p><strong>Flex送信</strong> 画像をタップするとこのページを開けます。トーク上ではカード表示になるため、透明背景色でも白っぽい背景つきに見えることがあります。送信後は履歴に残ります。削除はできますが、元に戻せず送信済みのメッセージも見れなくなります。</p>
+          <p><strong>Flex送信</strong> 画像をタップするとこのページを開けます。トーク上ではカード表示になるため、透明背景色でも白っぽい背景つきに見えることがあります。</p>
           <p id="sendModeAnimatedNote" class="send-mode-animated-note" hidden>⚠️ 動きプリセット(APNG)は<strong>Flex送信でのみ</strong>アニメーションします。画像送信では静止画(1コマ目)になります。</p>
         </div>
         <div class="send-mode-actions">
@@ -395,21 +376,6 @@
           <button class="secondary-action send-mode-button" type="button" value="cancel" data-flex-confirm="cancel">キャンセル</button>
           <button class="secondary-action send-mode-button" type="button" value="confirm" data-flex-confirm="confirm">この内容で送信</button>
         </div>
-      </form>
-    </dialog>
-
-    <dialog id="deleteHistoryDialog" class="send-mode-dialog">
-      <form method="dialog" class="send-mode-card">
-        <p class="send-mode-title">履歴を削除する</p>
-        <p class="send-mode-copy">この画像を削除します。<strong>削除すると元に戻せません。</strong></p>
-        <div id="deleteFlexWarning" class="send-mode-notes" hidden>
-          <p>⚠️ この画像は<strong>Flex送信済み</strong>です。</p>
-          <p>削除すると、<strong>送信済みのFlexメッセージの画像が表示・再生できなくなります</strong>(タップしてもこのページを開けなくなります)。この操作は<strong>取り消せません</strong>。</p>
-        </div>
-        <div class="send-mode-actions">
-          <button class="secondary-action send-mode-button send-mode-danger" type="button" value="delete" data-delete-confirm="delete">削除する</button>
-        </div>
-        <button class="send-mode-cancel" type="button" value="cancel" data-delete-confirm="cancel">キャンセル</button>
       </form>
     </dialog>
 

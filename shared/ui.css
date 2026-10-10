@@ -1,0 +1,190 @@
+/*
+ * 全ツール共通の骨格：上部バー（戻る・ツール名）、下部固定の送信バー、ステータス表示。
+ * 各ツール固有の見た目はそれぞれの CSS に置き、ここでは揃えたい部分だけを定義する。
+ */
+:root {
+  --ls-font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --ls-text: #1f1f1c;
+  --ls-subtext: #66665f;
+  --ls-line: rgba(31, 31, 28, 0.12);
+  --ls-bar-bg: rgba(255, 255, 255, 0.94);
+  --ls-accent: #06c755;
+  --ls-accent-strong: #05a647;
+  --ls-danger: #c62828;
+  --ls-success: #2f6f44;
+  --ls-radius: 14px;
+  --ls-tap: 44px;
+}
+
+.ls-topbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  margin: 0 0 8px;
+  font-family: var(--ls-font);
+  color: var(--ls-text);
+}
+
+.ls-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--ls-tap);
+  padding-right: 6px;
+  color: var(--ls-subtext);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ls-back::before {
+  content: "‹";
+  font-size: 24px;
+  line-height: 1;
+  margin-top: -2px;
+}
+
+.ls-title {
+  margin: 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 戻るリンクの幅と釣り合わせてタイトルを中央に置く */
+.ls-topbar-end {
+  min-width: 72px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ls-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ls-subtext);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ls-pill.is-muted {
+  color: #9a9a92;
+}
+
+/* ---- 下部固定の送信バー ---- */
+
+.ls-sendbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--ls-line);
+  background: var(--ls-bar-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 -8px 24px rgba(20, 20, 18, 0.08);
+  font-family: var(--ls-font);
+  transition: transform 0.18s ease;
+}
+
+/* 入力中はキーボードと重ならないよう隠す */
+body.is-typing .ls-sendbar {
+  transform: translateY(110%);
+}
+
+.ls-sendbar-inner {
+  display: grid;
+  gap: 6px;
+  width: min(100%, 640px);
+  margin: 0 auto;
+}
+
+.ls-sendbar-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ls-sendbar-row > * {
+  flex: 1;
+}
+
+.ls-status {
+  margin: 0;
+  color: var(--ls-subtext);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-wrap;
+}
+
+.ls-status:empty {
+  display: none;
+}
+
+.ls-status.is-error {
+  color: var(--ls-danger);
+}
+
+.ls-status.is-success {
+  color: var(--ls-success);
+}
+
+.ls-send {
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: var(--ls-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.ls-send:active:not(:disabled) {
+  background: var(--ls-accent-strong);
+}
+
+.ls-send:disabled {
+  background: #c7ccd1;
+  cursor: not-allowed;
+}
+
+.ls-send.is-incomplete:not(:disabled) {
+  opacity: 0.6;
+}
+
+.ls-send:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+.ls-send-secondary {
+  background: #fff;
+  color: var(--ls-text);
+  border: 1px solid var(--ls-line);
+}
+
+.ls-send-secondary:active:not(:disabled) {
+  background: #f2f2ef;
+}
+
+/* 下部バーの分だけ本文の下に余白を取る */
+.ls-has-sendbar {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+}
