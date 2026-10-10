@@ -602,3 +602,144 @@ textarea {
     align-items: flex-start;
   }
 }
+
+/* ---- 統合版で追加：タブ・地図共有 ---- */
+
+[hidden] {
+  display: none !important;
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hero-top .hero-kicker {
+  margin: 0;
+}
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 14px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.tab {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--subtext);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab[aria-selected="true"] {
+  background: var(--card-strong);
+  color: var(--text);
+  border-color: var(--line);
+  box-shadow: 0 2px 8px rgba(20, 20, 18, 0.06);
+}
+
+.tab:focus-visible,
+.button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+  margin-top: 10px;
+}
+
+.field .input-row {
+  margin-top: 0;
+}
+
+.field .input-row-tight {
+  margin-top: 12px;
+}
+
+.input-row .button {
+  width: auto;
+  min-height: 0;
+  white-space: nowrap;
+}
+
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-list .button-chip {
+  width: auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.preview-photo {
+  display: block;
+  width: calc(100% + 44px);
+  aspect-ratio: 20 / 13;
+  margin: -22px -22px 16px;
+  object-fit: cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+}
+
+.preview-sub {
+  margin: 6px 0 0;
+  color: var(--subtext);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.preview-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.preview-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eaf0fa;
+  color: var(--accent-blue);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.preview-card {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: 1.7rem;
+  }
+}

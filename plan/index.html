@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>場所と予定をLINEで共有</title>
+    <meta
+      name="description"
+      content="Google Mapsの場所や予定を、見やすいカードにしてLINEで送れるページです。"
+    />
+    <link rel="stylesheet" href="./assets/styles.css" />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script type="module" src="./assets/main.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div class="hero-top">
+          <p class="hero-kicker">LINEで共有する</p>
+          <span id="liffBadge" class="badge">接続確認中</span>
+        </div>
+        <h1>場所と予定を送りやすくする</h1>
+        <p class="hero-text">
+          Google Mapsの場所や予定を、相手が開きやすいカードにしてトークへ送れます。
+        </p>
+      </section>
+
+      <div class="tabs" role="tablist" aria-label="共有する内容">
+        <button id="tab-map" class="tab" type="button" role="tab" data-tab="map" aria-controls="panel-map" aria-selected="true">📍 場所</button>
+        <button id="tab-calendar" class="tab" type="button" role="tab" data-tab="calendar" aria-controls="panel-calendar" aria-selected="false" tabindex="-1">📅 予定</button>
+      </div>
+
+      <div id="panel-map" class="tab-panel" role="tabpanel" aria-labelledby="tab-map">
+        <section class="card card-form">
+          <div class="card-header">
+            <div>
+              <h2>場所の情報</h2>
+              <p class="section-note">Google MapsのURLを入れると、場所名・住所・写真を取り込みます。</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="mapUrl">Google Maps URL</label>
+            <div class="input-row">
+              <input id="mapUrl" type="url" inputmode="url" placeholder="https://maps.app.goo.gl/..." />
+              <button id="mapResolveButton" class="button button-soft" type="button">情報を取得</button>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>場所名</span>
+            <input id="mapTitle" type="text" maxlength="80" placeholder="場所名を入力" />
+          </label>
+          <p id="mapAddress" class="help-text" hidden></p>
+
+          <div class="field">
+            <span class="field-label">バッジ</span>
+            <div id="badgeList" class="chip-list"></div>
+            <div class="input-row input-row-tight">
+              <input id="customBadge" type="text" maxlength="12" aria-label="バッジを追加" placeholder="例：駅近 / 子連れOK / 雰囲気◎" />
+              <button id="addBadgeButton" class="button button-soft" type="button">追加</button>
+            </div>
+            <p class="help-text">バッジは最大5つまで選べます。</p>
+          </div>
+
+          <label class="field">
+            <span>コメント</span>
+            <textarea id="mapComment" rows="4" placeholder="例：ここ行ってみたい！&#10;例：集合場所はここで！"></textarea>
+          </label>
+        </section>
+
+        <section class="card card-actions">
+          <div class="card-header">
+            <div>
+              <h2>共有</h2>
+              <p class="section-note">場所名は送信前に編集できます。うまく取れない場合は手動で直してください。</p>
+            </div>
+          </div>
+
+          <div class="action-grid">
+            <button id="mapShareButton" class="button button-main" type="button">ほかのトークに送る</button>
+            <button id="mapOpenButton" class="button button-soft" type="button">地図を開いて確認</button>
+            <button id="mapCreateEventButton" class="button button-soft" type="button">この場所で予定を作る</button>
+          </div>
+
+          <p id="mapMessage" class="message" aria-live="polite"></p>
+        </section>
+
+        <section class="card card-preview">
+          <div class="card-header">
+            <div>
+              <h2>送信プレビュー</h2>
+              <p class="section-note">相手にはこのような内容で届きます。</p>
+            </div>
+          </div>
+
+          <div id="mapPreview" class="preview-card"></div>
+        </section>
+      </div>
+
+      <div id="panel-calendar" class="tab-panel" role="tabpanel" aria-labelledby="tab-calendar" hidden>
+        <section class="card card-form">
+          <div class="card-header">
+            <div>
+              <h2>予定情報</h2>
+              <p class="section-note">件名と日時だけで作成できます。必要な情報だけ追加してください。</p>
+            </div>
+          </div>
+
+          <form id="eventForm" novalidate>
+            <label class="field">
+              <span>件名</span>
+              <input id="title" type="text" maxlength="80" placeholder="例：打ち合わせ" />
+            </label>
+
+            <div class="date-stack">
+              <fieldset class="date-card">
+                <legend>開始日時</legend>
+                <div class="datetime-grid">
+                  <label class="field field-compact field-date">
+                    <span class="field-label-inline">日付</span>
+                    <input id="startDate" type="date" />
+                  </label>
+                  <label class="field field-compact field-time">
+                    <span class="field-label-inline">時刻</span>
+                    <input id="startTime" type="time" step="900" />
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="date-card">
+                <legend>完了日時</legend>
+                <div class="datetime-grid">
+                  <label class="field field-compact field-date">
+                    <span class="field-label-inline">日付</span>
+                    <input id="endDate" type="date" />
+                  </label>
+                  <label class="field field-compact field-time">
+                    <span class="field-label-inline">時刻</span>
+                    <input id="endTime" type="time" step="900" />
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="schedule-tools">
+              <div id="durationSummary" class="duration-summary">開始日時を入力すると所要時間を表示します。</div>
+              <div class="duration-actions">
+                <button class="button button-soft button-chip" type="button" data-duration-minutes="30">30分</button>
+                <button class="button button-soft button-chip is-active" type="button" data-duration-minutes="60">60分</button>
+                <button class="button button-soft button-chip" type="button" data-duration-minutes="90">90分</button>
+                <button class="button button-soft button-chip" type="button" data-duration-minutes="120">120分</button>
+              </div>
+            </div>
+
+            <section class="optional-section">
+              <div class="section-headline">
+                <h3>任意項目</h3>
+              </div>
+              <p class="section-note">必要な項目だけ開いて入力してください。</p>
+
+              <details id="locationAccordion" class="inline-accordion">
+                <summary>
+                  <span>場所</span>
+                  <span id="locationState" class="summary-chip">未入力</span>
+                </summary>
+                <div class="inline-accordion-body">
+                  <div class="field field-compact">
+                    <input id="location" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
+                  </div>
+                  <div class="input-row">
+                    <input id="locationMapUrl" type="url" inputmode="url" aria-label="場所のGoogle Maps URL" placeholder="Google Maps URL（任意）" />
+                    <button id="locationResolveButton" class="button button-soft" type="button">取得</button>
+                  </div>
+                  <p class="help-text">Google MapsのURLを入れると、場所名と住所を取り込み、送るカードに写真と地図ボタンが付きます。</p>
+                </div>
+              </details>
+
+              <details class="inline-accordion">
+                <summary>
+                  <span>関連URL</span>
+                  <span id="urlState" class="summary-chip">未入力</span>
+                </summary>
+                <div class="inline-accordion-body">
+                  <div class="field field-compact">
+                    <input id="url" type="url" aria-label="関連URL" placeholder="https://example.com" />
+                  </div>
+                </div>
+              </details>
+
+              <details class="inline-accordion">
+                <summary>
+                  <span>予定詳細</span>
+                  <span id="detailsState" class="summary-chip">未入力</span>
+                </summary>
+                <div class="inline-accordion-body">
+                  <div class="field field-compact">
+                    <textarea id="details" rows="5" aria-label="予定詳細" placeholder="補足情報やメモ"></textarea>
+                  </div>
+                </div>
+              </details>
+            </section>
+
+            <details id="optionalAccordion" class="accordion">
+              <summary>
+                <span>詳細オプション</span>
+                <span id="optionalCount" class="summary-chip">0件入力中</span>
+              </summary>
+
+              <div class="accordion-body">
+                <p class="section-note">繰り返し設定や参照元情報など、必要な場合のみ入力してください。</p>
+
+                <div class="field">
+                  <input id="timezone" type="text" aria-label="タイムゾーン ctz" placeholder="タイムゾーン 例：Asia/Tokyo" />
+                </div>
+
+                <div class="field">
+                  <input id="recur" type="text" aria-label="繰り返しルール recur" placeholder="繰り返し設定 例：RRULE:FREQ=WEEKLY;BYDAY=MO" />
+                </div>
+
+                <div class="field-grid">
+                  <div class="field">
+                    <input id="sourceName" type="text" aria-label="参照元名 sprop name" placeholder="参照元名 例：予定共有ページ" />
+                  </div>
+
+                  <div class="field">
+                    <input id="sourceUrl" type="url" aria-label="参照元URL sprop website" placeholder="参照元URL 例：https://example.com" />
+                  </div>
+                </div>
+
+                <section class="custom-params">
+                  <div class="custom-params-header">
+                    <div>
+                      <h3>その他のクエリパラメータ</h3>
+                    </div>
+                    <button id="addParamButton" class="button button-soft" type="button">項目を追加</button>
+                  </div>
+                  <div id="customParamsList" class="custom-params-list"></div>
+                  <p class="help-text">
+                    任意のキーと値を追加できます。未入力の行はURLに含めません。
+                  </p>
+                </section>
+              </div>
+            </details>
+          </form>
+        </section>
+
+        <section class="card card-actions">
+          <div class="card-header">
+            <div>
+              <h2>共有リンク</h2>
+              <p class="section-note">登録用リンクを開くか、コピーして共有できます。</p>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>作成されたリンク</span>
+            <textarea id="generatedUrl" rows="4" readonly></textarea>
+          </label>
+
+          <div class="action-grid">
+            <button id="openUrlButton" class="button button-main" type="button">Googleカレンダー登録</button>
+            <button id="copyUrlButton" class="button button-soft" type="button">リンクをコピー</button>
+            <button id="shareTargetButton" class="button button-dark" type="button">ほかのトークに送る</button>
+          </div>
+
+          <p id="statusMessage" class="message" aria-live="polite"></p>
+        </section>
+
+        <section class="card card-preview">
+          <div class="card-header">
+            <div>
+              <h2>送信プレビュー</h2>
+              <p class="section-note">相手にはこのような内容で届きます。</p>
+            </div>
+          </div>
+
+          <div id="previewCard" class="preview-card"></div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
