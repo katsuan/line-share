@@ -1,16 +1,35 @@
 /* 文字・手書き固有の見た目。共通部品は shared/ui.css */
 
+/* 画像の範囲。塗りつぶさず点線だけにして、画像そのものの背景（仕上げ → 背景）をそのまま見せる */
 .canvas-frame {
   position: relative;
   justify-self: center;
   width: min(100%, 320px);
   aspect-ratio: 1;
-  border-radius: var(--ls-radius-lg);
-  overflow: hidden;
-  background: #fff;
+  border-radius: 6px;
+  outline: 1.5px dashed rgba(128, 128, 128, 0.55);
+  outline-offset: 2px;
 }
 
-.canvas-frame[data-backdrop="checker"] {
+/* 「背景で確認」：トーク画面にあたるプレビュー枠全体の色を切り替える */
+.image-stage[data-backdrop="light"] {
+  background: var(--ls-talk-bg);
+}
+
+.image-stage[data-backdrop="dark"] {
+  background: var(--ls-talk-dark);
+}
+
+.image-stage[data-backdrop="white"] {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--ls-line);
+}
+
+.image-stage[data-backdrop="black"] {
+  background: #000000;
+}
+
+.image-stage[data-backdrop="checker"] {
   background-color: #fff;
   background-image:
     linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
@@ -19,24 +38,6 @@
     linear-gradient(-45deg, transparent 75%, #e9e7e1 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-}
-
-/* 「明るいトーク」はプレビュー枠と同じ色なので、境目がわかるよう薄い枠線を付ける */
-.canvas-frame[data-backdrop="light"] {
-  background: var(--ls-talk-bg);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-}
-
-.canvas-frame[data-backdrop="dark"] {
-  background: var(--ls-talk-dark);
-}
-
-.canvas-frame[data-backdrop="white"] {
-  background: #ffffff;
-}
-
-.canvas-frame[data-backdrop="black"] {
-  background: #000000;
 }
 
 .canvas-frame canvas {
@@ -81,7 +82,10 @@
 }
 
 .backdrop-label {
-  color: rgba(255, 255, 255, 0.92);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
 }
