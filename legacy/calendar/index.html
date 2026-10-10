@@ -20,18 +20,13 @@
         <p class="hero-text">
           日時と必要な情報を入れると、相手がそのまま予定を追加しやすいリンクを作れます。
         </p>
-        <div class="hero-points">
-          <span class="hero-point">1. 予定を入力</span>
-          <span class="hero-point">2. 内容を確認</span>
-          <span class="hero-point">3. LINEで共有</span>
-        </div>
       </section>
 
       <section class="card card-form">
         <div class="card-header">
           <div>
             <h2>予定情報</h2>
-            <p class="section-note">まずは件名と日時だけ入れれば作成できます。</p>
+            <p class="section-note">件名と日時だけで作成できます。必要な情報だけ追加してください。</p>
           </div>
           <span id="liffBadge" class="badge">接続確認中</span>
         </div>
@@ -132,7 +127,7 @@
             </summary>
 
             <div class="accordion-body">
-              <p class="section-note">必要なときだけ使う詳細設定です。</p>
+              <p class="section-note">繰り返し設定や参照元情報など、必要な場合のみ入力してください。</p>
 
               <div class="field">
                 <input id="timezone" type="text" aria-label="タイムゾーン ctz" placeholder="タイムゾーン 例：Asia/Tokyo" />
@@ -173,7 +168,7 @@
         <div class="card-header">
           <div>
             <h2>共有リンク</h2>
-            <p class="section-note">内容を確認して、そのまま送れます。</p>
+            <p class="section-note">登録用リンクを開くか、コピーして共有できます。</p>
           </div>
         </div>
 
@@ -183,10 +178,9 @@
         </label>
 
         <div class="action-grid">
-          <button id="openUrlButton" class="button button-main" type="button">予定ページを開く</button>
+          <button id="openUrlButton" class="button button-main" type="button">Googleカレンダー登録</button>
           <button id="copyUrlButton" class="button button-soft" type="button">リンクをコピー</button>
-          <button id="sendCurrentChatButton" class="button button-line" type="button">このトークに送る</button>
-          <button id="shareTargetButton" class="button button-dark" type="button">ほかに送る</button>
+          <button id="shareTargetButton" class="button button-dark" type="button">ほかのトークに送る</button>
         </div>
 
         <p id="statusMessage" class="message" aria-live="polite"></p>
@@ -196,7 +190,7 @@
         <div class="card-header">
           <div>
             <h2>送信プレビュー</h2>
-            <p class="section-note">相手に届く見え方のイメージです。</p>
+            <p class="section-note">相手にはこのような内容で届きます。</p>
           </div>
         </div>
 

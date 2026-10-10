@@ -73,26 +73,6 @@ body {
   font-size: 0.95rem;
 }
 
-.hero-points {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.hero-point {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid #e2dccd;
-  border-radius: 999px;
-  background: #fbf7ef;
-  color: #6c5b34;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
 .card {
   margin-top: 12px;
   padding: 22px;
@@ -236,6 +216,7 @@ textarea {
 
 .date-stack {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 14px;
 }
@@ -473,7 +454,7 @@ textarea {
 }
 
 .action-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 14px;
 }
 
@@ -590,6 +571,7 @@ textarea {
     border-radius: 16px;
   }
 
+  .date-stack,
   .field-grid,
   .action-grid,
   .param-row {
@@ -618,9 +600,5 @@ textarea {
 
   .accordion summary {
     align-items: flex-start;
-  }
-
-  .hero-points {
-    gap: 6px;
   }
 }

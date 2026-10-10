@@ -42,7 +42,6 @@ function cacheDom_() {
   dom.generatedUrl = document.getElementById("generatedUrl");
   dom.openUrlButton = document.getElementById("openUrlButton");
   dom.copyUrlButton = document.getElementById("copyUrlButton");
-  dom.sendCurrentChatButton = document.getElementById("sendCurrentChatButton");
   dom.shareTargetButton = document.getElementById("shareTargetButton");
   dom.statusMessage = document.getElementById("statusMessage");
   dom.previewCard = document.getElementById("previewCard");
@@ -69,7 +68,6 @@ function bindEvents_() {
   dom.customParamsList.addEventListener("click", handleCustomParamClick_);
   dom.openUrlButton.addEventListener("click", openGeneratedUrl_);
   dom.copyUrlButton.addEventListener("click", copyGeneratedUrl_);
-  dom.sendCurrentChatButton.addEventListener("click", sendToCurrentChat_);
   dom.shareTargetButton.addEventListener("click", shareToTargetPicker_);
 }
 
@@ -104,7 +102,6 @@ function updateUi_() {
     dom.openUrlButton.disabled = !calendarUrl;
     dom.copyUrlButton.disabled = !calendarUrl;
     dom.shareTargetButton.disabled = !calendarUrl || !state.liffReady;
-    dom.sendCurrentChatButton.disabled = !calendarUrl || !state.liffReady || !liff.isInClient();
 
     renderPreview_(data, calendarUrl);
     updateOptionalCount_();
@@ -115,16 +112,15 @@ function updateUi_() {
     }
 
     if (!liff.isInClient()) {
-      setMessage_("このブラウザではリンク作成と共有先の選択まで使えます。今のトークに送るときはLINE内で開いてください。", "default");
+      setMessage_("このブラウザではリンク作成と共有先の選択が使えます。", "default");
     } else {
-      setMessage_("このトークに送るか、送信先を選んで共有できます。", "default");
+      setMessage_("共有先を選んで送れます。", "default");
     }
   } catch (error) {
     dom.generatedUrl.value = "";
     dom.openUrlButton.disabled = true;
     dom.copyUrlButton.disabled = true;
     dom.shareTargetButton.disabled = true;
-    dom.sendCurrentChatButton.disabled = true;
     renderPreviewEmpty_();
     updateOptionalCount_();
     updateOptionalFieldStates_();
@@ -476,17 +472,6 @@ function getCustomParams_() {
       return { key, value };
     })
     .filter((param) => param.key && param.value);
-}
-
-async function sendToCurrentChat_() {
-  try {
-    const data = getFormData_();
-    const message = createFlexMessage_(data, createGoogleCalendarUrl_(data));
-    await liff.sendMessages([message]);
-    setMessage_("このトークに送信しました。", "success");
-  } catch (error) {
-    setMessage_(getErrorMessage_(error), "error");
-  }
 }
 
 async function shareToTargetPicker_() {
