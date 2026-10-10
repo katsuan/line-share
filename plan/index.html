@@ -105,10 +105,28 @@
             </label>
 
             <div class="ls-field">
-              <span class="ls-label">開始</span>
+              <div class="field-head">
+                <span class="ls-label">開始</span>
+                <label class="ls-chip is-small"><input id="allDayToggle" type="checkbox" />終日</label>
+              </div>
               <div class="ls-row datetime-row">
                 <input id="startDate" class="ls-input" type="date" aria-label="開始日" />
                 <input id="startTime" class="ls-input" type="time" step="900" aria-label="開始時刻" />
+              </div>
+            </div>
+
+            <div class="ls-field">
+              <span class="ls-label">長さ</span>
+              <div class="ls-chips" data-duration-group="timed">
+                <button class="ls-chip" type="button" data-duration-minutes="30">30分</button>
+                <button class="ls-chip" type="button" data-duration-minutes="60">1時間</button>
+                <button class="ls-chip" type="button" data-duration-minutes="90">1時間半</button>
+                <button class="ls-chip" type="button" data-duration-minutes="120">2時間</button>
+              </div>
+              <div class="ls-chips" data-duration-group="allDay" hidden>
+                <button class="ls-chip" type="button" data-duration-minutes="1440">1日</button>
+                <button class="ls-chip" type="button" data-duration-minutes="2880">2日</button>
+                <button class="ls-chip" type="button" data-duration-minutes="4320">3日</button>
               </div>
             </div>
 
@@ -117,16 +135,6 @@
               <div class="ls-row datetime-row">
                 <input id="endDate" class="ls-input" type="date" aria-label="終了日" />
                 <input id="endTime" class="ls-input" type="time" step="900" aria-label="終了時刻" />
-              </div>
-            </div>
-
-            <div class="ls-field">
-              <span class="ls-label">長さ</span>
-              <div class="ls-chips">
-                <button class="ls-chip" type="button" data-duration-minutes="30">30分</button>
-                <button class="ls-chip is-active" type="button" data-duration-minutes="60">1時間</button>
-                <button class="ls-chip" type="button" data-duration-minutes="90">1時間半</button>
-                <button class="ls-chip" type="button" data-duration-minutes="120">2時間</button>
               </div>
               <p id="durationSummary" class="ls-hint">開始日時を入力すると所要時間を表示します。</p>
             </div>

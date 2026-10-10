@@ -17,11 +17,13 @@ import { MAX_URI_LENGTH } from "./config.js";
 import { createEventFlex } from "./flex.js";
 import { bindPlaceSearch } from "./place-search.js";
 
+const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
 const state = {
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Tokyo",
   endEdited: false,
   selectedDurationMinutes: 60,
+  allDay: false,
   followStartDuration: true,
   // Google Maps から取り込んだ場所の情報
   place: { mapUrl: "", photoUrl: "" }
@@ -84,11 +86,14 @@ function cacheDom_() {
   dom.addParamButton = document.getElementById("addParamButton");
   dom.durationSummary = document.getElementById("durationSummary");
   dom.durationButtons = Array.from(document.querySelectorAll("[data-duration-minutes]"));
+  dom.durationGroups = Array.from(document.querySelectorAll("[data-duration-group]"));
+  dom.allDayToggle = document.getElementById("allDayToggle");
 }
 
 function bindEvents_() {
   dom.form.addEventListener("input", refreshCalendarTab);
   dom.form.addEventListener("submit", (event) => event.preventDefault());
+  dom.allDayToggle.addEventListener("change", handleAllDayChange_);
   dom.startDate.addEventListener("change", handleStartDateTimeChange_);
   dom.startTime.addEventListener("change", handleStartDateTimeChange_);
   dom.endDate.addEventListener("change", handleEndDateTimeEdit_);
@@ -162,8 +167,8 @@ export function refreshCalendarTab() {
 
 function getFormData_() {
   const title = dom.title.value.trim();
-  const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
-  const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
+  const start = getStart_();
+  const end = getEnd_();
   const location = dom.location.value.trim();
   const mapUrl = dom.locationMapUrl.value.trim() || mapSearchUrl(location);
   const url = dom.url.value.trim();
@@ -179,15 +184,15 @@ function getFormData_() {
   }
 
   if (!start) {
-    throw new UserError("開始日時を入力してください。");
+    throw new UserError(state.allDay ? "開始日を入力してください。" : "開始日時を入力してください。");
   }
 
   if (!end) {
-    throw new UserError("終了日時を入力してください。");
+    throw new UserError(state.allDay ? "終了日を入力してください。" : "終了日時を入力してください。");
   }
 
   if (start >= end) {
-    throw new UserError("終了日時は開始日時より後にしてください。");
+    throw new UserError(state.allDay ? "終了日は開始日以降にしてください。" : "終了日時は開始日時より後にしてください。");
   }
 
   if (mapUrl && !isGoogleMapsUrl(mapUrl)) {
@@ -204,6 +209,7 @@ function getFormData_() {
 
   return {
     title,
+    allDay: state.allDay,
     start,
     end,
     location,
@@ -225,7 +231,12 @@ function createGoogleCalendarUrl_(data) {
 
   params.set("action", "TEMPLATE");
   params.set("text", data.title);
-  params.set("dates", `${toGoogleCalendarDate_(data.start)}/${toGoogleCalendarDate_(data.end)}`);
+  params.set(
+    "dates",
+    data.allDay
+      ? `${toGoogleCalendarDay_(data.start)}/${toGoogleCalendarDay_(data.end)}`
+      : `${toGoogleCalendarDate_(data.start)}/${toGoogleCalendarDate_(data.end)}`
+  );
 
   if (data.location) {
     params.set("location", data.location);
@@ -272,17 +283,28 @@ function createGoogleCalendarUrl_(data) {
 
 function getFlexLabels_(data) {
   return {
-    start: formatDateTimeLabel_(data.start),
+    startKey: data.allDay ? "日付" : "開始",
+    start: formatStartLabel_(data),
     duration: formatDurationLabel_(data.start, data.end).replace("所要時間 ", "")
   };
 }
 
+function formatStartLabel_(data) {
+  if (!data.allDay) {
+    return formatDateTimeLabel_(data.start);
+  }
+  const lastDay = new Date(data.end.getTime() - DAY_MS);
+  return isSameCalendarDate_(data.start, lastDay)
+    ? `${formatDateLabel_(data.start)}（終日）`
+    : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}`;
+}
+
 function renderPreview_(data, calendarUrl) {
-  const durationLabel = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
-  const spansMultipleDays = !isSameCalendarDate_(data.start, data.end);
+  const labels = getFlexLabels_(data);
+  const spansMultipleDays = !data.allDay && !isSameCalendarDate_(data.start, data.end);
   const rows = [
-    ["開始", formatDateTimeLabel_(data.start)],
-    ["長さ", spansMultipleDays ? `${durationLabel}（複数日）` : durationLabel],
+    [labels.startKey, labels.start],
+    ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration],
     data.location ? ["場所", data.location] : null,
     data.details ? ["メモ", data.details] : null,
     data.customParams.length ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n")] : null
@@ -351,16 +373,26 @@ function handleLocationMapUrlInput_() {
 }
 
 function updateDurationSummary_() {
-  const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
-  const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
+  const start = getStart_();
+  const end = getEnd_();
 
   if (!start || !end) {
-    dom.durationSummary.textContent = "開始日時を入力すると所要時間を表示します。";
+    dom.durationSummary.textContent = state.allDay
+      ? "開始日を入力すると日数を表示します。"
+      : "開始日時を入力すると所要時間を表示します。";
     return;
   }
 
   if (end <= start) {
-    dom.durationSummary.textContent = "終了日時は開始日時より後にしてください。";
+    dom.durationSummary.textContent = state.allDay
+      ? "終了日は開始日以降にしてください。"
+      : "終了日時は開始日時より後にしてください。";
+    return;
+  }
+
+  if (state.allDay) {
+    const days = Math.round((end.getTime() - start.getTime()) / DAY_MS);
+    dom.durationSummary.textContent = days === 1 ? "1日の終日予定です。" : `${days}日間の終日予定です。`;
     return;
   }
 
@@ -457,8 +489,8 @@ function setDefaultDateTime_() {
 }
 
 function handleStartDateTimeChange_() {
-  const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
-  const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
+  const start = getStart_();
+  const end = getEnd_();
 
   if (!start) {
     updateDurationSummary_();
@@ -492,7 +524,7 @@ function handleDurationButtonClick_(event) {
   state.endEdited = true;
   state.followStartDuration = true;
 
-  const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
+  const start = getStart_();
   if (start) {
     setEndFromStart_(start, minutes);
   }
@@ -504,8 +536,45 @@ function handleDurationButtonClick_(event) {
 
 function setEndFromStart_(start, minutes) {
   const end = new Date(start.getTime() + minutes * 60 * 1000);
+  if (state.allDay) {
+    // 終日は終了日を「最終日」で表示する（内部では翌日 0:00 まで）
+    dom.endDate.value = toDateInputValue_(new Date(end.getTime() - DAY_MS));
+    return;
+  }
   dom.endDate.value = toDateInputValue_(end);
   dom.endTime.value = toTimeInputValue_(end);
+}
+
+function getStart_() {
+  return combineDateTime_(dom.startDate.value, state.allDay ? "00:00" : dom.startTime.value);
+}
+
+function getEnd_() {
+  if (!state.allDay) {
+    return combineDateTime_(dom.endDate.value, dom.endTime.value);
+  }
+  const lastDay = combineDateTime_(dom.endDate.value, "00:00");
+  return lastDay ? new Date(lastDay.getTime() + DAY_MS) : null;
+}
+
+function handleAllDayChange_() {
+  state.allDay = dom.allDayToggle.checked;
+  dom.startTime.hidden = state.allDay;
+  dom.endTime.hidden = state.allDay;
+  for (const group of dom.durationGroups) {
+    group.hidden = (group.dataset.durationGroup === "allDay") !== state.allDay;
+  }
+
+  state.selectedDurationMinutes = state.allDay ? 1440 : 60;
+  state.followStartDuration = true;
+  const start = getStart_();
+  if (start) {
+    setEndFromStart_(start, state.selectedDurationMinutes);
+  }
+
+  syncDurationButtons_();
+  updateDurationSummary_();
+  refreshCalendarTab();
 }
 
 function combineDateTime_(dateValue, timeValue) {
@@ -531,8 +600,8 @@ function hasAnyRequiredInput_() {
 }
 
 function syncDurationButtons_() {
-  const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
-  const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
+  const start = getStart_();
+  const end = getEnd_();
 
   if (start && end && end > start) {
     state.selectedDurationMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
@@ -542,6 +611,11 @@ function syncDurationButtons_() {
     const isActive = Number(button.dataset.durationMinutes) === state.selectedDurationMinutes;
     button.classList.toggle("is-active", isActive);
   }
+}
+
+// 終日予定は YYYYMMDD（ローカル日付）で渡す
+function toGoogleCalendarDay_(date) {
+  return toDateInputValue_(date).replaceAll("-", "");
 }
 
 function toGoogleCalendarDate_(date) {
