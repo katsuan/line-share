@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="../config.js"></script>
     <style>
       :root {
         --bg: #f4efe4;
@@ -649,8 +650,8 @@
 
     <script>
       const defaultConfig = {
-        liffId: "2009927876-M1sXwp0q",
-        apiBaseUrl: "https://liff-image.onrender.com",
+        liffId: window.LINE_SHARE_CONFIG.liffId,
+        apiBaseUrl: window.LINE_SHARE_CONFIG.drawApiBaseUrl,
       };
 
       const storageKeys = {
@@ -848,8 +849,9 @@
       }
 
       function loadConfig() {
-        liffIdInput.value = localStorage.getItem(storageKeys.liffId) || defaultConfig.liffId;
-        apiBaseUrlInput.value = localStorage.getItem(storageKeys.apiBaseUrl) || defaultConfig.apiBaseUrl;
+        // 保存済みの値はデバッグ表示のときだけ使う（通常は共通の config.js を優先）
+        liffIdInput.value = (isDebugMode && localStorage.getItem(storageKeys.liffId)) || defaultConfig.liffId;
+        apiBaseUrlInput.value = (isDebugMode && localStorage.getItem(storageKeys.apiBaseUrl)) || defaultConfig.apiBaseUrl;
         prefs.brushColor = localStorage.getItem(storageKeys.brushColor) || "#18222f";
         prefs.brushSize = Number(localStorage.getItem(storageKeys.brushSize) || "8");
         prefs.transparentBackground =
