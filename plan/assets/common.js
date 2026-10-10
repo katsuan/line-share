@@ -108,7 +108,7 @@ export async function shareFlex(message) {
 
 export function formatPlaceLocation(place) {
   const title = (place.title || "").trim();
-  const address = (place.address || "").trim();
+  const address = (place.address || "").trim().replace(/^日本、\s*/, "");
   if (!title) return address;
   if (!address || address.includes(title)) return title;
   return `${title} ${address}`;

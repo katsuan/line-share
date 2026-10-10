@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   initCalendarTab();
   bindTabs_();
+  bindSendBar_();
 
   await initializeLiff_();
 
@@ -83,6 +84,51 @@ function bindTabs_() {
   }
 }
 
+// スマホでは送信ボタンを画面下に固定し、表示中タブの送信ボタンと状態を連動させる
+const SEND_TARGETS = {
+  map: { button: "mapShareButton", message: "mapMessage" },
+  calendar: { button: "shareTargetButton", message: "statusMessage" }
+};
+
+function bindSendBar_() {
+  const barButton = document.getElementById("sendBarButton");
+  const barMessage = document.getElementById("sendBarMessage");
+  const observer = new MutationObserver(syncSendBar_);
+
+  for (const { button, message } of Object.values(SEND_TARGETS)) {
+    observer.observe(document.getElementById(button), { attributes: true, childList: true, characterData: true, subtree: true });
+    observer.observe(document.getElementById(message), { attributes: true, childList: true, characterData: true, subtree: true });
+  }
+
+  barButton.addEventListener("click", () => {
+    document.getElementById(SEND_TARGETS[activeTab_()].button).click();
+  });
+
+  // 入力中はキーボードと重ならないよう隠す
+  document.addEventListener("focusin", (event) => {
+    if (event.target.matches("input:not([type=checkbox]), textarea")) {
+      document.body.classList.add("is-typing");
+    }
+  });
+  document.addEventListener("focusout", () => document.body.classList.remove("is-typing"));
+
+  function syncSendBar_() {
+    const target = SEND_TARGETS[activeTab_()];
+    const source = document.getElementById(target.button);
+    const message = document.getElementById(target.message);
+    barButton.disabled = source.disabled;
+    barButton.textContent = source.textContent;
+    barMessage.textContent = message.textContent;
+    barMessage.className = `send-bar-message ${message.className.replace("message", "")}`;
+  }
+
+  window.syncSendBar = syncSendBar_;
+}
+
+function activeTab_() {
+  return document.getElementById("tab-map").getAttribute("aria-selected") === "true" ? "map" : "calendar";
+}
+
 export function selectTab(name) {
   for (const key of TABS) {
     const selected = key === name;
@@ -91,6 +137,7 @@ export function selectTab(name) {
     tab.tabIndex = selected ? 0 : -1;
     document.getElementById(`panel-${key}`).hidden = !selected;
   }
+  window.syncSendBar?.();
 }
 
 function setBadge_(element, label, muted = false) {
