@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101915";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610101915";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101950";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610101950";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "outlineList", "outlineWidthList", "backgroundList", "motionList", "backdropList",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
-    "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendMotionNote",
+    "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendRecommend",
     "shapeList", "historyPanel", "historyList", "motionToggle",
     "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta", "motionMeta"
   ].forEach((id) => {
@@ -615,7 +615,12 @@ function closeSheet_(sheet) {
 function chooseSendMode_(previewUrl, animated) {
   els.sendPreview.src = previewUrl;
   els.sendPreview.dataset.backdrop = state.backdrop;
-  els.sendMotionNote.hidden = !animated;
+  // 今の LINE ではカード（Flex）の透過が出ないため、動きの有無でおすすめを切り替える
+  els.sendRecommend.textContent = animated
+    ? "動きがあるので「カードで送る」がおすすめです。"
+    : "動きがないので「画像で送る」がおすすめです（透過のまま届きます）。";
+  els.sendAsImage.classList.toggle("ls-send-secondary", animated);
+  els.sendAsCard.classList.toggle("ls-send-secondary", !animated);
   openSheet_(els.sendSheet);
 
   return new Promise((resolve) => {
@@ -654,7 +659,7 @@ async function uploadImage_(blob) {
   return data.imageUrl;
 }
 
-// 元の文字アイコン（line-text-icon-sender）で透過と動きの両方が出ていたカードと同じ作りにする
+// 今の LINE ではカード（Flex）の背景は透過しない（元の文字アイコンも同じ）。透過したいときは「画像で送る」
 function buildMessage_(mode, imageUrl, item) {
   if (mode === "image") {
     return { type: "image", originalContentUrl: imageUrl, previewImageUrl: imageUrl };
@@ -675,10 +680,10 @@ function buildMessage_(mode, imageUrl, item) {
         aspectMode: "fit",
         animated: item.animated,
         backgroundColor: "#00000000",
-        // 透過を保つためフッターは付けず、Created by が ON のときだけ画像のタップで「おくるカード」を開く
+        // Created by が ON のときは画像のタップでも「おくるカード」を開く
         ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
       },
-      // 下に文字を入れると透過しなくなるため、元の文字アイコンの「文字なし」と同じく空の本文にする
+      // 画像だけを見せるため本文は空にする（Created by はフッターに付く）
       body: {
         type: "box",
         layout: "vertical",
@@ -737,7 +742,8 @@ async function sendImage_(item) {
     els.sendButton.textContent = "準備中...";
     setStatus_("画像を準備しています…");
     const imageUrl = await uploadImage_(item.blob);
-    const result = await liff.shareTargetPicker([buildMessage_(mode, imageUrl, item)], { isMultiple: true });
+    const message = window.LineShareCredit?.withCredit(buildMessage_(mode, imageUrl, item)) ?? buildMessage_(mode, imageUrl, item);
+    const result = await liff.shareTargetPicker([message], { isMultiple: true });
     if (result) {
       setStatus_("送信しました。", "success");
       await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "" });

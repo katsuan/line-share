@@ -9,13 +9,13 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>文字・手書き｜おくるカード</title>
     <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610101915" />
-    <link rel="stylesheet" href="./style.css?v=202610101915" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610101950" />
+    <link rel="stylesheet" href="./style.css?v=202610101950" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610101915"></script>
-    <script src="../shared/credit.js?v=202610101915"></script>
-    <script src="../shared/ui.js?v=202610101915" defer></script>
-    <script type="module" src="./app.js?v=202610101915"></script>
+    <script src="../config.js?v=202610101950"></script>
+    <script src="../shared/credit.js?v=202610101950"></script>
+    <script src="../shared/ui.js?v=202610101950" defer></script>
+    <script type="module" src="./app.js?v=202610101950"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -102,7 +102,7 @@
             <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>背景 <span id="backgroundMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="backgroundList" class="ls-swatches"></div>
-              <p class="ls-hint">画像そのものの背景です。透明にすると、トークの背景が透けて見えます。</p>
+              <p class="ls-hint">画像そのものの背景です。透明にして「画像で送る」と、トークの背景が透けて見えます（カードで送ると白い背景になります）。</p>
             </div>
           </details>
 
@@ -151,12 +151,15 @@
       <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
         <p id="sendTitle" class="ls-sheet-title">送り方を選ぶ</p>
         <img id="sendPreview" class="sheet-preview ls-checker" alt="送る画像" />
-        <p class="ls-hint"><strong>画像</strong>：ふつうの画像として届き、保存もしやすい形です。<br /><strong>カード</strong>：背景の透過を保ったまま表示され、動きも再生されます。タップすると「おくるカード」が開きます。</p>
-        <p id="sendMotionNote" class="ls-hint is-warn" hidden>動きは「カード」で送ったときだけ再生されます（画像では止まった状態になります）。</p>
+        <ul class="send-modes">
+          <li><strong>🖼️ 画像で送る</strong>：背景の透過がそのまま届きます。動きは止まります（1コマ目）。</li>
+          <li><strong>🪧 カードで送る</strong>：動きが再生されます。LINEの表示で背景は白くなります。</li>
+        </ul>
+        <p id="sendRecommend" class="ls-hint is-warn"></p>
         <p class="ls-hint">送信後の修正はできません。</p>
         <div class="ls-sheet-actions">
-          <button id="sendAsImage" class="ls-send ls-send-secondary" type="button">画像で送る</button>
-          <button id="sendAsCard" class="ls-send" type="button">カードで送る</button>
+          <button id="sendAsImage" class="ls-send" type="button">画像で送る</button>
+          <button id="sendAsCard" class="ls-send ls-send-secondary" type="button">カードで送る</button>
         </div>
         <button id="sendCancel" class="ls-sheet-cancel" type="button">やめる</button>
       </div>
