@@ -67,7 +67,9 @@ const state = {
   undoStack: [],
   currentStroke: null,
   liffReady: false,
-  busy: false
+  busy: false,
+  // プレビューの動きを一時停止しているか（送る画像には影響しない）
+  previewPaused: false
 };
 
 const els = {};
@@ -83,7 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
     "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendMotionNote",
-    "shapeList", "historyPanel", "historyList"
+    "shapeList", "historyPanel", "historyList", "motionToggle",
+    "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta", "motionMeta"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -254,10 +257,14 @@ function requestRender() {
     renderQueued = false;
     const { width, height } = dims_(LONG_SIDE);
     previewLayer = buildLayer(width, height);
-    if (state.motion === "none") {
+    if (!isPreviewMoving_()) {
       compose(els.canvas.getContext("2d"), width, height, previewLayer);
     }
   });
+}
+
+function isPreviewMoving_() {
+  return state.motion !== "none" && !state.previewPaused;
 }
 
 function restartPreview_() {
@@ -271,7 +278,7 @@ function restartPreview_() {
   els.canvasFrame.style.aspectRatio = `${width} / ${height}`;
   const ctx = els.canvas.getContext("2d");
   previewLayer = buildLayer(width, height);
-  if (state.motion === "none") {
+  if (!isPreviewMoving_()) {
     compose(ctx, width, height, previewLayer);
     return;
   }
@@ -309,6 +316,11 @@ function bindDrawing_() {
   canvas.addEventListener("pointerdown", (event) => {
     if (state.mode !== "draw" || state.currentStroke) return;
     event.preventDefault();
+    // 動いている途中で描き始めたら止める
+    if (isPreviewMoving_()) {
+      state.previewPaused = true;
+      applyState_();
+    }
     canvas.setPointerCapture(event.pointerId);
     state.currentStroke = {
       pointerId: event.pointerId,
@@ -351,6 +363,7 @@ function updateUndo_() {
   els.undoButton.disabled = state.undoStack.length === 0;
   els.clearButton.disabled = state.strokes.length === 0;
   els.drawHint.hidden = state.mode !== "draw" || state.strokes.length > 0;
+  updateMeta_();
 }
 
 // ---- 画面 ----
@@ -472,9 +485,25 @@ function applyState_() {
   els.previewStage.dataset.backdrop = state.backdrop;
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
+  els.motionToggle.hidden = state.motion === "none";
+  els.motionToggle.textContent = state.previewPaused ? "▶ 動きを再生" : "⏸ 動きを止める";
+  updateMeta_();
   syncChoices_();
   updateUndo_();
   restartPreview_();
+}
+
+// アコーディオンの見出しの右に、今の設定を短く出す
+function updateMeta_() {
+  const labelOf = (options, value) => options.find((option) => option.value === value)?.label || "";
+  const text = state.text.trim().replace(/\s+/g, " ");
+  els.textMeta.textContent = text ? (text.length > 10 ? `${text.slice(0, 10)}…` : text) : "未入力";
+  els.penMeta.textContent = `${labelOf(PEN_SIZES, state.penSize)}・${state.strokes.length}本`;
+  els.shapeMeta.textContent = labelOf(SHAPES, state.shape);
+  els.outlineMeta.textContent =
+    state.outline === "none" ? "なし" : `${labelOf(OUTLINES, state.outline)}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
+  els.backgroundMeta.textContent = state.background ? "色あり" : "透明";
+  els.motionMeta.textContent = labelOf(MOTIONS, state.motion);
 }
 
 function onChange_() {
@@ -489,12 +518,19 @@ function bindEvents_() {
   });
   els.modeDraw.addEventListener("click", () => {
     state.mode = "draw";
+    // 動いていると描きにくいので、手書きに切り替えたらプレビューの動きを止める
+    if (state.motion !== "none") state.previewPaused = true;
     onChange_();
+  });
+  els.motionToggle.addEventListener("click", () => {
+    state.previewPaused = !state.previewPaused;
+    applyState_();
   });
   els.textInput.addEventListener("input", () => {
     state.text = els.textInput.value;
     savePrefs_();
     syncChoices_();
+    updateMeta_();
     requestRender();
   });
   els.undoButton.addEventListener("click", () => {
