@@ -1,3 +1,0 @@
-window.APP_CONFIG = {
-    LIFF_ID: "2009927876-0f6fB99S"
-};
