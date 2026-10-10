@@ -44,7 +44,7 @@
 }
 
 .canvas-frame.is-drawing {
-  box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.55);
+  box-shadow: 0 0 0 3px rgba(108, 71, 255, 0.55);
 }
 
 .draw-hint {

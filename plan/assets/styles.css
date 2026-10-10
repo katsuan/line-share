@@ -73,8 +73,8 @@
 .preview-badge {
   padding: 3px 10px;
   border-radius: 999px;
-  background: #eaf0fa;
-  color: #3f6db5;
+  background: #efebff;
+  color: #6c47ff;
   font-size: 12px;
   font-weight: 800;
 }
@@ -125,7 +125,7 @@
 }
 
 .preview-link.primary {
-  background: #3f6db5;
+  background: #6c47ff;
   color: #fff;
 }
 

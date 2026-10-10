@@ -6,7 +6,7 @@
     <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
     <link rel="manifest" href="../manifest.webmanifest" />
-    <meta name="theme-color" content="#f4f3ef" />
+    <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるカード</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
     <link rel="stylesheet" href="../shared/ui.css" />
@@ -49,7 +49,7 @@
 
         <div class="ls-folds">
           <details class="ls-fold" open>
-            <summary>テンプレート</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
             <div class="ls-fold-body">
               <p class="ls-hint">選ぶとカードの中身が入れ替わります。今のカードも名前を付けて保存できます。</p>
               <div id="templateList" class="ls-list"></div>
@@ -61,7 +61,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary>見た目</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目</summary>
             <div class="ls-fold-body">
               <div class="ls-field">
                 <span class="ls-label">カラー</span>
@@ -98,7 +98,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary>写真</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🖼️</span>写真</summary>
             <div class="ls-fold-body">
               <div class="ls-actions">
                 <label class="ls-button is-primary photo-pick">
@@ -138,7 +138,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary>バッジ</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ</summary>
             <div class="ls-fold-body">
               <div id="badgeList" class="ls-chips"></div>
               <div class="ls-row">
@@ -150,7 +150,7 @@
           </details>
 
           <details id="linkSettings" class="ls-fold">
-            <summary>リンクボタン</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン</summary>
             <div class="ls-fold-body">
               <div id="buttonList" class="button-list"></div>
               <button id="addButtonButton" class="ls-button is-block" type="button">＋ ボタンを追加</button>

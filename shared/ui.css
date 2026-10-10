@@ -9,20 +9,20 @@
 
   --ls-font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
 
-  --ls-bg: #f4f3ef;
+  --ls-bg: #f5f4f9;
   --ls-surface: #ffffff;
-  --ls-surface-sub: #f8f7f4;
+  --ls-surface-sub: #f8f7fb;
   --ls-text: #1f1f1c;
   --ls-subtext: #6b6a63;
   --ls-faint: #a3a29b;
   --ls-line: rgba(31, 31, 28, 0.12);
   --ls-line-strong: rgba(31, 31, 28, 0.22);
 
-  /* LINE の緑を「送る」「選択中」の色として全ツールで使う */
-  --ls-accent: #06c755;
-  --ls-accent-strong: #05a647;
-  --ls-accent-soft: #e7f8ee;
-  --ls-accent-ink: #047a37;
+  /* ブランドの紫を「送る」「選択中」の色として全ツールで使う */
+  --ls-accent: #6c47ff;
+  --ls-accent-strong: #5634e0;
+  --ls-accent-soft: #efebff;
+  --ls-accent-ink: #4a2bc4;
 
   --ls-danger: #c62828;
   --ls-danger-soft: #fdecec;
@@ -151,7 +151,7 @@ textarea {
   padding: 4px;
   border: 1px solid var(--ls-line);
   border-radius: 16px;
-  background: #e9e7e0;
+  background: #ebe8f3;
 }
 
 .ls-tab {
@@ -250,7 +250,7 @@ textarea.ls-input {
 .ls-input:focus {
   outline: none;
   border-color: var(--ls-accent);
-  box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.18);
+  box-shadow: 0 0 0 3px rgba(108, 71, 255, 0.2);
 }
 
 .ls-input[readonly] {
@@ -504,6 +504,15 @@ input[type="time"].ls-input {
 
 .ls-fold[open] > summary::after {
   transform: rotate(-135deg) translateY(-2px);
+}
+
+/* 見出し先頭の絵文字。幅をそろえて文字の頭を合わせる */
+.ls-fold-icon {
+  flex: 0 0 1.5em;
+  margin-right: -4px;
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
 }
 
 .ls-fold-meta {

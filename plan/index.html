@@ -6,7 +6,7 @@
     <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
     <link rel="manifest" href="../manifest.webmanifest" />
-    <meta name="theme-color" content="#f4f3ef" />
+    <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるカード</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
     <link rel="stylesheet" href="../shared/ui.css" />
@@ -39,7 +39,7 @@
 
         <section class="ls-panel">
           <div class="ls-panel-head">
-            <h2 class="ls-panel-title">場所</h2>
+            <h2 class="ls-panel-title">📍 場所</h2>
             <p id="mapIntro" class="ls-panel-note">検索して選ぶと、場所名・住所・写真が入ります。</p>
           </div>
 
@@ -105,7 +105,7 @@
 
           <section class="ls-panel">
             <div class="ls-panel-head">
-              <h2 class="ls-panel-title">予定</h2>
+              <h2 class="ls-panel-title">📅 予定</h2>
               <p class="ls-panel-note">件名と日時だけで作れます。相手はそのままGoogleカレンダーに追加できます。</p>
             </div>
 
@@ -152,7 +152,7 @@
 
           <div class="ls-folds">
             <details id="locationAccordion" class="ls-fold">
-              <summary>📍 場所 <span id="locationState" class="ls-fold-meta">未入力</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">📍</span>場所 <span id="locationState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <input id="location" class="ls-input" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
                 <button id="locationFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
@@ -169,21 +169,21 @@
             </details>
 
             <details class="ls-fold">
-              <summary>関連URL <span id="urlState" class="ls-fold-meta">未入力</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>関連URL <span id="urlState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <input id="url" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="関連URL" placeholder="https://example.com" />
               </div>
             </details>
 
             <details class="ls-fold">
-              <summary>メモ <span id="detailsState" class="ls-fold-meta">未入力</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">📝</span>メモ <span id="detailsState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <textarea id="details" class="ls-input" rows="4" aria-label="予定の詳細" placeholder="補足情報やメモ"></textarea>
               </div>
             </details>
 
             <details id="optionalAccordion" class="ls-fold">
-              <summary>詳しい設定 <span id="optionalCount" class="ls-fold-meta">0件入力中</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">0件入力中</span></summary>
               <div class="ls-fold-body">
                 <p class="ls-hint">繰り返しや参照元など、必要なときだけ入力してください。</p>
                 <label class="ls-field">
