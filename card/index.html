@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>カードを送る</title>
+    <title>お知らせカードを送る</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのカードを作って、LINEで送れるページです。" />
     <link rel="stylesheet" href="../shared/ui.css" />
     <link rel="stylesheet" href="./style.css" />
@@ -13,18 +13,17 @@
     <script src="./app.js" defer></script>
   </head>
   <body class="ls-has-sendbar">
-    <main class="page">
+    <main class="ls-page">
       <header class="ls-topbar">
         <a class="ls-back" href="../">ツール一覧</a>
-        <h1 class="ls-title">カード</h1>
+        <h1 class="ls-title">お知らせカード</h1>
         <span class="ls-topbar-end"></span>
       </header>
-      <section class="hero">
-        <p>カードの文字を直接タップして編集できます。写真やボタンは下の設定から追加できます。</p>
-      </section>
+      <p class="ls-lead">カードの文字は直接タップして編集できます。写真やボタンは下の設定から追加します。</p>
 
-      <section class="card">
-        <div class="preview">
+      <div class="ls-stack">
+        <section class="ls-preview">
+          <span class="ls-preview-label">送信プレビュー</span>
           <div id="bubble" class="bubble">
             <div id="bubbleHeader" class="bubble-header">
               <input id="headerInput" class="bubble-input bubble-header-title" type="text" maxlength="60" placeholder="タイトル" aria-label="タイトル" />
@@ -40,122 +39,129 @@
               <div id="buttonStack" class="bubble-actions" hidden></div>
             </div>
           </div>
+          <p class="ls-preview-note">見え方はイメージです。送信後の修正はできません。</p>
+        </section>
 
-          <p class="preview-note">※ 見え方はイメージです。実際の表示はご利用端末やカードサイズによって異なります。</p>
-          <p class="preview-note preview-note--strong">※ 送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+        <div class="ls-folds">
+          <details class="ls-fold" open>
+            <summary>ひな形</summary>
+            <div class="ls-fold-body">
+              <p class="ls-hint">用途に合わせたひな形を当てはめてから、文面やリンク先を直せます。</p>
+              <div id="presetGrid" class="ls-list"></div>
+            </div>
+          </details>
+
+          <details class="ls-fold">
+            <summary>見た目</summary>
+            <div class="ls-fold-body">
+              <div class="ls-field">
+                <span class="ls-label">カラー</span>
+                <div class="ls-swatches" role="radiogroup" aria-label="カラー">
+                  <label class="ls-swatch theme-sunset"><input type="radio" name="theme" value="sunset" /><span class="ls-sr-only">サンセット</span></label>
+                  <label class="ls-swatch theme-sky"><input type="radio" name="theme" value="sky" /><span class="ls-sr-only">スカイ</span></label>
+                  <label class="ls-swatch theme-leaf"><input type="radio" name="theme" value="leaf" /><span class="ls-sr-only">リーフ</span></label>
+                  <label class="ls-swatch theme-berry"><input type="radio" name="theme" value="berry" /><span class="ls-sr-only">ベリー</span></label>
+                  <label class="ls-swatch is-custom">
+                    <input type="radio" name="theme" value="custom" tabindex="-1" />
+                    <input id="customColorInput" type="color" value="#f59e0b" aria-label="ほかの色を選ぶ" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="ls-field">
+                <span class="ls-label">カードの大きさ</span>
+                <div class="ls-chips" role="radiogroup" aria-label="カードの大きさ">
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="micro" />小</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="kilo" />やや小</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="mega" />ふつう</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="giga" />大</label>
+                </div>
+              </div>
+
+              <div class="ls-field">
+                <span class="ls-label">表示する項目</span>
+                <div class="ls-chips">
+                  <label class="ls-chip"><input id="showDateToggle" type="checkbox" />サブタイトル</label>
+                  <label class="ls-chip"><input id="showDetailToggle" type="checkbox" />詳細</label>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details class="ls-fold">
+            <summary>写真</summary>
+            <div class="ls-fold-body">
+              <label class="ls-field">
+                <span class="ls-label">写真のURL</span>
+                <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
+              </label>
+              <p id="imageWarning" class="ls-hint is-error" hidden>写真のURLは https:// から始まる公開URLを入力してください。</p>
+              <label class="ls-field">
+                <span class="ls-label">写真をタップしたときのリンク（任意）</span>
+                <input id="imageActionUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" />
+              </label>
+            </div>
+          </details>
+
+          <details class="ls-fold">
+            <summary>バッジ</summary>
+            <div class="ls-fold-body">
+              <div id="badgeList" class="ls-chips"></div>
+              <div class="ls-row">
+                <input id="badgeInput" class="ls-input" type="text" maxlength="12" placeholder="例：NEW / 限定 / おすすめ" aria-label="追加するバッジ" />
+                <button id="addBadgeButton" class="ls-button" type="button">追加</button>
+              </div>
+              <p class="ls-hint">最大5つまで。カードのカラーで表示されます。タップで外せます。</p>
+            </div>
+          </details>
+
+          <details id="linkSettings" class="ls-fold">
+            <summary>リンクボタン</summary>
+            <div class="ls-fold-body">
+              <div id="buttonList" class="button-list"></div>
+              <button id="addButtonButton" class="ls-button is-block" type="button">＋ ボタンを追加</button>
+              <p id="buttonWarning" class="ls-hint is-error" hidden>外部から渡されたリンクのため、許可されたサイト以外は送信時にボタンごと外れます。</p>
+              <p class="ls-hint">最大3つ。https / tel: / mailto: / line: が使えます。</p>
+            </div>
+          </details>
+
+          <details class="ls-fold">
+            <summary>テンプレート・その他</summary>
+            <div class="ls-fold-body">
+              <div class="ls-row">
+                <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="テンプレート名" aria-label="テンプレート名" />
+                <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
+              </div>
+              <div class="ls-row">
+                <select id="templateSelect" class="ls-input" aria-label="保存済みテンプレート"></select>
+                <button id="loadTemplateButton" class="ls-button" type="button">読込</button>
+                <button id="deleteTemplateButton" class="ls-icon-button" type="button" aria-label="選んだテンプレートを削除">🗑</button>
+              </div>
+              <div class="ls-actions">
+                <button id="copyJsonButton" class="ls-button" type="button">JSONをコピー</button>
+                <button id="resetButton" class="ls-button is-danger" type="button">入力をリセット</button>
+              </div>
+            </div>
+          </details>
         </div>
-
-        <div class="panel">
-          <details class="section-block" open>
-            <summary class="section-title"><span class="accordion-label">ひな形</span></summary>
-            <p class="section-note">用途に合わせたひな形を当てはめてから、文面やリンク先を直せます。</p>
-            <div id="presetGrid" class="preset-grid"></div>
-          </details>
-
-          <details class="section-block">
-            <summary class="section-title"><span class="accordion-label">見た目</span></summary>
-
-            <div class="field">
-              <span class="field-label">カラー</span>
-              <div class="theme-pills" role="radiogroup" aria-label="カラー">
-                <label class="theme-pill theme-pill--sunset"><input type="radio" name="theme" value="sunset" /><span aria-hidden="true"></span><span class="sr-only">サンセット</span></label>
-                <label class="theme-pill theme-pill--sky"><input type="radio" name="theme" value="sky" /><span aria-hidden="true"></span><span class="sr-only">スカイ</span></label>
-                <label class="theme-pill theme-pill--leaf"><input type="radio" name="theme" value="leaf" /><span aria-hidden="true"></span><span class="sr-only">リーフ</span></label>
-                <label class="theme-pill theme-pill--berry"><input type="radio" name="theme" value="berry" /><span aria-hidden="true"></span><span class="sr-only">ベリー</span></label>
-                <label class="theme-pill theme-pill--custom">
-                  <input type="radio" name="theme" value="custom" tabindex="-1" />
-                  <input id="customColorInput" type="color" value="#f59e0b" aria-label="カスタムカラーを選ぶ" />
-                  <span aria-hidden="true"></span><span class="sr-only">カスタム</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="field">
-              <span class="field-label">サイズ</span>
-              <div class="size-pills" role="radiogroup" aria-label="サイズ">
-                <label class="size-pill-option"><input type="radio" name="bubbleSize" value="nano" /><span>nano</span></label>
-                <label class="size-pill-option"><input type="radio" name="bubbleSize" value="micro" /><span>micro</span></label>
-                <label class="size-pill-option"><input type="radio" name="bubbleSize" value="kilo" /><span>kilo</span></label>
-                <label class="size-pill-option"><input type="radio" name="bubbleSize" value="mega" /><span>mega</span></label>
-                <label class="size-pill-option"><input type="radio" name="bubbleSize" value="giga" /><span>giga</span></label>
-              </div>
-            </div>
-
-            <div class="field">
-              <span class="field-label">表示</span>
-              <div class="toggle-row">
-                <label class="toggle"><input id="showDateToggle" type="checkbox" /> サブタイトル</label>
-                <label class="toggle"><input id="showDetailToggle" type="checkbox" /> 詳細</label>
-              </div>
-            </div>
-          </details>
-
-          <details class="section-block">
-            <summary class="section-title"><span class="accordion-label">写真</span></summary>
-            <div class="field">
-              <label class="field-label" for="imageUrlInput">写真のURL</label>
-              <input id="imageUrlInput" class="input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
-              <p id="imageWarning" class="field-warning" hidden>写真のURLは https:// から始まる公開URLを入力してください。</p>
-            </div>
-            <div class="field">
-              <label class="field-label" for="imageActionUrlInput">写真をタップしたときのリンク（任意）</label>
-              <input id="imageActionUrlInput" class="input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" />
-            </div>
-          </details>
-
-          <details class="section-block">
-            <summary class="section-title"><span class="accordion-label">バッジ</span></summary>
-            <div id="badgeList" class="chip-list"></div>
-            <div class="input-row">
-              <input id="badgeInput" class="input" type="text" maxlength="12" placeholder="例：NEW / 限定 / おすすめ" aria-label="追加するバッジ" />
-              <button id="addBadgeButton" class="button-secondary button-secondary--inline" type="button">追加</button>
-            </div>
-            <p class="section-note">最大5つまで。カードのカラーで表示されます。</p>
-          </details>
-
-          <details id="linkSettings" class="section-block">
-            <summary class="section-title"><span class="accordion-label">リンクボタン</span></summary>
-            <div id="buttonList" class="button-list"></div>
-            <button id="addButtonButton" class="button-secondary" type="button">＋ ボタンを追加</button>
-            <p id="buttonWarning" class="field-warning" hidden>※ 外部から渡されたリンクのため、許可されたサイト以外は送信時にボタンごと外れます。</p>
-            <p class="section-note">最大3つ。https / tel: / mailto: / line: が使えます。</p>
-          </details>
-
-          <details class="section-block">
-            <summary class="section-title"><span class="accordion-label">テンプレート・その他</span></summary>
-            <div class="input-row">
-              <input id="templateNameInput" class="input" type="text" maxlength="40" placeholder="テンプレート名" aria-label="テンプレート名" />
-              <button id="saveTemplateButton" class="button-secondary button-secondary--inline" type="button">保存</button>
-            </div>
-            <div class="input-row">
-              <select id="templateSelect" class="input" aria-label="保存済みテンプレート"></select>
-              <button id="loadTemplateButton" class="button-secondary button-secondary--inline" type="button">読込</button>
-              <button id="deleteTemplateButton" class="button-secondary button-secondary--inline" type="button">削除</button>
-            </div>
-            <div class="inline-actions">
-              <button id="copyJsonButton" class="button-secondary button-secondary--inline" type="button">JSONをコピー</button>
-              <button id="resetButton" class="button-secondary button-secondary--inline" type="button">入力をリセット</button>
-            </div>
-          </details>
-        </div>
-      </section>
+      </div>
     </main>
 
     <div class="ls-sendbar">
       <div class="ls-sendbar-inner">
         <p id="status" class="ls-status" aria-live="polite"></p>
-        <button id="shareButton" class="ls-send" type="button" disabled>LINEで送信する</button>
+        <button id="shareButton" class="ls-send" type="button" disabled>LINEで送る</button>
       </div>
     </div>
 
-    <div id="sendWarningModal" class="modal-overlay" hidden>
-      <div class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="sendWarningTitle">
-        <p id="sendWarningTitle" class="modal-title">送信前の確認</p>
-        <p class="modal-body">送信後の修正はできません。内容をご確認のうえ送信してください。</p>
-        <label class="modal-checkbox"><input id="sendWarningDontShow" type="checkbox" /> 以降表示しない</label>
-        <div class="modal-actions">
-          <button id="sendWarningCancel" class="button-secondary" type="button">キャンセル</button>
-          <button id="sendWarningConfirm" class="button" type="button">送信する</button>
+    <div id="sendWarningModal" class="ls-sheet" hidden>
+      <div class="ls-sheet-card" role="alertdialog" aria-modal="true" aria-labelledby="sendWarningTitle">
+        <p id="sendWarningTitle" class="ls-sheet-title">送信前の確認</p>
+        <p class="ls-hint">送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+        <label class="ls-chip modal-check"><input id="sendWarningDontShow" type="checkbox" />次から表示しない</label>
+        <div class="ls-sheet-actions">
+          <button id="sendWarningCancel" class="ls-send ls-send-secondary" type="button">やめる</button>
+          <button id="sendWarningConfirm" class="ls-send" type="button">送る</button>
         </div>
       </div>
     </div>
