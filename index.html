@@ -4,156 +4,148 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>LINEで共有</title>
-    <meta name="description" content="場所・予定・カード・文字アイコン・お絵描きを、LINEのトークへ送れるツール集です。" />
+    <meta name="description" content="場所・予定・カード・文字アイコン・手書きを、LINEのトークへ送れるツール集です。" />
+    <link rel="stylesheet" href="./shared/ui.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="./config.js"></script>
     <style>
-      :root {
-        --bg: #f5f5f3;
-        --card: #ffffff;
-        --text: #1f1f1c;
-        --subtext: #66665f;
-        --line: #d9d7d0;
-        --accent: #3f6db5;
+      .hub-head {
+        padding: 20px 4px 16px;
       }
 
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
+      .hub-head h1 {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
-        color: var(--text);
-        background: var(--bg);
+        font-size: 26px;
+        font-weight: 800;
       }
 
-      main {
-        width: min(100%, 640px);
-        margin: 0 auto;
-        padding: 24px 16px calc(32px + env(safe-area-inset-bottom, 0px));
-      }
-
-      h1 {
-        margin: 0;
-        font-size: 1.7rem;
-        line-height: 1.25;
-      }
-
-      .lead {
-        margin: 8px 0 20px;
-        color: var(--subtext);
-        font-size: 0.95rem;
+      .hub-head p {
+        margin: 6px 0 0;
+        color: var(--ls-subtext);
+        font-size: 14px;
         line-height: 1.7;
       }
 
-      .tools {
+      .hub-section {
+        margin: 18px 4px 8px;
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hub-tools {
         display: grid;
-        gap: 10px;
+        gap: 8px;
         margin: 0;
         padding: 0;
         list-style: none;
       }
 
-      .tool {
+      .hub-tool {
         display: grid;
-        grid-template-columns: 48px minmax(0, 1fr) auto;
+        grid-template-columns: 48px minmax(0, 1fr) 12px;
         align-items: center;
         gap: 14px;
         min-height: 76px;
-        padding: 14px 16px;
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        background: var(--card);
+        padding: 12px 16px;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-lg);
+        background: var(--ls-surface);
+        box-shadow: var(--ls-shadow);
         color: inherit;
         text-decoration: none;
-        box-shadow: 0 6px 18px rgba(20, 20, 18, 0.04);
       }
 
-      .tool:active {
-        transform: translateY(1px);
+      .hub-tool:active {
+        background: var(--ls-surface-sub);
       }
 
-      .tool:focus-visible {
-        outline: 2px solid var(--accent);
+      .hub-tool:focus-visible {
+        outline: 2px solid var(--ls-text);
         outline-offset: 2px;
       }
 
-      .tool-icon {
+      .hub-tool::after {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid var(--ls-faint);
+        border-right: 2px solid var(--ls-faint);
+        transform: rotate(45deg);
+      }
+
+      .hub-icon {
         display: grid;
         place-items: center;
         width: 48px;
         height: 48px;
         border-radius: 14px;
-        background: #f2efe7;
+        background: var(--ls-surface-sub);
         font-size: 26px;
       }
 
-      .tool-name {
+      .hub-name {
         display: block;
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: 16px;
+        font-weight: 800;
       }
 
-      .tool-desc {
+      .hub-desc {
         display: block;
         margin-top: 2px;
-        color: var(--subtext);
-        font-size: 0.85rem;
+        color: var(--ls-subtext);
+        font-size: 13px;
         line-height: 1.5;
       }
 
-      .tool-arrow {
-        color: var(--subtext);
-        font-size: 1.2rem;
-      }
-
-      .redirecting {
-        color: var(--subtext);
-        text-align: center;
+      .hub-redirect {
         padding-top: 30vh;
+        color: var(--ls-subtext);
+        text-align: center;
       }
     </style>
   </head>
   <body>
-    <main id="hub">
-      <h1>LINEで共有</h1>
-      <p class="lead">送りたいものを選んでください。どれも、選んだトークへカードや画像で送れます。</p>
+    <main id="hub" class="ls-page">
+      <header class="hub-head">
+        <h1>LINEで共有</h1>
+        <p>送りたいものを選んでください。選んだトークへ、カードや画像で届きます。</p>
+      </header>
 
-      <ul class="tools">
+      <p class="hub-section">カードで送る</p>
+      <ul class="hub-tools">
         <li>
-          <a class="tool" href="./plan/?tab=map">
-            <span class="tool-icon" aria-hidden="true">📍</span>
-            <span><span class="tool-name">場所を送る</span><span class="tool-desc">Google Mapsの場所に写真・バッジ・コメントを付けて送る</span></span>
-            <span class="tool-arrow" aria-hidden="true">›</span>
+          <a class="hub-tool" href="./plan/?tab=map">
+            <span class="hub-icon" aria-hidden="true">📍</span>
+            <span><span class="hub-name">場所</span><span class="hub-desc">Google Mapsの場所を写真・バッジ・コメント付きで</span></span>
           </a>
         </li>
         <li>
-          <a class="tool" href="./plan/?tab=calendar">
-            <span class="tool-icon" aria-hidden="true">📅</span>
-            <span><span class="tool-name">予定を送る</span><span class="tool-desc">Googleカレンダーにそのまま追加できる予定カードを送る</span></span>
-            <span class="tool-arrow" aria-hidden="true">›</span>
+          <a class="hub-tool" href="./plan/?tab=calendar">
+            <span class="hub-icon" aria-hidden="true">📅</span>
+            <span><span class="hub-name">予定</span><span class="hub-desc">Googleカレンダーにそのまま追加できる予定</span></span>
           </a>
         </li>
         <li>
-          <a class="tool" href="./card/">
-            <span class="tool-icon" aria-hidden="true">🪧</span>
-            <span><span class="tool-name">カードを送る</span><span class="tool-desc">見出し・写真・バッジ・リンクボタン付きのお知らせカード</span></span>
-            <span class="tool-arrow" aria-hidden="true">›</span>
+          <a class="hub-tool" href="./card/">
+            <span class="hub-icon" aria-hidden="true">🪧</span>
+            <span><span class="hub-name">お知らせカード</span><span class="hub-desc">見出し・写真・バッジ・リンクボタンを自由に</span></span>
+          </a>
+        </li>
+      </ul>
+
+      <p class="hub-section">画像で送る</p>
+      <ul class="hub-tools">
+        <li>
+          <a class="hub-tool" href="./image/?mode=text">
+            <span class="hub-icon" aria-hidden="true">💬</span>
+            <span><span class="hub-name">文字アイコン</span><span class="hub-desc">文字入りのスタンプ風画像。動きも付けられる</span></span>
           </a>
         </li>
         <li>
-          <a class="tool" href="./image/?mode=text">
-            <span class="tool-icon" aria-hidden="true">💬</span>
-            <span><span class="tool-name">文字アイコンを送る</span><span class="tool-desc">文字入りのスタンプ風画像を作って送る。手書きも重ねられる</span></span>
-            <span class="tool-arrow" aria-hidden="true">›</span>
-          </a>
-        </li>
-        <li>
-          <a class="tool" href="./image/?mode=draw">
-            <span class="tool-icon" aria-hidden="true">👆</span>
-            <span><span class="tool-name">手書きで送る</span><span class="tool-desc">指で描いた絵をそのまま画像で送る</span></span>
-            <span class="tool-arrow" aria-hidden="true">›</span>
+          <a class="hub-tool" href="./image/?mode=draw">
+            <span class="hub-icon" aria-hidden="true">👆</span>
+            <span><span class="hub-name">手書き</span><span class="hub-desc">指で描いた絵。文字アイコンに描き足すこともできる</span></span>
           </a>
         </li>
       </ul>
@@ -167,8 +159,7 @@
         const liffId = window.LINE_SHARE_CONFIG && window.LINE_SHARE_CONFIG.liffId;
         if (!params.has("liff.state") || !liffId || !window.liff) return;
 
-        const hub = document.getElementById("hub");
-        hub.innerHTML = '<p class="redirecting">開いています…</p>';
+        document.getElementById("hub").innerHTML = '<p class="hub-redirect">開いています…</p>';
         liff.init({ liffId }).catch((error) => {
           console.error(error);
           location.replace(location.pathname);

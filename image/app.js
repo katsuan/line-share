@@ -341,7 +341,8 @@ function buildControls_() {
       { label: "暗いトーク", value: "dark" }
     ],
     () => state.backdrop,
-    (value) => (state.backdrop = value)
+    (value) => (state.backdrop = value),
+    (button) => button.classList.add("is-small")
   );
 }
 
@@ -351,7 +352,7 @@ function buildChoices_(container, options, get, set, decorate) {
   const buttons = options.map((option) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "chip";
+    button.className = "ls-chip";
     button.textContent = option.label;
     button.dataset.value = JSON.stringify(option.value);
     decorate?.(button, option);
@@ -369,7 +370,7 @@ function buildSwatches_(container, colors, get, set, noneLabel) {
   const buttons = colors.map((color) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "swatch";
+    button.className = "ls-swatch";
     button.dataset.value = JSON.stringify(color);
     if (color === null) {
       button.classList.add("is-none");
@@ -386,7 +387,7 @@ function buildSwatches_(container, colors, get, set, noneLabel) {
   });
 
   const custom = document.createElement("label");
-  custom.className = "swatch is-custom";
+  custom.className = "ls-swatch is-custom";
   custom.setAttribute("aria-label", "ほかの色");
   const input = document.createElement("input");
   input.type = "color";
@@ -429,7 +430,7 @@ function applyState_() {
   els.canvasFrame.classList.toggle("is-drawing", isDraw);
   els.canvasFrame.dataset.backdrop = state.backdrop;
   els.textInput.value = state.text;
-  els.outlineWidthList.closest(".field").hidden = state.outline === "none";
+  els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
   syncChoices_();
   updateUndo_();
   restartPreview_();

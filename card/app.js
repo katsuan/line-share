@@ -15,10 +15,10 @@ const MAX_BUTTONS = 3;
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
 
 const THEMES = {
-  sunset: { label: "サンセット", start: "#F59E0B", end: "#FB7185", detailBg: "#FFF7ED", detailText: "#9A3412", page: "#fde68a" },
-  sky: { label: "スカイ", start: "#2563EB", end: "#06B6D4", detailBg: "#EFF6FF", detailText: "#1D4ED8", page: "#bfdbfe" },
-  leaf: { label: "リーフ", start: "#16A34A", end: "#10B981", detailBg: "#ECFDF5", detailText: "#047857", page: "#bbf7d0" },
-  berry: { label: "ベリー", start: "#E11D48", end: "#FB7185", detailBg: "#FFF1F2", detailText: "#BE123C", page: "#fecdd3" },
+  sunset: { label: "サンセット", start: "#F59E0B", end: "#FB7185", detailBg: "#FFF7ED", detailText: "#9A3412" },
+  sky: { label: "スカイ", start: "#2563EB", end: "#06B6D4", detailBg: "#EFF6FF", detailText: "#1D4ED8" },
+  leaf: { label: "リーフ", start: "#16A34A", end: "#10B981", detailBg: "#ECFDF5", detailText: "#047857" },
+  berry: { label: "ベリー", start: "#E11D48", end: "#FB7185", detailBg: "#FFF1F2", detailText: "#BE123C" },
   custom: { label: "カスタム" }
 };
 
@@ -216,8 +216,6 @@ function checkRadio(name, value) {
 
 function render() {
   const palette = getPalette();
-  document.body.style.background =
-    `radial-gradient(circle at top, ${palette.page} 0%, #fffaf3 40%, #fffdf8 100%)`;
   els.bubbleHeader.style.background = `linear-gradient(135deg, ${palette.start} 0%, ${palette.end} 100%)`;
   els.detailInput.style.background = palette.detailBg;
   els.detailInput.style.color = palette.detailText;
@@ -271,7 +269,7 @@ function renderBadgeList() {
     ...state.badges.map((text, index) => {
       const chip = document.createElement("button");
       chip.type = "button";
-      chip.className = "chip";
+      chip.className = "ls-chip";
       chip.textContent = `${text} ×`;
       chip.setAttribute("aria-label", `バッジ「${text}」を削除`);
       chip.addEventListener("click", () => {
@@ -305,7 +303,7 @@ function renderButtonList() {
 
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.className = "icon-button";
+      remove.className = "ls-icon-button";
       remove.textContent = "×";
       remove.setAttribute("aria-label", "このボタンを削除");
       remove.addEventListener("click", () => {
@@ -323,7 +321,7 @@ function renderButtonList() {
 function createInput(type, value, placeholder, ariaLabel) {
   const input = document.createElement("input");
   input.type = type;
-  input.className = "input";
+  input.className = "ls-input";
   input.value = value;
   input.placeholder = placeholder;
   input.setAttribute("aria-label", ariaLabel);
@@ -340,7 +338,7 @@ function renderPresets() {
     ...Object.entries(PRESETS).map(([key, preset]) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "preset-card";
+      button.className = "ls-list-item";
       button.innerHTML = `<strong></strong><small></small>`;
       button.querySelector("strong").textContent = preset.label;
       button.querySelector("small").textContent = preset.description;
@@ -372,8 +370,7 @@ function getPalette() {
     start: base.toUpperCase(),
     end: lightenHex(base, 0.35).toUpperCase(),
     detailBg: lightenHex(base, 0.88).toUpperCase(),
-    detailText: base.toUpperCase(),
-    page: lightenHex(base, 0.7)
+    detailText: base.toUpperCase()
   };
 }
 

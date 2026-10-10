@@ -24,8 +24,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function initializeLiff_() {
-  const badge = document.getElementById("liffBadge");
   try {
+    if (!CONFIG.liffId) return;
     await liff.init({ liffId: CONFIG.liffId });
 
     if (!liff.isLoggedIn()) {
@@ -34,10 +34,8 @@ async function initializeLiff_() {
     }
 
     app.liffReady = true;
-    setBadge_(badge, liff.isInClient() ? "LINEで送れます" : "ブラウザで確認中");
   } catch (error) {
     console.error(error);
-    setBadge_(badge, "LINE未接続", true);
   } finally {
     refreshMapTab();
     refreshCalendarTab();
@@ -132,7 +130,3 @@ export function selectTab(name) {
   window.syncSendBar?.();
 }
 
-function setBadge_(element, label, muted = false) {
-  element.textContent = label;
-  element.classList.toggle("is-muted", muted);
-}

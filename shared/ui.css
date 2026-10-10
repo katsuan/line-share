@@ -1,33 +1,106 @@
 /*
- * 全ツール共通の骨格：上部バー（戻る・ツール名）、下部固定の送信バー、ステータス表示。
- * 各ツール固有の見た目はそれぞれの CSS に置き、ここでは揃えたい部分だけを定義する。
+ * LINEで共有 — 全ツール共通のデザインシステム。
+ * 色・余白・角丸・部品（パネル・入力欄・チップ・色見本・アコーディオン・シート・送信バー）をここで揃え、
+ * 各ツールの CSS にはそのツールにしかない見た目（カード編集・キャンバスなど）だけを置く。
  */
+
 :root {
+  color-scheme: light;
+
   --ls-font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  --ls-bg: #f4f3ef;
+  --ls-surface: #ffffff;
+  --ls-surface-sub: #f8f7f4;
   --ls-text: #1f1f1c;
-  --ls-subtext: #66665f;
+  --ls-subtext: #6b6a63;
+  --ls-faint: #a3a29b;
   --ls-line: rgba(31, 31, 28, 0.12);
-  --ls-bar-bg: rgba(255, 255, 255, 0.94);
+  --ls-line-strong: rgba(31, 31, 28, 0.22);
+
+  /* LINE の緑を「送る」「選択中」の色として全ツールで使う */
   --ls-accent: #06c755;
   --ls-accent-strong: #05a647;
+  --ls-accent-soft: #e7f8ee;
+  --ls-accent-ink: #047a37;
+
   --ls-danger: #c62828;
+  --ls-danger-soft: #fdecec;
   --ls-success: #2f6f44;
-  --ls-radius: 14px;
+  --ls-warn: #9a3412;
+
+  /* プレビューの背景（LINE のトーク画面に近い色） */
+  --ls-talk-bg: #8fabd3;
+  --ls-talk-dark: #22262e;
+
+  --ls-radius-lg: 20px;
+  --ls-radius-md: 14px;
+  --ls-radius-sm: 10px;
   --ls-tap: 44px;
+  --ls-shadow: 0 6px 18px rgba(20, 20, 18, 0.05);
 }
+
+/* ---- ベース ---- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ls-font);
+  color: var(--ls-text);
+  background: var(--ls-bg);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.ls-page {
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 4px 12px 24px;
+}
+
+.ls-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.ls-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ---- 上部バー ---- */
 
 .ls-topbar {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
   min-height: 52px;
-  margin: 0 0 8px;
-  font-family: var(--ls-font);
-  color: var(--ls-text);
 }
 
 .ls-back {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -41,44 +114,522 @@
 
 .ls-back::before {
   content: "‹";
+  margin-top: -2px;
   font-size: 24px;
   line-height: 1;
-  margin-top: -2px;
 }
 
 .ls-title {
   margin: 0;
-  overflow: hidden;
   font-size: 17px;
   font-weight: 800;
-  text-align: center;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 戻るリンクの幅と釣り合わせてタイトルを中央に置く */
 .ls-topbar-end {
-  min-width: 72px;
-  display: flex;
-  justify-content: flex-end;
+  justify-self: end;
 }
 
-.ls-pill {
+.ls-lead {
+  margin: 0 0 12px;
+  color: var(--ls-subtext);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ---- タブ（切り替え） ---- */
+
+.ls-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid var(--ls-line);
+  border-radius: 16px;
+  background: #e9e7e0;
+}
+
+.ls-tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ls-subtext);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ls-tab[aria-selected="true"] {
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  box-shadow: 0 2px 8px rgba(20, 20, 18, 0.08);
+}
+
+/* ---- パネル ---- */
+
+.ls-panel {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-lg);
+  background: var(--ls-surface);
+  box-shadow: var(--ls-shadow);
+}
+
+.ls-panel-head {
+  display: grid;
+  gap: 4px;
+}
+
+.ls-panel-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ls-panel-note,
+.ls-hint {
+  margin: 0;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.ls-hint.is-warn {
+  color: var(--ls-warn);
+  font-weight: 700;
+}
+
+.ls-hint.is-error {
+  color: var(--ls-danger);
+}
+
+/* ---- 入力 ---- */
+
+.ls-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ls-label {
+  color: var(--ls-subtext);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ls-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  /* iOS で入力時に拡大されないよう 16px 以上 */
+  font-size: 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+textarea.ls-input {
+  min-height: 96px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.ls-input::placeholder {
+  color: var(--ls-faint);
+}
+
+.ls-input:focus {
+  outline: none;
+  border-color: var(--ls-accent);
+  box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.18);
+}
+
+.ls-input[readonly] {
+  background: var(--ls-surface-sub);
+  color: var(--ls-subtext);
+}
+
+input[type="date"].ls-input,
+input[type="time"].ls-input {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ls-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.ls-row > .ls-input,
+.ls-row > .ls-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.ls-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* ---- ボタン ---- */
+
+.ls-button {
   display: inline-flex;
   align-items: center;
-  min-height: 26px;
-  padding: 0 10px;
-  border: 1px solid var(--ls-line);
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--ls-tap);
+  padding: 0 16px;
+  border: 1px solid var(--ls-line-strong);
   border-radius: 999px;
-  background: #fff;
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ls-button:active:not(:disabled) {
+  background: var(--ls-surface-sub);
+}
+
+.ls-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ls-button.is-primary {
+  border-color: var(--ls-accent);
+  background: var(--ls-accent);
+  color: #fff;
+}
+
+.ls-button.is-primary:active:not(:disabled) {
+  background: var(--ls-accent-strong);
+}
+
+.ls-button.is-danger {
+  color: var(--ls-danger);
+}
+
+.ls-button.is-block {
+  width: 100%;
+}
+
+.ls-icon-button {
+  flex: 0 0 var(--ls-tap);
+  width: var(--ls-tap);
+  min-height: var(--ls-tap);
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface-sub);
+  color: var(--ls-subtext);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.ls-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---- チップ（選択肢） ---- */
+
+.ls-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ls-chips:empty {
+  display: none;
+}
+
+.ls-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ls-chip[aria-pressed="true"],
+.ls-chip.is-active,
+.ls-chip:has(input:checked) {
+  border-color: var(--ls-accent);
+  background: var(--ls-accent-soft);
+  color: var(--ls-accent-ink);
+}
+
+.ls-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ラジオ・チェックボックスを包んだチップ */
+.ls-chip input[type="radio"],
+.ls-chip input[type="checkbox"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ls-chip.is-small {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+/* ---- 色見本 ---- */
+
+.ls-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ls-swatch {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--swatch, #fff);
+  box-shadow: 0 0 0 1px var(--ls-line-strong);
   color: var(--ls-subtext);
   font-size: 11px;
   font-weight: 700;
-  white-space: nowrap;
+  cursor: pointer;
 }
 
-.ls-pill.is-muted {
-  color: #9a9a92;
+.ls-swatch[aria-pressed="true"],
+.ls-swatch.is-selected,
+.ls-swatch:has(input[type="radio"]:checked) {
+  box-shadow: 0 0 0 3px var(--ls-accent);
+}
+
+.ls-swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ls-swatch.is-none,
+.ls-checker {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
+    linear-gradient(-45deg, #e9e7e1 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e9e7e1 75%),
+    linear-gradient(-45deg, transparent 75%, #e9e7e1 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
+
+.ls-swatch.is-custom {
+  background: conic-gradient(from 180deg, #f59e0b, #ec4899, #6366f1, #10b981, #f59e0b);
+}
+
+.ls-swatch.is-custom.is-selected {
+  background: var(--swatch);
+}
+
+/* ---- アコーディオン ---- */
+
+.ls-fold {
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+}
+
+.ls-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 14px;
+  font-size: 15px;
+  font-weight: 800;
+  list-style: none;
+  cursor: pointer;
+}
+
+.ls-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ls-fold > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 2px solid var(--ls-subtext);
+  border-bottom: 2px solid var(--ls-subtext);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
+.ls-fold[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+
+.ls-fold-meta {
+  color: var(--ls-faint);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ls-fold-body {
+  display: grid;
+  gap: 14px;
+  padding: 0 14px 14px;
+}
+
+.ls-folds {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---- 一覧から選ぶボタン（検索結果・ひな形など） ---- */
+
+.ls-list {
+  display: grid;
+  gap: 6px;
+}
+
+.ls-list:empty {
+  display: none;
+}
+
+.ls-list-item {
+  display: grid;
+  gap: 2px;
+  min-height: 52px;
+  padding: 10px 14px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ls-list-item small {
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.ls-list-item:active {
+  background: var(--ls-surface-sub);
+}
+
+/* ---- 送信プレビュー（全ツールで同じトーク風の枠） ---- */
+
+.ls-preview {
+  display: grid;
+  gap: 10px;
+  padding: 16px 14px;
+  border-radius: var(--ls-radius-lg);
+  background: var(--ls-talk-bg);
+}
+
+.ls-preview-label {
+  justify-self: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ls-preview-note {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ---- 下から出るシート ---- */
+
+.ls-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(20, 20, 18, 0.45);
+}
+
+.ls-sheet-card {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 440px);
+  max-height: 100%;
+  overflow: auto;
+  padding: 20px;
+  border-radius: 22px;
+  background: var(--ls-surface);
+}
+
+.ls-sheet-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.ls-sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ls-sheet-cancel {
+  min-height: var(--ls-tap);
+  border: 0;
+  background: transparent;
+  color: var(--ls-subtext);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* ---- 下部固定の送信バー ---- */
@@ -91,11 +642,10 @@
   z-index: 40;
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--ls-line);
-  background: var(--ls-bar-bg);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 -8px 24px rgba(20, 20, 18, 0.08);
-  font-family: var(--ls-font);
   transition: transform 0.18s ease;
 }
 
@@ -107,7 +657,7 @@ body.is-typing .ls-sendbar {
 .ls-sendbar-inner {
   display: grid;
   gap: 6px;
-  width: min(100%, 640px);
+  width: min(100%, 560px);
   margin: 0 auto;
 }
 
@@ -118,6 +668,10 @@ body.is-typing .ls-sendbar {
 
 .ls-sendbar-row > * {
   flex: 1;
+}
+
+.ls-sendbar-row > .ls-send-secondary {
+  flex: 0 0 34%;
 }
 
 .ls-status {
@@ -142,16 +696,19 @@ body.is-typing .ls-sendbar {
 }
 
 .ls-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   min-height: 52px;
+  padding: 0 18px;
   border: 0;
   border-radius: 999px;
-  padding: 0 18px;
   background: var(--ls-accent);
   color: #fff;
-  font-family: inherit;
   font-size: 16px;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color 0.15s ease, opacity 0.15s ease;
 }
@@ -169,22 +726,52 @@ body.is-typing .ls-sendbar {
   opacity: 0.6;
 }
 
-.ls-send:focus-visible {
-  outline: 2px solid var(--ls-text);
-  outline-offset: 2px;
-}
-
 .ls-send-secondary {
-  background: #fff;
+  border: 1px solid var(--ls-line-strong);
+  background: var(--ls-surface);
   color: var(--ls-text);
-  border: 1px solid var(--ls-line);
 }
 
 .ls-send-secondary:active:not(:disabled) {
-  background: #f2f2ef;
+  background: var(--ls-surface-sub);
 }
 
 /* 下部バーの分だけ本文の下に余白を取る */
 .ls-has-sendbar {
-  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(118px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---- フォーカス表示（キーボード操作時） ---- */
+
+.ls-tab:focus-visible,
+.ls-button:focus-visible,
+.ls-icon-button:focus-visible,
+.ls-chip:focus-visible,
+.ls-chip:has(input:focus-visible),
+.ls-swatch:focus-visible,
+.ls-swatch:has(input:focus-visible),
+.ls-list-item:focus-visible,
+.ls-send:focus-visible,
+.ls-back:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+  .ls-page {
+    padding-top: 12px;
+  }
+
+  .ls-sheet {
+    align-items: center;
+  }
+}
+
+/* アコーディオン見出しの右側に状態（未入力など）を出す */
+.ls-fold > summary .ls-fold-meta {
+  margin-left: auto;
+}
+
+.ls-fold > summary:has(.ls-fold-meta)::after {
+  margin-left: 4px;
 }

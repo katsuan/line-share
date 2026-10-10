@@ -142,7 +142,7 @@ export function refreshCalendarTab() {
     if (hasAnyRequiredInput_()) {
       setMessage(dom.statusMessage, toUserMessage(error), "error");
     } else {
-      setMessage(dom.statusMessage, "件名と開始・完了日時を入力すると共有用リンクを作れます。");
+      setMessage(dom.statusMessage, "件名と開始・終了日時を入れると共有用リンクを作れます。");
     }
   }
 }
@@ -170,11 +170,11 @@ function getFormData_() {
   }
 
   if (!end) {
-    throw new UserError("完了日時を入力してください。");
+    throw new UserError("終了日時を入力してください。");
   }
 
   if (start >= end) {
-    throw new UserError("完了日時は開始日時より後にしてください。");
+    throw new UserError("終了日時は開始日時より後にしてください。");
   }
 
   if (mapUrl && !isGoogleMapsUrl(mapUrl)) {
@@ -265,11 +265,18 @@ function getFlexLabels_(data) {
 }
 
 function renderPreview_(data, calendarUrl) {
-  const durationLabel = formatDurationLabel_(data.start, data.end);
+  const durationLabel = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
   const spansMultipleDays = !isSameCalendarDate_(data.start, data.end);
+  const rows = [
+    ["開始", formatDateTimeLabel_(data.start)],
+    ["長さ", spansMultipleDays ? `${durationLabel}（複数日）` : durationLabel],
+    data.location ? ["場所", data.location] : null,
+    data.details ? ["メモ", data.details] : null,
+    data.customParams.length ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n")] : null
+  ].filter(Boolean);
   const secondaryLinks = [
     data.mapUrl ? ["地図を開く", data.mapUrl] : null,
-    data.url ? ["関連URL", data.url] : null
+    data.url ? ["関連URLを開く", data.url] : null
   ]
     .filter(Boolean)
     .map(
@@ -280,32 +287,16 @@ function renderPreview_(data, calendarUrl) {
 
   dom.previewCard.innerHTML = `
     ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" />` : ""}
-    <span class="preview-pill">送信プレビュー</span>
-    <h3 class="preview-title">${escapeHtml(data.title)}</h3>
-    <div class="preview-grid">
-      <div class="preview-item">
-        <div class="preview-key">開始日時</div>
-        <div class="preview-value">${escapeHtml(formatDateTimeLabel_(data.start))}</div>
+    <div class="talk-card-body">
+      <h3 class="preview-title">${escapeHtml(data.title)}</h3>
+      <div class="preview-grid">
+        ${rows
+          .map(
+            ([key, value]) =>
+              `<div class="preview-item"><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
+          )
+          .join("")}
       </div>
-      <div class="preview-item">
-        <div class="preview-key">所要時間</div>
-        <div class="preview-value">${escapeHtml(spansMultipleDays ? `${durationLabel} / 複数日にまたがる予定` : durationLabel)}</div>
-      </div>
-      ${
-        data.location
-          ? `<div class="preview-item"><div class="preview-key">場所</div><div class="preview-value">${escapeHtml(data.location)}</div></div>`
-          : ""
-      }
-      ${
-        data.details
-          ? `<div class="preview-item"><div class="preview-key">詳細</div><div class="preview-value">${escapeHtml(data.details)}</div></div>`
-          : ""
-      }
-      ${
-        data.customParams.length
-          ? `<div class="preview-item"><div class="preview-key">追加設定</div><div class="preview-value">${escapeHtml(data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"))}</div></div>`
-          : ""
-      }
     </div>
     <div class="preview-actions">
       <a class="preview-link primary" href="${escapeHtml(calendarUrl)}" target="_blank" rel="noreferrer">Googleカレンダーに予定を追加</a>
@@ -315,16 +306,7 @@ function renderPreview_(data, calendarUrl) {
 }
 
 function renderPreviewEmpty_() {
-  dom.previewCard.innerHTML = `
-    <span class="preview-pill">送信プレビュー</span>
-    <h3 class="preview-title">入力待ち</h3>
-    <div class="preview-grid">
-      <div class="preview-item">
-        <div class="preview-key">状態</div>
-        <div class="preview-value">件名と開始・完了日時を入力すると、送る内容をここで確認できます。</div>
-      </div>
-    </div>
-  `;
+  dom.previewCard.innerHTML = `<p class="preview-empty">件名と開始・終了日時を入れると<br />送る内容をここで確認できます。</p>`;
 }
 
 function updateOptionalCount_() {
@@ -365,7 +347,7 @@ function updateDurationSummary_() {
   }
 
   if (end <= start) {
-    dom.durationSummary.textContent = "完了日時は開始日時より後にしてください。";
+    dom.durationSummary.textContent = "終了日時は開始日時より後にしてください。";
     return;
   }
 
@@ -380,13 +362,9 @@ function addCustomParamRow_(key = "", value = "") {
   const row = document.createElement("div");
   row.className = "param-row";
   row.innerHTML = `
-    <div class="field field-compact">
-      <input type="text" data-param-key aria-label="追加パラメータのキー" placeholder="キー 例：trp" value="${escapeHtml(key)}" />
-    </div>
-    <div class="field field-compact">
-      <input type="text" data-param-value aria-label="追加パラメータの値" placeholder="値 例：false" value="${escapeHtml(value)}" />
-    </div>
-    <button class="button button-soft button-remove" type="button" data-remove-param aria-label="この項目を削除">×</button>
+    <input class="ls-input" type="text" data-param-key aria-label="追加パラメータのキー" placeholder="キー 例：trp" value="${escapeHtml(key)}" />
+    <input class="ls-input" type="text" data-param-value aria-label="追加パラメータの値" placeholder="値 例：false" value="${escapeHtml(value)}" />
+    <button class="ls-icon-button" type="button" data-remove-param aria-label="この項目を削除">×</button>
   `;
   dom.customParamsList.appendChild(row);
 }

@@ -1,92 +1,17 @@
-:root {
-  --bg: #f6f4ef;
-  --card: #ffffff;
-  --text: #1f1f1c;
-  --subtext: #66665f;
-  --line: rgba(31, 31, 28, 0.12);
-  --accent: #06c755;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-[hidden] {
-  display: none !important;
-}
-
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  -webkit-text-size-adjust: 100%;
-}
-
-button,
-input,
-textarea {
-  font: inherit;
-}
-
-.page {
-  width: min(100%, 560px);
-  margin: 0 auto;
-  padding: 8px 12px 24px;
-}
-
-/* ---- 文字 / 手書き の切り替え ---- */
-
-.mode-tabs {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #ece9e1;
-}
-
-.mode-tab {
-  min-height: 46px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--subtext);
-  font-size: 16px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.mode-tab[aria-selected="true"] {
-  background: var(--card);
-  color: var(--text);
-  box-shadow: 0 2px 8px rgba(20, 20, 18, 0.08);
-}
-
-/* ---- プレビュー ---- */
-
-.stage {
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  margin-top: 12px;
-}
+/* 文字・手書き固有の見た目。共通部品は shared/ui.css */
 
 .canvas-frame {
   position: relative;
-  width: min(100%, 340px);
+  justify-self: center;
+  width: min(100%, 320px);
   aspect-ratio: 1;
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: var(--ls-radius-lg);
   overflow: hidden;
-  background-color: #fff;
+  background: #fff;
 }
 
 .canvas-frame[data-backdrop="checker"] {
+  background-color: #fff;
   background-image:
     linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
     linear-gradient(-45deg, #e9e7e1 25%, transparent 25%),
@@ -96,12 +21,14 @@ textarea {
   background-position: 0 0, 0 10px, 10px -10px, -10px 0;
 }
 
+/* 「明るいトーク」はプレビュー枠と同じ色なので、境目がわかるよう薄い枠線を付ける */
 .canvas-frame[data-backdrop="light"] {
-  background: #8cabd9;
+  background: var(--ls-talk-bg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .canvas-frame[data-backdrop="dark"] {
-  background: #22262e;
+  background: var(--ls-talk-dark);
 }
 
 .canvas-frame canvas {
@@ -117,249 +44,36 @@ textarea {
 }
 
 .canvas-frame.is-drawing {
-  box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.35);
+  box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.55);
 }
 
 .draw-hint {
   position: absolute;
   inset: auto 0 14px;
   margin: 0;
-  color: var(--subtext);
+  color: var(--ls-subtext);
   font-size: 13px;
   font-weight: 700;
   text-align: center;
   pointer-events: none;
 }
 
-/* ---- 設定パネル ---- */
-
-.panel {
-  display: grid;
-  gap: 14px;
-  margin-top: 12px;
-  padding: 16px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: var(--card);
+.backdrop-chips {
+  justify-content: center;
 }
 
-.panel-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-.field-label {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--subtext);
-}
-
-textarea {
-  width: 100%;
+.text-input {
   min-height: 64px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fff;
-  color: var(--text);
   font-size: 18px;
   font-weight: 700;
-  resize: vertical;
-}
-
-textarea:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.chip-row,
-.swatch-row,
-.draw-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip {
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #faf9f6;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: #e6f9ee;
-  color: #04783a;
-}
-
-.chip:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.chip:focus-visible,
-.swatch:focus-visible,
-.mode-tab:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-
-.chip-row-small .chip {
-  min-height: 34px;
-  padding: 0 12px;
-  font-size: 12px;
-}
-
-.swatch {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  background: var(--swatch, #fff);
-  box-shadow: 0 0 0 1px var(--line);
-  color: var(--subtext);
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.swatch[aria-pressed="true"],
-.swatch.is-custom.is-selected {
-  box-shadow: 0 0 0 3px var(--accent);
-}
-
-.swatch.is-none {
-  background-color: #fff;
-  background-image:
-    linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(-45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e9e7e1 75%),
-    linear-gradient(-45deg, transparent 75%, #e9e7e1 75%);
-  background-size: 10px 10px;
-  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
-}
-
-.swatch.is-custom {
-  background: conic-gradient(from 180deg, #f59e0b, #ec4899, #6366f1, #10b981, #f59e0b);
-}
-
-.swatch.is-custom.is-selected {
-  background: var(--swatch);
-}
-
-.swatch.is-custom input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.note {
-  margin: 0;
-  color: var(--subtext);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.note-warn {
-  color: #9a3412;
-  font-weight: 700;
-}
-
-/* ---- 下から出るシート ---- */
-
-.sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 16px 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: rgba(20, 20, 18, 0.45);
-}
-
-.sheet-card {
-  display: grid;
-  gap: 12px;
-  width: min(100%, 440px);
-  max-height: 100%;
-  overflow: auto;
-  padding: 20px;
-  border-radius: 22px;
-  background: #fff;
-}
-
-.sheet-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 800;
 }
 
 .sheet-preview {
   justify-self: center;
   width: min(60vw, 220px);
   aspect-ratio: 1;
-  border-radius: 16px;
-  background-color: #fff;
-  background-image:
-    linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(-45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e9e7e1 75%),
-    linear-gradient(-45deg, transparent 75%, #e9e7e1 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  border-radius: var(--ls-radius-md);
   object-fit: contain;
-  /* 長押しで保存できるよう選択を許可する */
+  /* 長押しで保存できるようにする */
   -webkit-touch-callout: default;
-}
-
-.sheet-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.sheet-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-}
-
-.sheet-cancel {
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: var(--subtext);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-@media (min-width: 600px) {
-  .page {
-    padding-top: 20px;
-  }
-
-  .sheet {
-    align-items: center;
-  }
 }

@@ -168,8 +168,7 @@ function renderBadges_() {
     ...labels.map((label) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "button button-chip";
-      button.classList.toggle("is-active", state.selectedBadges.includes(label));
+      button.className = "ls-chip";
       button.setAttribute("aria-pressed", String(state.selectedBadges.includes(label)));
       button.textContent = label;
       button.addEventListener("click", () => toggleBadge_(label));
@@ -219,16 +218,7 @@ function addCustomBadge_() {
 
 function renderPreview_(place, hasUrl) {
   if (!hasUrl) {
-    dom.preview.innerHTML = `
-      <span class="preview-pill">送信プレビュー</span>
-      <h3 class="preview-title">入力待ち</h3>
-      <div class="preview-grid">
-        <div class="preview-item">
-          <div class="preview-key">状態</div>
-          <div class="preview-value">Google MapsのURLを入れると、送る内容をここで確認できます。</div>
-        </div>
-      </div>
-    `;
+    dom.preview.innerHTML = `<p class="preview-empty">場所を選ぶか、Google MapsのURLを入れると<br />送る内容をここで確認できます。</p>`;
     return;
   }
 
@@ -236,15 +226,16 @@ function renderPreview_(place, hasUrl) {
 
   dom.preview.innerHTML = `
     ${place.photoUrl ? `<img class="preview-photo" src="${escapeHtml(place.photoUrl)}" alt="" />` : ""}
-    <span class="preview-pill">送信プレビュー</span>
-    <h3 class="preview-title">📍 ${escapeHtml(place.title || "Google Maps")}</h3>
-    ${place.address ? `<p class="preview-sub">${escapeHtml(place.address)}</p>` : ""}
-    ${badges ? `<div class="preview-badges">${badges}</div>` : ""}
-    ${
-      place.comment
-        ? `<div class="preview-grid"><div class="preview-item"><div class="preview-key">コメント</div><div class="preview-value">${escapeHtml(place.comment)}</div></div></div>`
-        : ""
-    }
+    <div class="talk-card-body">
+      <h3 class="preview-title">📍 ${escapeHtml(place.title || "Google Maps")}</h3>
+      ${place.address ? `<p class="preview-sub">${escapeHtml(place.address)}</p>` : ""}
+      ${badges ? `<div class="preview-badges">${badges}</div>` : ""}
+      ${
+        place.comment
+          ? `<div class="preview-grid"><div class="preview-item"><div class="preview-key">コメント</div><div class="preview-value">${escapeHtml(place.comment)}</div></div></div>`
+          : ""
+      }
+    </div>
     <div class="preview-actions">
       <a class="preview-link primary" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">地図を開く</a>
     </div>
@@ -253,5 +244,5 @@ function renderPreview_(place, hasUrl) {
 
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
-  dom.shareButton.textContent = isSending ? "送信中..." : "ほかのトークに送る";
+  dom.shareButton.textContent = isSending ? "送信中..." : "LINEで送る";
 }

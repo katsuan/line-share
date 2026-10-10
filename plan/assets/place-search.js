@@ -88,10 +88,10 @@ export function bindPlaceSearch({ input, button, results, message, onSelect }) {
         ...places.map((place) => {
           const item = document.createElement("button");
           item.type = "button";
-          item.className = "place-result";
-          const name = document.createElement("strong");
+          item.className = "ls-list-item";
+          const name = document.createElement("span");
           name.textContent = place.title;
-          const address = document.createElement("span");
+          const address = document.createElement("small");
           address.textContent = place.address;
           item.append(name, address);
           item.addEventListener("click", () => {
@@ -121,7 +121,7 @@ export function bindPlaceSearch({ input, button, results, message, onSelect }) {
 
 function createNote_(text) {
   const note = document.createElement("p");
-  note.className = "help-text";
+  note.className = "ls-hint";
   note.textContent = text;
   return note;
 }
