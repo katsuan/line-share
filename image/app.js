@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101955";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610101955";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101958";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610101958";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -68,9 +68,7 @@ const state = {
   undoStack: [],
   currentStroke: null,
   liffReady: false,
-  busy: false,
-  // プレビューの動きを一時停止しているか（送る画像には影響しない）
-  previewPaused: false
+  busy: false
 };
 
 const els = {};
@@ -85,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "outlineList", "outlineWidthList", "backgroundList", "motionList", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
-    "shapeList", "historyPanel", "historyList", "motionToggle",
+    "shapeList", "historyPanel", "historyList",
     "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta", "motionMeta"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
@@ -263,8 +261,9 @@ function requestRender() {
   });
 }
 
+// プレビューを動かすのはカードで動きがあるときだけ。手書き中は描きやすいように止める（送る画像には影響しない）
 function isPreviewMoving_() {
-  return state.motion !== "none" && !state.previewPaused;
+  return state.motion !== "none" && state.sendMode === "card" && state.mode !== "draw";
 }
 
 function restartPreview_() {
@@ -316,11 +315,6 @@ function bindDrawing_() {
   canvas.addEventListener("pointerdown", (event) => {
     if (state.mode !== "draw" || state.currentStroke) return;
     event.preventDefault();
-    // 動いている途中で描き始めたら止める
-    if (isPreviewMoving_()) {
-      state.previewPaused = true;
-      applyState_();
-    }
     canvas.setPointerCapture(event.pointerId);
     state.currentStroke = {
       pointerId: event.pointerId,
@@ -487,8 +481,6 @@ function applyState_() {
   if (!state.busy) els.sendButton.textContent = sendLabel_();
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
-  els.motionToggle.hidden = state.motion === "none" || state.sendMode !== "card";
-  els.motionToggle.textContent = state.previewPaused ? "▶ 動きを再生" : "⏸ 動きを止める";
   updateMeta_();
   syncChoices_();
   updateUndo_();
@@ -524,8 +516,6 @@ function bindEvents_() {
   });
   els.modeDraw.addEventListener("click", () => {
     state.mode = "draw";
-    // 動いていると描きにくいので、手書きに切り替えたらプレビューの動きを止める
-    if (state.motion !== "none") state.previewPaused = true;
     onChange_();
   });
   els.sendModeImage.addEventListener("click", () => {
@@ -541,10 +531,6 @@ function bindEvents_() {
     if (state.sendMode === "card") return;
     state.sendMode = "card";
     onChange_();
-  });
-  els.motionToggle.addEventListener("click", () => {
-    state.previewPaused = !state.previewPaused;
-    applyState_();
   });
   els.textInput.addEventListener("input", () => {
     state.text = els.textInput.value;

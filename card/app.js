@@ -261,7 +261,7 @@ function render() {
   els.badgeRow.replaceChildren(
     ...state.badges.map((text) => {
       const badge = document.createElement("span");
-      badge.className = "bubble-badge";
+      badge.className = "bubble-badge is-jump";
       badge.style.background = palette.start;
       badge.textContent = text;
       return badge;
@@ -273,7 +273,10 @@ function render() {
     ...state.buttons.map((button) => {
       const item = document.createElement("div");
       const usable = Boolean(getSendableUrl(button.url));
-      item.className = "bubble-action";
+      item.className = "bubble-action is-jump";
+      item.setAttribute("role", "button");
+      item.tabIndex = 0;
+      item.setAttribute("aria-label", `ボタン「${button.label.trim() || "詳しく見る"}」を編集`);
       item.classList.toggle("is-disabled", !usable);
       item.style.background = usable ? palette.start : "";
       item.textContent = button.label.trim() || "詳しく見る";
@@ -667,6 +670,19 @@ async function initLiff() {
   updateShareButtonState();
 }
 
+function jumpToSection(id, focusTarget) {
+  const section = document.getElementById(id);
+  section.open = true;
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+  // スクロールが終わってから入力欄に移る（先にフォーカスするとスマホでは位置がずれる）
+  setTimeout(() => {
+    // なめらかなスクロールが効かない環境では、すぐにその位置へ移す
+    const top = section.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.5) section.scrollIntoView({ block: "start" });
+    focusTarget?.focus({ preventScroll: true });
+  }, 400);
+}
+
 // ---- 写真の形 ----
 
 /**
@@ -944,6 +960,24 @@ function bindEvents() {
     els.imageUrlInput.value = "";
     setPhotoStatus("");
     render();
+  });
+
+  // プレビューの写真・バッジ・ボタンをタップしたら、その設定を開いてそこへ移動する
+  els.heroArea.addEventListener("click", () => jumpToSection("photoSettings", els.imageUrlInput));
+  els.badgeRow.addEventListener("click", () => jumpToSection("badgeSettings", els.badgeInput));
+  const jumpToButton = (event) => {
+    const item = event.target.closest(".bubble-action");
+    if (!item) return;
+    const index = [...els.buttonStack.children].indexOf(item);
+    const row = els.buttonList.querySelectorAll(".button-row")[index];
+    jumpToSection("linkSettings", row?.querySelector("input"));
+  };
+  els.buttonStack.addEventListener("click", jumpToButton);
+  els.buttonStack.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      jumpToButton(event);
+    }
   });
 
   els.heroImage.addEventListener("error", () => {
