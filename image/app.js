@@ -269,6 +269,14 @@ function pointFromEvent_(event) {
 function bindDrawing_() {
   const canvas = els.canvas;
 
+  // iOS の LINE 内ブラウザでは touch-action だけだとスクロールが止まらないことがあるため、
+  // 手書き中はキャンバス上のタッチを直接止める（passive: false が必要）
+  const stopTouch = (event) => {
+    if (state.mode === "draw") event.preventDefault();
+  };
+  canvas.addEventListener("touchstart", stopTouch, { passive: false });
+  canvas.addEventListener("touchmove", stopTouch, { passive: false });
+
   canvas.addEventListener("pointerdown", (event) => {
     if (state.mode !== "draw" || state.currentStroke) return;
     event.preventDefault();

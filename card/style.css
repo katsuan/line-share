@@ -10,10 +10,14 @@
   transition: max-width 0.2s ease;
 }
 
-.bubble[data-size="nano"] { max-width: 180px; }
-.bubble[data-size="micro"] { max-width: 240px; }
-.bubble[data-size="kilo"] { max-width: 290px; }
-.bubble[data-size="mega"] { max-width: 330px; }
+/* LINE 上の幅（nano 120 / micro 160 / deca 220 / hecto 241 / kilo 260 / mega 300 / giga 386px）を
+   giga = プレビュー幅いっぱい として同じ比率で縮めて見せる */
+.bubble[data-size="nano"] { max-width: 31%; }
+.bubble[data-size="micro"] { max-width: 41%; }
+.bubble[data-size="deca"] { max-width: 57%; }
+.bubble[data-size="hecto"] { max-width: 62%; }
+.bubble[data-size="kilo"] { max-width: 67%; }
+.bubble[data-size="mega"] { max-width: 78%; }
 .bubble[data-size="giga"] { max-width: 100%; }
 
 .bubble-hero img {
