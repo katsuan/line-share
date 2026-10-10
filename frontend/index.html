@@ -113,15 +113,6 @@
         gap: 10px;
       }
 
-      .quick-tools {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
-        align-items: start;
-        justify-content: end;
-        margin-bottom: 10px;
-      }
-
       button {
         border: 0;
         border-radius: 999px;
@@ -253,90 +244,235 @@
         color: rgba(24, 34, 47, 0.56);
       }
 
-      .toggle-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: var(--tool-height);
-        padding: 0 12px;
-        border: 1px solid rgba(24, 34, 47, 0.14);
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.85);
-        color: rgba(24, 34, 47, 0.72);
-        font: 700 0.92rem/1 "Space Grotesk", sans-serif;
-        letter-spacing: 0.01em;
-        cursor: pointer;
-        transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease,
-          border-color 140ms ease;
-      }
-
-      .toggle-button.is-active {
-        background: linear-gradient(135deg, rgba(255, 207, 153, 0.65), rgba(237, 106, 58, 0.18));
-        color: var(--ink);
-        border-color: rgba(237, 106, 58, 0.32);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
-      }
-
-      .toggle-button input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .toggle-button span:last-child {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        line-height: 1;
-      }
-
       .compact-status {
         margin-top: 12px;
       }
 
-      .color-swatch {
-        position: relative;
-        display: block;
-        width: 100%;
+      .checker {
+        background-color: white;
+        background-image:
+          linear-gradient(45deg, rgba(24, 34, 47, 0.12) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.12) 75%),
+          linear-gradient(45deg, rgba(24, 34, 47, 0.12) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.12) 75%);
+        background-position: 0 0, 5px 5px;
+        background-size: 10px 10px;
+      }
+
+      .tool-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .tool-summary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
         height: var(--tool-height);
+        padding: 0 8px;
+        white-space: nowrap;
         border: 1px solid rgba(24, 34, 47, 0.14);
         border-radius: 16px;
         background: rgba(255, 255, 255, 0.85);
-        overflow: hidden;
+        color: var(--ink);
+        font: 700 0.86rem/1 "Zen Kaku Gothic New", sans-serif;
+        box-shadow: none;
       }
 
-      .quick-tools .field select {
-        height: var(--tool-height);
-        padding: 0 6px;
+      .tool-summary::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        margin-left: 2px;
+        border-right: 2px solid rgba(24, 34, 47, 0.45);
+        border-bottom: 2px solid rgba(24, 34, 47, 0.45);
+        transform: translateY(-2px) rotate(45deg);
+        transition: transform 140ms ease;
       }
 
-      .color-swatch input[type="color"] {
+      .tool-summary[aria-expanded="true"] {
+        background: linear-gradient(135deg, rgba(255, 207, 153, 0.65), rgba(237, 106, 58, 0.18));
+        border-color: rgba(237, 106, 58, 0.32);
+      }
+
+      .tool-summary[aria-expanded="true"]::after {
+        transform: translateY(2px) rotate(-135deg);
+      }
+
+      .preview-dot,
+      .size-dot {
+        display: block;
+        flex: none;
+        border-radius: 50%;
+        background-color: var(--dot-color, transparent);
+        box-shadow:
+          0 0 0 var(--ring, 0px) var(--ring-color, transparent),
+          0 0 0 calc(var(--ring, 0px) + 1px) rgba(24, 34, 47, 0.18);
+      }
+
+      .preview-dot {
+        width: 18px;
+        height: 18px;
+      }
+
+      .preview-dot.has-ring {
+        width: 12px;
+        height: 12px;
+        --ring: 3px;
+      }
+
+      .preview-dot.is-none {
+        background: transparent;
+        box-shadow: none;
+        border: 1.5px dashed rgba(24, 34, 47, 0.4);
+      }
+
+      .tool-panel {
+        margin-bottom: 10px;
+        padding: 14px;
+        border: 1px solid rgba(24, 34, 47, 0.08);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .tool-panel[hidden] {
+        display: none;
+      }
+
+      .tool-label {
+        margin: 0 0 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: rgba(24, 34, 47, 0.72);
+      }
+
+      .swatches + .tool-label {
+        margin-top: 14px;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 40px));
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .swatch {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        padding: 0;
+        border: 1px solid rgba(24, 34, 47, 0.18);
+        border-radius: 50%;
+        background-color: var(--swatch, white);
+        color: var(--ink);
+        font: 700 0.68rem/1 "Zen Kaku Gothic New", sans-serif;
+        cursor: pointer;
+      }
+
+      .swatch[aria-pressed="true"],
+      .swatch-custom.is-selected {
+        box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent);
+      }
+
+      .swatch-custom {
+        background: conic-gradient(#e5484d, #f5a524, #f7d046, #30a46c, #3e7bfa, #8e4ec6, #e5484d);
+      }
+
+      .swatch-custom.is-selected::after {
+        content: "";
+        position: absolute;
+        inset: 7px;
+        border-radius: 50%;
+        background: var(--swatch);
+        box-shadow: 0 0 0 1px rgba(24, 34, 47, 0.18);
+      }
+
+      .swatch-custom input {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        padding: 0;
-        border: 0;
-        background: transparent;
+        opacity: 0;
         cursor: pointer;
-        -webkit-appearance: none;
-        appearance: none;
       }
 
-      .color-swatch input[type="color"]::-webkit-color-swatch-wrapper {
+      .sizes {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .size-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 58px;
         padding: 0;
+        border: 1px solid rgba(24, 34, 47, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        color: rgba(24, 34, 47, 0.72);
+        font: 500 0.72rem/1 "Zen Kaku Gothic New", sans-serif;
       }
 
-      .color-swatch input[type="color"]::-webkit-color-swatch {
-        border: 0;
-        border-radius: 0;
+      .size-option[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: rgba(255, 207, 153, 0.35);
+        color: var(--ink);
       }
 
-      .color-swatch input[type="color"]::-moz-color-swatch {
-        border: 0;
-        border-radius: 0;
+      .size-option .size-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 24px;
+      }
+
+      /* 白い縁取りでも太さの違いが見えるよう、プレビュー部分だけ背景を敷く */
+      #outlineSizes .size-slot {
+        width: 36px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(24, 34, 47, 0.12);
+      }
+
+      .size-range {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .size-range input {
+        flex: 1;
+        min-width: 0;
+        height: 32px;
+        accent-color: var(--accent);
+      }
+
+      .size-range output {
+        flex: none;
+        min-width: 3.4em;
+        font: 700 0.85rem/1 "Space Grotesk", sans-serif;
+        text-align: right;
+      }
+
+      .size-range.is-disabled {
+        opacity: 0.45;
+      }
+
+      .panel-note {
+        margin: 12px 0 0;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: rgba(24, 34, 47, 0.6);
       }
 
       body.debug-mode .debug-link {
@@ -385,63 +521,37 @@
         </aside>
 
         <section class="panel board">
-          <div class="quick-tools">
-            <div class="field">
-              <label for="brushColor">ペンの色</label>
-              <label class="color-swatch" for="brushColor">
-                <input id="brushColor" type="color" value="#18222f" />
-              </label>
-            </div>
+          <div class="tool-summary-bar">
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="penPanel">
+              <span id="penPreview" class="preview-dot"></span>ペン
+            </button>
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="outlinePanel">
+              <span id="outlinePreview" class="preview-dot"></span>縁取り
+            </button>
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="backgroundPanel">
+              <span id="backgroundPreview" class="preview-dot"></span>背景
+            </button>
+          </div>
 
-            <div class="field">
-              <label for="brushSize">太さ</label>
-              <select id="brushSize">
-                <option value="4">4 px</option>
-                <option value="8" selected>8 px</option>
-                <option value="12">12 px</option>
-                <option value="18">18 px</option>
-              </select>
-            </div>
+          <div id="penPanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="brushSwatches" class="swatches"></div>
+            <p class="tool-label">太さ</p>
+            <div id="brushSizes" class="sizes"></div>
+          </div>
 
-            <div class="field">
-              <label for="transparentToggle">背景を透明</label>
-              <label id="transparentToggleButton" class="toggle-button" for="transparentToggle">
-                <input id="transparentToggle" type="checkbox" checked />
-                <span id="transparentToggleText">オン</span>
-              </label>
-            </div>
+          <div id="outlinePanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="outlineSwatches" class="swatches"></div>
+            <p class="tool-label">太さ</p>
+            <div id="outlineSizes" class="sizes"></div>
+            <p class="panel-note">線のまわりにフチをつけます。トークの背景が暗くても線が見やすくなります。</p>
+          </div>
 
-            <div class="field">
-              <label for="backgroundColor">背景色</label>
-              <label class="color-swatch" for="backgroundColor">
-                <input id="backgroundColor" type="color" value="#ffffff" />
-              </label>
-            </div>
-
-            <div class="field">
-              <label for="outlineToggle">縁取り</label>
-              <label id="outlineToggleButton" class="toggle-button" for="outlineToggle">
-                <input id="outlineToggle" type="checkbox" />
-                <span id="outlineToggleText">オフ</span>
-              </label>
-            </div>
-
-            <div class="field">
-              <label for="outlineColor">縁の色</label>
-              <label class="color-swatch" for="outlineColor">
-                <input id="outlineColor" type="color" value="#ffffff" />
-              </label>
-            </div>
-
-            <div class="field">
-              <label for="outlineSize">縁の太さ</label>
-              <select id="outlineSize">
-                <option value="2">2 px</option>
-                <option value="4" selected>4 px</option>
-                <option value="6">6 px</option>
-                <option value="8">8 px</option>
-              </select>
-            </div>
+          <div id="backgroundPanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="backgroundSwatches" class="swatches"></div>
+            <p class="panel-note">「透明」にすると、描いた線だけの画像になります。</p>
           </div>
 
           <div class="canvas-frame">
@@ -503,17 +613,6 @@
       const debugInfoElement = document.getElementById("debugInfo");
       const liffIdInput = document.getElementById("liffId");
       const apiBaseUrlInput = document.getElementById("apiBaseUrl");
-      const brushColorInput = document.getElementById("brushColor");
-      const brushSizeInput = document.getElementById("brushSize");
-      const transparentToggleInput = document.getElementById("transparentToggle");
-      const transparentToggleButton = document.getElementById("transparentToggleButton");
-      const transparentToggleText = document.getElementById("transparentToggleText");
-      const backgroundColorInput = document.getElementById("backgroundColor");
-      const outlineToggleInput = document.getElementById("outlineToggle");
-      const outlineToggleButton = document.getElementById("outlineToggleButton");
-      const outlineToggleText = document.getElementById("outlineToggleText");
-      const outlineColorInput = document.getElementById("outlineColor");
-      const outlineSizeInput = document.getElementById("outlineSize");
       const initLiffButton = document.getElementById("initLiffButton");
       const saveConfigButton = document.getElementById("saveConfigButton");
       const shareButton = document.getElementById("shareButton");
@@ -522,9 +621,101 @@
       const configPanel = document.getElementById("configPanel");
       const canvas = document.getElementById("drawCanvas");
       const context = canvas.getContext("2d");
-      const backgroundColorField = backgroundColorInput.closest(".field");
-      const outlineColorField = outlineColorInput.closest(".field");
-      const outlineSizeField = outlineSizeInput.closest(".field");
+      const summaryButtons = document.querySelectorAll(".tool-summary");
+      const penPreview = document.getElementById("penPreview");
+      const outlinePreview = document.getElementById("outlinePreview");
+      const backgroundPreview = document.getElementById("backgroundPreview");
+
+      const prefs = {};
+
+      // null は「なし」「透明」を表す
+      const colorGroups = [
+        {
+          container: document.getElementById("brushSwatches"),
+          colors: [
+            { color: "#18222f", name: "黒" },
+            { color: "#ffffff", name: "白" },
+            { color: "#e5484d", name: "赤" },
+            { color: "#f5a524", name: "オレンジ" },
+            { color: "#30a46c", name: "緑" },
+            { color: "#3e7bfa", name: "青" },
+          ],
+          get: () => prefs.brushColor,
+          set: (color) => {
+            prefs.brushColor = color;
+          },
+        },
+        {
+          container: document.getElementById("outlineSwatches"),
+          noneLabel: "なし",
+          colors: [
+            { color: "#ffffff", name: "白" },
+            { color: "#18222f", name: "黒" },
+            { color: "#f7d046", name: "黄色" },
+            { color: "#ff9ec7", name: "ピンク" },
+            { color: "#7cc4ff", name: "水色" },
+          ],
+          get: () => (prefs.outlineEnabled ? prefs.outlineColor : null),
+          set: (color) => {
+            prefs.outlineEnabled = color !== null;
+            if (color !== null) {
+              prefs.outlineColor = color;
+            }
+          },
+        },
+        {
+          container: document.getElementById("backgroundSwatches"),
+          noneLabel: "透明",
+          noneClass: "checker",
+          colors: [
+            { color: "#ffffff", name: "白" },
+            { color: "#fff4d6", name: "クリーム" },
+            { color: "#ffe1ea", name: "ピンク" },
+            { color: "#dff1ff", name: "水色" },
+            { color: "#e0f5e9", name: "ミント" },
+          ],
+          get: () => (prefs.transparentBackground ? null : prefs.backgroundColor),
+          set: (color) => {
+            prefs.transparentBackground = color === null;
+            if (color !== null) {
+              prefs.backgroundColor = color;
+            }
+          },
+        },
+      ];
+
+      // dot / ring は選択肢の見た目用の px で、実際の線幅 (value) とは別
+      const sizeGroups = [
+        {
+          container: document.getElementById("brushSizes"),
+          options: [
+            { value: 4, label: "細い", dot: 6 },
+            { value: 8, label: "ふつう", dot: 10 },
+            { value: 12, label: "太い", dot: 15 },
+            { value: 18, label: "極太", dot: 21 },
+          ],
+          range: { min: 1, max: 40, label: "ペンの太さを細かく調整" },
+          get: () => prefs.brushSize,
+          set: (value) => {
+            prefs.brushSize = value;
+          },
+        },
+        {
+          container: document.getElementById("outlineSizes"),
+          options: [
+            { value: 2, label: "細い", dot: 10, ring: 2 },
+            { value: 4, label: "ふつう", dot: 10, ring: 3 },
+            { value: 6, label: "太い", dot: 10, ring: 5 },
+            { value: 8, label: "極太", dot: 10, ring: 7 },
+          ],
+          range: { min: 1, max: 20, label: "縁取りの太さを細かく調整" },
+          get: () => prefs.outlineSize,
+          set: (value) => {
+            prefs.outlineSize = value;
+          },
+          isDisabled: () => !prefs.outlineEnabled,
+        },
+      ];
 
       function setStatus(message, tone = "default") {
         statusElement.textContent = message;
@@ -570,49 +761,177 @@
       }
 
       function saveDrawPreferences() {
-        localStorage.setItem(storageKeys.brushColor, brushColorInput.value);
-        localStorage.setItem(storageKeys.brushSize, brushSizeInput.value);
-        localStorage.setItem(storageKeys.transparentBackground, String(transparentToggleInput.checked));
-        localStorage.setItem(storageKeys.backgroundColor, backgroundColorInput.value);
-        localStorage.setItem(storageKeys.outlineEnabled, String(outlineToggleInput.checked));
-        localStorage.setItem(storageKeys.outlineColor, outlineColorInput.value);
-        localStorage.setItem(storageKeys.outlineSize, outlineSizeInput.value);
+        localStorage.setItem(storageKeys.brushColor, prefs.brushColor);
+        localStorage.setItem(storageKeys.brushSize, String(prefs.brushSize));
+        localStorage.setItem(storageKeys.transparentBackground, String(prefs.transparentBackground));
+        localStorage.setItem(storageKeys.backgroundColor, prefs.backgroundColor);
+        localStorage.setItem(storageKeys.outlineEnabled, String(prefs.outlineEnabled));
+        localStorage.setItem(storageKeys.outlineColor, prefs.outlineColor);
+        localStorage.setItem(storageKeys.outlineSize, String(prefs.outlineSize));
       }
 
       function loadConfig() {
         liffIdInput.value = localStorage.getItem(storageKeys.liffId) || defaultConfig.liffId;
         apiBaseUrlInput.value = localStorage.getItem(storageKeys.apiBaseUrl) || defaultConfig.apiBaseUrl;
-        brushColorInput.value = localStorage.getItem(storageKeys.brushColor) || "#18222f";
-        brushSizeInput.value = localStorage.getItem(storageKeys.brushSize) || "8";
-        transparentToggleInput.checked =
+        prefs.brushColor = localStorage.getItem(storageKeys.brushColor) || "#18222f";
+        prefs.brushSize = Number(localStorage.getItem(storageKeys.brushSize) || "8");
+        prefs.transparentBackground =
           (localStorage.getItem(storageKeys.transparentBackground) || "true") === "true";
-        backgroundColorInput.value = localStorage.getItem(storageKeys.backgroundColor) || "#ffffff";
-        outlineToggleInput.checked = localStorage.getItem(storageKeys.outlineEnabled) === "true";
-        outlineColorInput.value = localStorage.getItem(storageKeys.outlineColor) || "#ffffff";
-        outlineSizeInput.value = localStorage.getItem(storageKeys.outlineSize) || "4";
+        prefs.backgroundColor = localStorage.getItem(storageKeys.backgroundColor) || "#ffffff";
+        prefs.outlineEnabled = (localStorage.getItem(storageKeys.outlineEnabled) || "true") === "true";
+        prefs.outlineColor = localStorage.getItem(storageKeys.outlineColor) || "#ffffff";
+        prefs.outlineSize = Number(localStorage.getItem(storageKeys.outlineSize) || "4");
       }
 
-      function updateOutlineControls() {
-        const enabled = outlineToggleInput.checked;
-        outlineColorInput.disabled = !enabled;
-        outlineSizeInput.disabled = !enabled;
-        outlineColorField.classList.toggle("is-disabled", !enabled);
-        outlineSizeField.classList.toggle("is-disabled", !enabled);
-        outlineToggleButton.classList.toggle("is-active", enabled);
-        outlineToggleText.textContent = enabled ? "オン" : "オフ";
+      function updatePreference(apply) {
+        apply();
         saveDrawPreferences();
+        renderTools();
       }
 
-      function updateCanvasPreviewBackground() {
-        const transparent = transparentToggleInput.checked;
+      function createSwatch(group, entry) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "swatch";
 
-        canvas.classList.toggle("is-filled", !transparent);
-        canvas.style.setProperty("--canvas-fill", backgroundColorInput.value);
-        backgroundColorInput.disabled = transparent;
-        backgroundColorField.classList.toggle("is-disabled", transparent);
-        transparentToggleButton.classList.toggle("is-active", transparent);
-        transparentToggleText.textContent = transparent ? "オン" : "オフ";
-        saveDrawPreferences();
+        if (entry === null) {
+          button.classList.add("swatch-none");
+          if (group.noneClass) {
+            button.classList.add(group.noneClass);
+          }
+          button.textContent = group.noneLabel;
+          button.dataset.color = "";
+        } else {
+          button.style.setProperty("--swatch", entry.color);
+          button.setAttribute("aria-label", entry.name);
+          button.dataset.color = entry.color;
+        }
+
+        button.addEventListener("click", () =>
+          updatePreference(() => group.set(entry === null ? null : entry.color)),
+        );
+        return button;
+      }
+
+      function buildColorGroup(group) {
+        if (group.noneLabel) {
+          group.container.append(createSwatch(group, null));
+        }
+        group.colors.forEach((entry) => group.container.append(createSwatch(group, entry)));
+
+        const custom = document.createElement("label");
+        custom.className = "swatch swatch-custom";
+        const input = document.createElement("input");
+        input.type = "color";
+        input.setAttribute("aria-label", "ほかの色を選ぶ");
+        input.addEventListener("input", () => updatePreference(() => group.set(input.value.toLowerCase())));
+        custom.append(input);
+        group.container.append(custom);
+
+        group.customSwatch = custom;
+        group.customInput = input;
+      }
+
+      function buildSizeGroup(group) {
+        group.options.forEach((option) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "size-option";
+          button.dataset.value = String(option.value);
+
+          const slot = document.createElement("span");
+          slot.className = "size-slot";
+          const dot = document.createElement("span");
+          dot.className = "size-dot";
+          dot.style.width = option.dot + "px";
+          dot.style.height = option.dot + "px";
+          if (option.ring) {
+            dot.style.setProperty("--ring", option.ring + "px");
+          }
+          slot.append(dot);
+
+          button.append(slot, option.label);
+          button.addEventListener("click", () => updatePreference(() => group.set(option.value)));
+          group.container.append(button);
+        });
+
+        // プリセット以外の太さも選べるよう、スライダーで任意の px を指定できるようにする
+        const row = document.createElement("div");
+        row.className = "size-range";
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = String(group.range.min);
+        input.max = String(group.range.max);
+        input.step = "1";
+        input.setAttribute("aria-label", group.range.label);
+        const output = document.createElement("output");
+        input.addEventListener("input", () => updatePreference(() => group.set(Number(input.value))));
+        row.append(input, output);
+        group.container.after(row);
+
+        group.rangeRow = row;
+        group.rangeInput = input;
+        group.rangeOutput = output;
+      }
+
+      function renderTools() {
+        colorGroups.forEach((group) => {
+          const current = group.get();
+          let matched = false;
+
+          group.container.querySelectorAll("button.swatch").forEach((button) => {
+            const selected = (button.dataset.color || null) === current;
+            button.setAttribute("aria-pressed", String(selected));
+            matched = matched || selected;
+          });
+
+          group.customSwatch.classList.toggle("is-selected", !matched);
+          if (current !== null) {
+            group.customSwatch.style.setProperty("--swatch", current);
+            group.customInput.value = current;
+          }
+        });
+
+        sizeGroups.forEach((group) => {
+          group.container.style.setProperty("--dot-color", prefs.brushColor);
+          group.container.style.setProperty("--ring-color", prefs.outlineColor);
+          group.container.querySelectorAll(".size-option").forEach((button) => {
+            button.setAttribute("aria-pressed", String(Number(button.dataset.value) === group.get()));
+            button.disabled = group.isDisabled ? group.isDisabled() : false;
+          });
+
+          const disabled = group.isDisabled ? group.isDisabled() : false;
+          group.rangeInput.value = String(group.get());
+          group.rangeInput.disabled = disabled;
+          group.rangeOutput.textContent = group.get() + " px";
+          group.rangeRow.classList.toggle("is-disabled", disabled);
+        });
+
+        penPreview.style.setProperty("--dot-color", prefs.brushColor);
+
+        outlinePreview.classList.toggle("is-none", !prefs.outlineEnabled);
+        outlinePreview.classList.toggle("has-ring", prefs.outlineEnabled);
+        outlinePreview.style.setProperty("--dot-color", prefs.brushColor);
+        outlinePreview.style.setProperty("--ring-color", prefs.outlineColor);
+
+        backgroundPreview.classList.toggle("checker", prefs.transparentBackground);
+        backgroundPreview.style.setProperty(
+          "--dot-color",
+          prefs.transparentBackground ? "transparent" : prefs.backgroundColor,
+        );
+
+        canvas.classList.toggle("is-filled", !prefs.transparentBackground);
+        canvas.style.setProperty("--canvas-fill", prefs.backgroundColor);
+      }
+
+      function toggleToolPanel(target) {
+        const willOpen = target.getAttribute("aria-expanded") !== "true";
+
+        summaryButtons.forEach((button) => {
+          const open = button === target && willOpen;
+          button.setAttribute("aria-expanded", String(open));
+          document.getElementById(button.getAttribute("aria-controls")).hidden = !open;
+        });
       }
 
       function snapshotCanvas() {
@@ -678,19 +997,19 @@
 
       // 縁取りが同じストローク内の線を上書きしないよう、毎回ストローク全体を描き直す
       function renderCurrentStroke() {
-        const brushSize = Number(brushSizeInput.value);
+        const brushSize = prefs.brushSize;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(state.strokeBase, 0, 0);
         traceStroke(state.strokePoints);
 
-        if (outlineToggleInput.checked) {
-          context.strokeStyle = outlineColorInput.value;
-          context.lineWidth = brushSize + Number(outlineSizeInput.value) * 2;
+        if (prefs.outlineEnabled) {
+          context.strokeStyle = prefs.outlineColor;
+          context.lineWidth = brushSize + prefs.outlineSize * 2;
           context.stroke();
         }
 
-        context.strokeStyle = brushColorInput.value;
+        context.strokeStyle = prefs.brushColor;
         context.lineWidth = brushSize;
         context.stroke();
       }
@@ -739,12 +1058,12 @@
       }
 
       function buildExportDataUrl() {
-        if (!transparentToggleInput.checked) {
+        if (!prefs.transparentBackground) {
           const exportCanvas = document.createElement("canvas");
           exportCanvas.width = canvas.width;
           exportCanvas.height = canvas.height;
           const exportContext = exportCanvas.getContext("2d");
-          exportContext.fillStyle = backgroundColorInput.value;
+          exportContext.fillStyle = prefs.backgroundColor;
           exportContext.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
           exportContext.drawImage(canvas, 0, 0);
           return exportCanvas.toDataURL("image/png");
@@ -896,16 +1215,11 @@
       debugInfoElement.hidden = !isDebugMode;
       context.lineCap = "round";
       context.lineJoin = "round";
-      updateCanvasPreviewBackground();
-      updateOutlineControls();
+      colorGroups.forEach(buildColorGroup);
+      sizeGroups.forEach(buildSizeGroup);
+      renderTools();
 
-      brushColorInput.addEventListener("change", saveDrawPreferences);
-      brushSizeInput.addEventListener("change", saveDrawPreferences);
-      transparentToggleInput.addEventListener("change", updateCanvasPreviewBackground);
-      backgroundColorInput.addEventListener("change", updateCanvasPreviewBackground);
-      outlineToggleInput.addEventListener("change", updateOutlineControls);
-      outlineColorInput.addEventListener("change", saveDrawPreferences);
-      outlineSizeInput.addEventListener("change", saveDrawPreferences);
+      summaryButtons.forEach((button) => button.addEventListener("click", () => toggleToolPanel(button)));
       saveConfigButton.addEventListener("click", saveConfig);
       initLiffButton.addEventListener("click", () => initLiff());
       shareButton.addEventListener("click", shareImage);
