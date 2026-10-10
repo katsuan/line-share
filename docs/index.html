@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
     >
     <title>FlexShare</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -74,6 +74,11 @@
         font-size: 11px;
         line-height: 1.5;
         color: rgba(120, 90, 40, 0.75);
+      }
+
+      .preview-note--strong {
+        font-weight: 700;
+        color: #9a3412;
       }
 
       .bubble {
@@ -409,7 +414,8 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 12px;
+        min-height: 40px;
+        padding: 10px 14px;
         border-radius: 999px;
         background: #fffaf0;
         border: 1px solid rgba(245, 158, 11, 0.2);
@@ -448,8 +454,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 34px;
+        height: 34px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.26);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
@@ -517,6 +523,7 @@
         align-items: center;
         justify-content: center;
         width: 100%;
+        min-height: 38px;
         padding: 6px 2px;
         border-radius: 999px;
         border: 1px solid rgba(120, 90, 40, 0.22);
@@ -559,7 +566,12 @@
         backdrop-filter: blur(14px);
         border-top: 1px solid var(--card-line);
         box-shadow: 0 -10px 28px rgba(180, 83, 9, 0.14);
-        padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+        transition: transform 0.18s ease;
+      }
+
+      body.is-typing .actions {
+        transform: translateY(100%);
       }
 
       .actions-inner {
@@ -570,20 +582,31 @@
       }
 
       .actions-inner .status {
+        min-height: 0;
         margin-bottom: 0;
+        font-size: 12px;
+        line-height: 1.4;
         text-align: center;
+      }
+
+      .actions-inner .status:empty {
+        display: none;
       }
 
       .button {
         width: 100%;
         border: 0;
         border-radius: 999px;
-        padding: 16px 18px;
+        padding: 14px 18px;
         background: linear-gradient(135deg, var(--accent) 0%, #ef4444 100%);
         color: #fff;
         font-size: 16px;
         font-weight: 800;
         cursor: pointer;
+      }
+
+      .button.is-incomplete:not([disabled]) {
+        opacity: 0.55;
       }
 
       .button[disabled] {
@@ -617,9 +640,31 @@
         color: var(--sub);
       }
 
+      @media (hover: none) {
+        .bubble-input {
+          border-color: color-mix(in srgb, currentColor 22%, transparent);
+        }
+      }
+
       @media (max-width: 560px) {
         .grid.two {
           grid-template-columns: 1fr;
+        }
+
+        .page {
+          padding: 16px 12px 24px;
+        }
+
+        .hero {
+          margin-bottom: 12px;
+        }
+
+        .preview {
+          padding: 14px;
+        }
+
+        .panel {
+          padding: 14px;
         }
       }
 
@@ -688,7 +733,7 @@
     <main class="page">
       <section class="hero">
         <p>
-          プレビューの文字は直接タップして編集し、LINE で送信できます。
+          カードの文字を直接タップして編集できます。
         </p>
       </section>
 
@@ -848,6 +893,11 @@
                 id="actionUrlInput"
                 class="input"
                 type="url"
+                inputmode="url"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="done"
                 placeholder="https://example.com"
               >
               <p id="actionUrlWarning" class="field-warning hidden">
@@ -857,7 +907,7 @@
           </div>
 
           <p class="preview-note">※ 見え方はイメージです。実際の表示はご利用端末やカードサイズによって異なります。</p>
-          <p class="preview-note">※ 送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+          <p class="preview-note preview-note--strong">※ 送信後の修正はできません。内容をご確認のうえ送信してください。</p>
         </div>
       </section>
     </main>
@@ -892,6 +942,7 @@
       const DEFAULT_HEADER_TITLE = 'タイトル';
       const ALLOWED_ACTION_HOSTS = ['katsuan.github.io'];
       let isActionUrlFromQuery = false;
+      let hasTriedShare = false;
       let shareEnvironmentReady = false;
       let lastBuiltShareMessages = null;
 
@@ -1086,6 +1137,7 @@
       };
 
       function resetEditor() {
+        hasTriedShare = false;
         applyStateToEditor(BLANK_STATE);
 
         try {
@@ -1216,52 +1268,76 @@
         syncActionsBarSpacing();
       }
 
-      function getValidationMessage(state) {
+      function getValidation(state) {
         if (!state.headerTitle) {
-          return 'タイトルを入力してください。';
+          return { message: 'タイトルを入力してください。', fieldId: 'headerInput' };
         }
 
         if (!state.title) {
-          return '本文タイトルを入力してください。';
+          return { message: '本文タイトルを入力してください。', fieldId: 'titleInput' };
         }
 
         if (state.showDate !== false && !state.date) {
-          return 'サブタイトルを入力するか、表示設定でOFFにしてください。';
+          return {
+            message: 'サブタイトルを入力するか、表示設定でOFFにしてください。',
+            fieldId: 'dateInput'
+          };
         }
 
         if (state.showDetail !== false && !state.detail) {
-          return '詳細を入力するか、表示設定でOFFにしてください。';
+          return {
+            message: '詳細を入力するか、表示設定でOFFにしてください。',
+            fieldId: 'detailInput'
+          };
         }
 
         if (state.showAction === true) {
           if (!state.actionUrl) {
-            return 'URLボタンを表示する場合は URL を入力してください。';
+            return {
+              message: 'URLボタンを表示する場合は URL を入力してください。',
+              fieldId: 'actionUrlInput'
+            };
           }
 
           if (!sanitizeUrl(state.actionUrl)) {
-            return 'URL は http または https で入力してください。';
+            return {
+              message: 'URL は http または https で入力してください。',
+              fieldId: 'actionUrlInput'
+            };
           }
         }
 
-        return '';
+        return { message: '', fieldId: '' };
       }
 
       function updateShareButtonState(state) {
         const shareButton = document.getElementById('shareButton');
-        const validationMessage = getValidationMessage(state);
+        const { message } = getValidation(state);
 
-        shareButton.disabled = !shareEnvironmentReady || Boolean(validationMessage);
+        shareButton.disabled = !shareEnvironmentReady;
+        shareButton.classList.toggle('is-incomplete', Boolean(message));
 
         if (!shareEnvironmentReady) {
           return;
         }
 
-        if (validationMessage) {
-          setStatus(validationMessage, true);
+        if (message) {
+          setStatus(message, hasTriedShare);
           return;
         }
 
-        setStatus('共有ボタンから送り先を選べます。', false);
+        setStatus('送信後は修正できません。', false);
+      }
+
+      function focusInvalidField(fieldId) {
+        const field = document.getElementById(fieldId);
+
+        if (!field) {
+          return;
+        }
+
+        field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        field.focus({ preventScroll: true });
       }
 
       function updateFieldVisibility(state) {
@@ -1502,6 +1578,51 @@
           });
         });
 
+        const textFieldIds = [
+          'headerInput',
+          'dateInput',
+          'titleInput',
+          'detailInput',
+          'actionLabelInput',
+          'actionUrlInput'
+        ];
+
+        textFieldIds.forEach((id, index) => {
+          const field = document.getElementById(id);
+
+          field.addEventListener('focus', () => {
+            document.body.classList.add('is-typing');
+          });
+          field.addEventListener('blur', () => {
+            document.body.classList.remove('is-typing');
+            syncActionsBarSpacing();
+          });
+
+          if (field.tagName !== 'INPUT') {
+            return;
+          }
+
+          field.enterKeyHint = id === 'actionUrlInput' ? 'done' : 'next';
+          field.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' || event.isComposing) {
+              return;
+            }
+
+            event.preventDefault();
+
+            const nextField = textFieldIds
+              .slice(index + 1)
+              .map((nextId) => document.getElementById(nextId))
+              .find((candidate) => candidate && !candidate.disabled && candidate.offsetParent !== null);
+
+            if (nextField) {
+              nextField.focus();
+            } else {
+              field.blur();
+            }
+          });
+        });
+
         const customColorInput = document.getElementById('customColorInput');
         customColorInput.addEventListener('input', () => {
           const customThemeInput = document.querySelector('input[name="theme"][value="custom"]');
@@ -1598,6 +1719,15 @@
           return;
         }
 
+        const validation = getValidation(getEditorState());
+
+        if (validation.message) {
+          hasTriedShare = true;
+          setStatus(validation.message, true);
+          focusInvalidField(validation.fieldId);
+          return;
+        }
+
         const confirmed = await confirmSendWarning();
 
         if (!confirmed) {
@@ -1644,8 +1774,25 @@
         applyStateToEditor(initialState);
         bindEditorEvents();
         renderPreview(getEditorState());
-        document.getElementById('resetButton').addEventListener('click', (event) => {
+        const resetButton = document.getElementById('resetButton');
+        const resetButtonLabel = resetButton.textContent.trim();
+        let resetConfirmTimer = null;
+
+        resetButton.addEventListener('click', (event) => {
           event.preventDefault();
+
+          if (resetConfirmTimer === null) {
+            resetButton.textContent = 'もう一度タップでリセット';
+            resetConfirmTimer = setTimeout(() => {
+              resetButton.textContent = resetButtonLabel;
+              resetConfirmTimer = null;
+            }, 3000);
+            return;
+          }
+
+          clearTimeout(resetConfirmTimer);
+          resetConfirmTimer = null;
+          resetButton.textContent = resetButtonLabel;
           resetEditor();
           document.querySelector('.card-settings-accordion').open = true;
         });
