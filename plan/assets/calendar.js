@@ -5,6 +5,8 @@ import {
   formatPlaceLocation,
   isGoogleMapsUrl,
   isHttpUrl,
+  mapSearchUrl,
+  openExternal,
   titleFromMapUrl,
   setMessage,
   shareFlex,
@@ -61,6 +63,7 @@ function cacheDom_() {
   dom.location = document.getElementById("location");
   dom.locationAccordion = document.getElementById("locationAccordion");
   dom.locationMapUrl = document.getElementById("locationMapUrl");
+  dom.locationFindButton = document.getElementById("locationFindButton");
   dom.url = document.getElementById("url");
   dom.details = document.getElementById("details");
   dom.locationState = document.getElementById("locationState");
@@ -91,6 +94,16 @@ function bindEvents_() {
   dom.endDate.addEventListener("change", handleEndDateTimeEdit_);
   dom.endTime.addEventListener("change", handleEndDateTimeEdit_);
   dom.locationMapUrl.addEventListener("input", handleLocationMapUrlInput_);
+  dom.locationFindButton.addEventListener("click", () => {
+    const name = dom.location.value.trim();
+    if (!name) {
+      setMessage(dom.statusMessage, "先に場所名を入力してください。", "error");
+      dom.location.focus();
+      return;
+    }
+    openExternal(mapSearchUrl(name));
+    setMessage(dom.statusMessage, "見つけたら「共有」→「リンクをコピー」して、URL欄に貼り付けてください。");
+  });
   bindPlaceSearch({
     input: document.getElementById("locationSearchInput"),
     button: document.getElementById("locationSearchButton"),
@@ -152,7 +165,7 @@ function getFormData_() {
   const start = combineDateTime_(dom.startDate.value, dom.startTime.value);
   const end = combineDateTime_(dom.endDate.value, dom.endTime.value);
   const location = dom.location.value.trim();
-  const mapUrl = dom.locationMapUrl.value.trim();
+  const mapUrl = dom.locationMapUrl.value.trim() || mapSearchUrl(location);
   const url = dom.url.value.trim();
   const details = dom.details.value.trim();
   const timezone = dom.timezone.value.trim();

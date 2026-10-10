@@ -91,6 +91,21 @@ export async function shareFlex(message) {
   return result?.status === "success";
 }
 
+// 場所名から Google Maps の検索リンクを作る（アプリがあれば地図アプリで開く）
+export function mapSearchUrl(name) {
+  const query = String(name || "").trim();
+  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : "";
+}
+
+// LINE 内では外部ブラウザ（地図アプリ）で開き、それ以外は新しいタブで開く
+export function openExternal(url) {
+  if (app.liffReady && window.liff?.openWindow) {
+    liff.openWindow({ url, external: true });
+  } else {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+}
+
 export function formatPlaceLocation(place) {
   const title = (place.title || "").trim();
   const address = (place.address || "").trim().replace(/^日本、\s*/, "");

@@ -1,4 +1,4 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js";
 import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js";
 import { createPlaceFlex } from "./flex.js";
 
@@ -26,6 +26,8 @@ export function initMapTab({ onCreateEvent }) {
   dom.customBadge = document.getElementById("customBadge");
   dom.addBadgeButton = document.getElementById("addBadgeButton");
   dom.openButton = document.getElementById("mapOpenButton");
+  dom.findButton = document.getElementById("mapFindButton");
+  dom.pasteButton = document.getElementById("mapPasteButton");
   dom.createEventButton = document.getElementById("mapCreateEventButton");
   dom.shareButton = document.getElementById("mapShareButton");
   dom.message = document.getElementById("mapMessage");
@@ -36,7 +38,7 @@ export function initMapTab({ onCreateEvent }) {
   dom.comment.addEventListener("input", refreshMapTab);
   if (!hasPlaceSearch()) {
     document.getElementById("mapIntro").textContent =
-      "Google Mapsで「共有」→「リンクをコピー」したURLを貼り、場所名を入力してください。";
+      "場所名を入れて、Google Mapsで探せます。";
   }
   bindPlaceSearch({
     input: document.getElementById("mapSearchInput"),
@@ -53,6 +55,8 @@ export function initMapTab({ onCreateEvent }) {
     }
   });
   dom.openButton.addEventListener("click", openMap_);
+  dom.findButton.addEventListener("click", findOnMap_);
+  dom.pasteButton.addEventListener("click", pasteMapUrl_);
   dom.createEventButton.addEventListener("click", createEvent_);
   dom.shareButton.addEventListener("click", share_);
 
@@ -87,7 +91,7 @@ export function refreshMapTab() {
 
 function getPlace_() {
   return {
-    mapUrl: dom.mapUrl.value.trim(),
+    mapUrl: dom.mapUrl.value.trim() || mapSearchUrl(dom.title.value),
     title: dom.title.value.trim(),
     address: state.address.trim(),
     photoUrl: state.photoUrl,
@@ -119,9 +123,38 @@ function selectPlace_(place) {
 }
 
 function openMap_() {
-  const url = dom.mapUrl.value.trim();
-  if (isGoogleMapsUrl(url)) {
-    window.open(url, "_blank", "noopener,noreferrer");
+  const { mapUrl } = getPlace_();
+  if (isGoogleMapsUrl(mapUrl)) {
+    openExternal(mapUrl);
+  }
+}
+
+function findOnMap_() {
+  const name = dom.title.value.trim();
+  if (!name) {
+    setMessage(dom.message, "先に場所名を入力してください。", "error");
+    dom.title.focus();
+    return;
+  }
+  openExternal(mapSearchUrl(name));
+  setMessage(dom.message, "見つけたら「共有」→「リンクをコピー」して、URL欄に貼り付けてください。");
+}
+
+async function pasteMapUrl_() {
+  try {
+    const text = (await navigator.clipboard.readText()).trim();
+    const url = text.match(/https?:\/\/\S+/)?.[0] || "";
+    if (!isGoogleMapsUrl(url)) {
+      setMessage(dom.message, "コピーした内容にGoogle MapsのURLが見つかりませんでした。", "error");
+      return;
+    }
+    dom.mapUrl.value = url;
+    handleMapUrlInput_();
+    setMessage(dom.message, "");
+  } catch (error) {
+    console.error(error);
+    setMessage(dom.message, "貼り付けできませんでした。URL欄を長押しして貼り付けてください。", "error");
+    dom.mapUrl.focus();
   }
 }
 
