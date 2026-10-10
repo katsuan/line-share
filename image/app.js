@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610102321";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610102321";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610102340";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610102340";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -28,6 +28,9 @@ const FONTS = [
 const TEXT_PRESETS = ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"];
 const TEXT_COLORS = ["#38ba91", "#18222f", "#ffffff", "#e5484d", "#f5a524", "#3e7bfa", "#ff6fa8"];
 const PEN_COLORS = ["#18222f", "#ffffff", "#e5484d", "#f5a524", "#30a46c", "#3e7bfa"];
+// スライダーで選べる太さの範囲（3段階のボタンはこの中のよく使う値）
+const PEN_SIZE_MIN = 2;
+const PEN_SIZE_MAX = 40;
 const PEN_SIZES = [
   { label: "細い", value: 6 },
   { label: "ふつう", value: 12 },
@@ -79,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   [
     "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
-    "penColors", "penSizes", "undoButton", "clearButton",
+    "penColors", "penSizes", "penSizeRange", "penSizeDot", "undoButton", "clearButton",
     "outlineList", "outlineWidthList", "backgroundList", "motionList", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
@@ -492,7 +495,8 @@ function updateMeta_() {
   const labelOf = (options, value) => options.find((option) => option.value === value)?.label || "";
   const text = state.text.trim().replace(/\s+/g, " ");
   els.textMeta.textContent = text ? (text.length > 10 ? `${text.slice(0, 10)}…` : text) : "未入力";
-  els.penMeta.textContent = `${labelOf(PEN_SIZES, state.penSize)}・${state.strokes.length}本`;
+  els.penMeta.textContent = `${labelOf(PEN_SIZES, state.penSize) || `太さ${state.penSize}`}・${state.strokes.length}本`;
+  syncPenSize_();
   els.shapeMeta.textContent = labelOf(SHAPES, state.shape);
   els.outlineMeta.textContent =
     state.outline === "none" ? "なし" : `${labelOf(OUTLINES, state.outline)}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
@@ -504,12 +508,25 @@ function sendLabel_() {
   return state.sendMode === "card" ? "カードで送る" : "画像で送る";
 }
 
+// スライダーと見本の丸を今の太さに合わせる。丸はプレビュー上で実際に描かれる太さ
+function syncPenSize_() {
+  els.penSizeRange.value = String(state.penSize);
+  const rect = els.canvas.getBoundingClientRect();
+  const px = Math.max(2, (state.penSize * Math.min(rect.width, rect.height)) / BASE);
+  els.penSizeDot.style.width = els.penSizeDot.style.height = `${px}px`;
+  els.penSizeDot.style.background = state.penColor;
+}
+
 function onChange_() {
   savePrefs_();
   applyState_();
 }
 
 function bindEvents_() {
+  els.penSizeRange.addEventListener("input", () => {
+    state.penSize = Math.min(PEN_SIZE_MAX, Math.max(PEN_SIZE_MIN, Number(els.penSizeRange.value) || PEN_SIZES[1].value));
+    onChange_();
+  });
   els.modeText.addEventListener("click", () => {
     state.mode = "text";
     onChange_();

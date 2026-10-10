@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>おくるカード</title>
     <meta name="description" content="場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れます。" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610102321" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610102340" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610102321"></script>
-    <script src="./shared/credit.js?v=202610102321"></script>
+    <script src="./config.js?v=202610102340"></script>
+    <script src="./shared/credit.js?v=202610102340"></script>
     <style>
       .hub-title {
         display: flex;
@@ -26,7 +26,7 @@
 
       .hub-tools {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         margin: 0;
         padding: 0;
@@ -53,6 +53,37 @@
         text-align: center;
         word-break: keep-all;
         text-decoration: none;
+      }
+
+      /* いちばんよく使うお知らせカードは横長で先頭に置く */
+      .hub-tool.is-featured {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 14px;
+        min-height: 96px;
+        padding: 16px 18px;
+        border-color: var(--ls-accent);
+        background: var(--ls-accent-soft);
+        font-size: 17px;
+        text-align: left;
+      }
+
+      .hub-tools > li:has(.is-featured) {
+        grid-column: 1 / -1;
+      }
+
+      .hub-tool.is-featured .hub-icon {
+        font-size: 40px;
+      }
+
+      .hub-tool-body {
+        display: grid;
+        gap: 4px;
+      }
+
+      .hub-tool.is-featured .hub-tool-desc {
+        color: var(--ls-accent-ink);
+        font-size: 13px;
       }
 
       .hub-tool:active {
@@ -164,10 +195,15 @@
   <body>
     <main id="hub" class="ls-page">
       <h1 class="hub-title"><img src="./shared/icon.svg" alt="" width="36" height="36" />おくるカード</h1>
-      <p class="hub-lead">LINEのトークに、カードや画像で送れます。</p>
+      <p class="hub-lead">写真やボタン付きのカードを、LINEで送れます。</p>
       <ul class="hub-tools">
+        <li>
+          <a class="hub-tool is-featured" href="./card/">
+            <span class="hub-icon" aria-hidden="true">🪧</span>
+            <span class="hub-tool-body">お知らせカード<span class="hub-tool-desc">写真・ボタン付きのお知らせを作って送る</span></span>
+          </a>
+        </li>
         <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定<span class="hub-tool-desc">地図や予定を<wbr />カードで</span></a></li>
-        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span><span>お知らせ<wbr />カード</span><span class="hub-tool-desc">写真やボタン<wbr />付きで</span></a></li>
         <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き<span class="hub-tool-desc">スタンプ風の<wbr />画像に</span></a></li>
       </ul>
 

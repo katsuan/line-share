@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>文字・手書き｜おくるカード</title>
     <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610102321" />
-    <link rel="stylesheet" href="./style.css?v=202610102321" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610102340" />
+    <link rel="stylesheet" href="./style.css?v=202610102340" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610102321"></script>
-    <script src="../shared/credit.js?v=202610102321"></script>
-    <script src="../shared/liff.js?v=202610102321"></script>
-    <script src="../shared/ui.js?v=202610102321" defer></script>
-    <script type="module" src="./app.js?v=202610102321"></script>
+    <script src="../config.js?v=202610102340"></script>
+    <script src="../shared/credit.js?v=202610102340"></script>
+    <script src="../shared/liff.js?v=202610102340"></script>
+    <script src="../shared/ui.js?v=202610102340" defer></script>
+    <script type="module" src="./app.js?v=202610102340"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -78,6 +78,11 @@
               <div class="ls-field">
                 <span class="ls-label">ペンの太さ</span>
                 <div id="penSizes" class="ls-chips"></div>
+                <!-- 3段階のほかに、細かく選べるスライダー。右の丸が実際に描ける線の太さ -->
+                <div class="pen-size-row">
+                  <input id="penSizeRange" class="pen-size-range" type="range" min="2" max="40" step="1" aria-label="ペンの太さを細かく選ぶ" />
+                  <span class="pen-size-dot-box" aria-hidden="true"><span id="penSizeDot" class="pen-size-dot"></span></span>
+                </div>
               </div>
               <div class="ls-actions">
                 <button id="undoButton" class="ls-button" type="button" disabled>↶ 元に戻す</button>
