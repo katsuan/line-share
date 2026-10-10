@@ -3,8 +3,8 @@ const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",
   surface: "#F4F4F1",
-  accent: "#3F6DB5",
-  badgeBg: "#EAF0FA"
+  accent: "#6C47FF",
+  badgeBg: "#EFEBFF"
 };
 
 export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, badges }) {
