@@ -34,6 +34,7 @@ async function initializeLiff_() {
     }
 
     app.liffReady = true;
+    window.LineShareCredit?.checkUser();
   } catch (error) {
     console.error(error);
   } finally {
