@@ -22,20 +22,25 @@ app.use((request, _response, next) => {
   next();
 });
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!allowedOrigin || !origin || origin === allowedOrigin) {
-        callback(null, true);
-        return;
-      }
+// アップロードは自分のページ（ALLOWED_ORIGIN）からだけ受け付ける
+const uploadCors = cors({
+  origin(origin, callback) {
+    callback(null, !allowedOrigin || !origin || origin === allowedOrigin);
+  },
+});
 
-      callback(new Error("Origin is not allowed by CORS"));
+// 送った画像は LINE の受信者など誰からでも読めるようにする。
+// ここに Origin の制限をかけると、Flex の画像を受信者側で読み込めず枠だけになる。
+app.use(
+  "/uploads",
+  express.static(uploadDir, {
+    maxAge: "1d",
+    setHeaders(response) {
+      response.set("Access-Control-Allow-Origin", "*");
+      response.set("Cross-Origin-Resource-Policy", "cross-origin");
     },
   }),
 );
-app.use(express.json({ limit: "10mb" }));
-app.use("/uploads", express.static(uploadDir, { maxAge: "1d" }));
 
 function buildPublicBaseUrl(request) {
   if (process.env.PUBLIC_BASE_URL) {
@@ -70,7 +75,14 @@ app.get("/health", (_request, response) => {
   response.json({ ok: true });
 });
 
-app.post("/api/upload", async (request, response) => {
+app.options("/api/upload", uploadCors);
+app.post("/api/upload", uploadCors, express.json({ limit: "10mb" }), async (request, response) => {
+  const origin = request.get("origin");
+  if (allowedOrigin && origin && origin !== allowedOrigin) {
+    response.status(403).json({ error: "このサイトからはアップロードできません。" });
+    return;
+  }
+
   try {
     const imageData = request.body?.imageData;
 
