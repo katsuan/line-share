@@ -37,9 +37,17 @@
   height: 100%;
 }
 
-/* 手書き中だけ、キャンバス上のスクロールを止めて描けるようにする */
+/* 手書き中だけ、キャンバス上のスクロール・長押しメニュー・文字選択を止めて描けるようにする */
+.canvas-frame.is-drawing,
 .canvas-frame.is-drawing canvas {
   touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.canvas-frame.is-drawing canvas {
   cursor: crosshair;
 }
 

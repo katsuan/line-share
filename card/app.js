@@ -9,7 +9,8 @@ const TEMPLATE_KEY = "line-share:card-templates";
 const ALLOWED_ACTION_HOSTS = ["katsuan.github.io"];
 const ACTION_PROTOCOLS = ["https:", "http:", "line:", "tel:", "mailto:"];
 
-const BUBBLE_SIZES = ["nano", "micro", "kilo", "mega", "giga"];
+// LINE Flex Message の bubble.size（小さい順）。指定しないときの LINE の標準は mega
+const BUBBLE_SIZES = ["nano", "micro", "deca", "hecto", "kilo", "mega", "giga"];
 const MAX_BADGES = 5;
 const MAX_BUTTONS = 3;
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
@@ -72,7 +73,7 @@ const MAX_TALL_RATIO = 3;
 const BLANK_STATE = {
   theme: "sunset",
   customColor: DEFAULT_CUSTOM_COLOR,
-  bubbleSize: "giga",
+  bubbleSize: "mega",
   headerTitle: "",
   date: "",
   title: "",
@@ -142,7 +143,7 @@ function hydrate(source = {}) {
     ...pick(source, ["headerTitle", "date", "title", "detail", "imageUrl", "imageActionUrl"], String),
     theme: Object.hasOwn(THEMES, source.theme) ? source.theme : "sunset",
     customColor: normalizeHexColor(source.customColor),
-    bubbleSize: BUBBLE_SIZES.includes(source.bubbleSize) ? source.bubbleSize : "giga",
+    bubbleSize: BUBBLE_SIZES.includes(source.bubbleSize) ? source.bubbleSize : "mega",
     imageShape: Object.hasOwn(IMAGE_SHAPES, source.imageShape) ? source.imageShape : "auto",
     imageFit: source.imageFit === "fit" ? "fit" : "cover",
     imageRatio: /^\d+:\d+$/.test(source.imageRatio || "") ? source.imageRatio : "",
