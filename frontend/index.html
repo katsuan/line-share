@@ -406,6 +406,31 @@
                 <span id="transparentToggleText">On</span>
               </label>
             </div>
+
+            <div class="field">
+              <label for="outlineToggle">Outline</label>
+              <label id="outlineToggleButton" class="toggle-button" for="outlineToggle">
+                <input id="outlineToggle" type="checkbox" />
+                <span id="outlineToggleText">Off</span>
+              </label>
+            </div>
+
+            <div class="field">
+              <label for="outlineColor">Outline Color</label>
+              <label class="color-swatch" for="outlineColor">
+                <input id="outlineColor" type="color" value="#ffffff" />
+              </label>
+            </div>
+
+            <div class="field">
+              <label for="outlineSize">Outline Size</label>
+              <select id="outlineSize">
+                <option value="2">2 px</option>
+                <option value="4" selected>4 px</option>
+                <option value="6">6 px</option>
+                <option value="8">8 px</option>
+              </select>
+            </div>
           </div>
 
           <div class="canvas-frame">
@@ -440,6 +465,9 @@
         brushSize: "liff-draw-send:brush-size",
         transparentBackground: "liff-draw-send:transparent-background",
         backgroundColor: "liff-draw-send:background-color",
+        outlineEnabled: "liff-draw-send:outline-enabled",
+        outlineColor: "liff-draw-send:outline-color",
+        outlineSize: "liff-draw-send:outline-size",
       };
 
       const searchParams = new URLSearchParams(window.location.search);
@@ -449,7 +477,8 @@
       const state = {
         liffInitialized: false,
         drawing: false,
-        lastPoint: null,
+        strokePoints: [],
+        strokeBase: null,
       };
 
       const statusElement = document.getElementById("status");
@@ -462,6 +491,11 @@
       const transparentToggleButton = document.getElementById("transparentToggleButton");
       const transparentToggleText = document.getElementById("transparentToggleText");
       const backgroundColorInput = document.getElementById("backgroundColor");
+      const outlineToggleInput = document.getElementById("outlineToggle");
+      const outlineToggleButton = document.getElementById("outlineToggleButton");
+      const outlineToggleText = document.getElementById("outlineToggleText");
+      const outlineColorInput = document.getElementById("outlineColor");
+      const outlineSizeInput = document.getElementById("outlineSize");
       const initLiffButton = document.getElementById("initLiffButton");
       const saveConfigButton = document.getElementById("saveConfigButton");
       const shareButton = document.getElementById("shareButton");
@@ -470,6 +504,8 @@
       const canvas = document.getElementById("drawCanvas");
       const context = canvas.getContext("2d");
       const backgroundColorField = backgroundColorInput.closest(".field");
+      const outlineColorField = outlineColorInput.closest(".field");
+      const outlineSizeField = outlineSizeInput.closest(".field");
 
       function setStatus(message, tone = "default") {
         statusElement.textContent = message;
@@ -507,6 +543,9 @@
         localStorage.setItem(storageKeys.brushSize, brushSizeInput.value);
         localStorage.setItem(storageKeys.transparentBackground, String(transparentToggleInput.checked));
         localStorage.setItem(storageKeys.backgroundColor, backgroundColorInput.value);
+        localStorage.setItem(storageKeys.outlineEnabled, String(outlineToggleInput.checked));
+        localStorage.setItem(storageKeys.outlineColor, outlineColorInput.value);
+        localStorage.setItem(storageKeys.outlineSize, outlineSizeInput.value);
       }
 
       function loadConfig() {
@@ -517,6 +556,9 @@
         transparentToggleInput.checked =
           (localStorage.getItem(storageKeys.transparentBackground) || "true") === "true";
         backgroundColorInput.value = localStorage.getItem(storageKeys.backgroundColor) || "#ffffff";
+        outlineToggleInput.checked = localStorage.getItem(storageKeys.outlineEnabled) === "true";
+        outlineColorInput.value = localStorage.getItem(storageKeys.outlineColor) || "#ffffff";
+        outlineSizeInput.value = localStorage.getItem(storageKeys.outlineSize) || "4";
       }
 
       function configureBrush() {
@@ -524,6 +566,17 @@
         context.lineJoin = "round";
         context.strokeStyle = brushColorInput.value;
         context.lineWidth = Number(brushSizeInput.value);
+        saveDrawPreferences();
+      }
+
+      function updateOutlineControls() {
+        const enabled = outlineToggleInput.checked;
+        outlineColorInput.disabled = !enabled;
+        outlineSizeInput.disabled = !enabled;
+        outlineColorField.classList.toggle("is-disabled", !enabled);
+        outlineSizeField.classList.toggle("is-disabled", !enabled);
+        outlineToggleButton.classList.toggle("is-active", enabled);
+        outlineToggleText.textContent = enabled ? "On" : "Off";
         saveDrawPreferences();
       }
 
@@ -579,31 +632,66 @@
         };
       }
 
+      function traceStroke(points) {
+        context.beginPath();
+        context.moveTo(points[0].x, points[0].y);
+        if (points.length === 1) {
+          context.lineTo(points[0].x, points[0].y);
+        }
+        for (let index = 1; index < points.length; index += 1) {
+          context.lineTo(points[index].x, points[index].y);
+        }
+      }
+
+      // 縁取りが同じストローク内の線を上書きしないよう、毎回ストローク全体を描き直す
+      function renderCurrentStroke() {
+        const brushSize = Number(brushSizeInput.value);
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(state.strokeBase, 0, 0);
+        traceStroke(state.strokePoints);
+
+        if (outlineToggleInput.checked) {
+          context.strokeStyle = outlineColorInput.value;
+          context.lineWidth = brushSize + Number(outlineSizeInput.value) * 2;
+          context.stroke();
+        }
+
+        context.strokeStyle = brushColorInput.value;
+        context.lineWidth = brushSize;
+        context.stroke();
+      }
+
       function handlePointerDown(event) {
         event.preventDefault();
         canvas.setPointerCapture(event.pointerId);
+
+        const base = document.createElement("canvas");
+        base.width = canvas.width;
+        base.height = canvas.height;
+        base.getContext("2d").drawImage(canvas, 0, 0);
+
         state.drawing = true;
-        state.lastPoint = getPoint(event);
+        state.strokeBase = base;
+        state.strokePoints = [getPoint(event)];
+        renderCurrentStroke();
       }
 
       function handlePointerMove(event) {
         event.preventDefault();
 
-        if (!state.drawing || !state.lastPoint) {
+        if (!state.drawing) {
           return;
         }
 
-        const point = getPoint(event);
-        context.beginPath();
-        context.moveTo(state.lastPoint.x, state.lastPoint.y);
-        context.lineTo(point.x, point.y);
-        context.stroke();
-        state.lastPoint = point;
+        state.strokePoints.push(getPoint(event));
+        renderCurrentStroke();
       }
 
       function handlePointerUp() {
         state.drawing = false;
-        state.lastPoint = null;
+        state.strokePoints = [];
+        state.strokeBase = null;
       }
 
       function buildExportDataUrl() {
@@ -762,12 +850,16 @@
       resizeCanvas();
       resetCanvas();
       updateCanvasPreviewBackground();
+      updateOutlineControls();
 
       window.addEventListener("resize", resizeCanvas);
       brushColorInput.addEventListener("change", configureBrush);
       brushSizeInput.addEventListener("change", configureBrush);
       transparentToggleInput.addEventListener("change", updateCanvasPreviewBackground);
       backgroundColorInput.addEventListener("change", updateCanvasPreviewBackground);
+      outlineToggleInput.addEventListener("change", updateOutlineControls);
+      outlineColorInput.addEventListener("change", saveDrawPreferences);
+      outlineSizeInput.addEventListener("change", saveDrawPreferences);
       saveConfigButton.addEventListener("click", saveConfig);
       initLiffButton.addEventListener("click", initLiff);
       shareButton.addEventListener("click", shareImage);
