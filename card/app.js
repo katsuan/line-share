@@ -657,6 +657,7 @@ async function initLiff() {
   }
   try {
     await liff.init({ liffId: config.liffId });
+    window.LineShareCredit?.checkUser();
     shareReady = true;
     els.shareButton.addEventListener("click", share);
   } catch (error) {

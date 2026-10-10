@@ -745,6 +745,7 @@ async function initLiff_() {
   }
   try {
     await liff.init({ liffId: config.liffId, withLoginOnExternalBrowser: true });
+    window.LineShareCredit?.checkUser();
     state.liffReady = true;
     els.sendButton.disabled = false;
   } catch (error) {

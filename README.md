@@ -24,7 +24,14 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 - `liffId`: LIFF アプリの ID（1つだけ作る）
 - `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
 - `imageApiBaseUrl`: `server/` をデプロイした URL
-- `showCredit`: 送るカードに「Created by おくるカード」を付けるか（`false` で消える）。将来の有償プランでは `LineShareCredit.setEnabled(false)` で消す想定
+- `showCredit`: 送るカードに「Created by おくるカード」を付けるか（`false` で全員から消える）
+- `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
+
+### Created by を自分だけ消す
+
+- その端末だけ: URL に `?credit=off` を付けて一度開く（`?credit=on` で戻る）
+- LINE アカウント単位: `?credit=whoami` で表示された値を `creditFreeUsers` に追加する（機種変更しても有効）
+- どちらもページ側の判定です。有償プランで消すときは、サーバーで購入状態を確かめてから `LineShareCredit.setEnabled(false)` を呼ぶ想定です
 
 ### LIFF
 
