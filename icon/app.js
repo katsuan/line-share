@@ -566,9 +566,26 @@ async function saveHistoryItem(item) {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
-function setStatus(message, tone = "info") {
+function setStatus(message, tone = "info", options = {}) {
   els.status.textContent = message;
   els.status.className = `status-box is-${tone}`;
+  // Status panel is debug-only; surface results as a toast so phone users get feedback.
+  if (!debugMode && tone !== "info" && !options.quiet) {
+    showToast(message, tone);
+  }
+}
+
+let toastTimer = 0;
+function showToast(message, tone = "info") {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = message;
+  toast.className = `toast is-${tone}`;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.hidden = true;
+  }, tone === "error" ? 6000 : 3200);
 }
 
 function setSendDisabled(disabled) {
@@ -1270,7 +1287,7 @@ async function initLiff() {
     state.userKey = sanitizeIdentityKey(decoded?.sub || "");
     setSaveTestDisabled(!hasGasConfig());
     if (config.gasWebAppUrl) {
-      setStatus("LIFF の初期化が完了しました。Google Drive 保存と共有を実行できます。", "success");
+      setStatus("LIFF の初期化が完了しました。Google Drive 保存と共有を実行できます。", "success", { quiet: true });
       setSendDisabled(false);
     } else {
       setStatus("LIFF は初期化できましたが、`gasWebAppUrl` が未設定です。", "warn");
@@ -1663,7 +1680,7 @@ async function refreshHistory() {
     renderHistoryList(items);
     state.historyLoaded = true;
     state.historyDirty = false;
-    setStatus(`履歴を更新しました。${items.length}件あります。`, "success");
+    setStatus(`履歴を更新しました。${items.length}件あります。`, "success", { quiet: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     setStatus(`履歴取得に失敗しました: ${message}`, "error");
