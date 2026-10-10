@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+    >
+    <title>FlexShare</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --page-bg:
+          radial-gradient(circle at top, #fde68a 0%, #fff7ed 40%, #fffbeb 100%);
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --card-line: rgba(245, 158, 11, 0.22);
+        --ink: #422006;
+        --sub: #92400e;
+        --accent: #d97706;
+        --accent-strong: #b45309;
+        --accent-soft: #fef3c7;
+        --preview-bg: #ffffff;
+        --shadow: 0 24px 70px rgba(180, 83, 9, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+        color: var(--ink);
+        background: var(--page-bg);
+      }
+
+      .page {
+        width: min(100%, 640px);
+        margin: 0 auto;
+        padding: 28px 18px 36px;
+      }
+
+      .hero {
+        margin-bottom: 18px;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 32rem;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--sub);
+      }
+
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(18px);
+        border: 1px solid var(--card-line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .preview {
+        padding: 20px;
+        background:
+          linear-gradient(180deg, rgba(255, 251, 235, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+      }
+
+      .preview-note {
+        margin-top: 10px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: rgba(120, 90, 40, 0.75);
+      }
+
+      .preview-note--strong {
+        font-weight: 700;
+        color: #9a3412;
+      }
+
+      .bubble {
+        border-radius: 28px;
+        overflow: hidden;
+        background: var(--preview-bg);
+        box-shadow: 0 22px 48px rgba(15, 23, 42, 0.14);
+      }
+
+      .bubble-header {
+        padding: 18px;
+        background: linear-gradient(135deg, #f59e0b 0%, #fb7185 100%);
+        color: #fff;
+      }
+
+      .bubble-input {
+        display: block;
+        width: 100%;
+        border: 1px dashed transparent;
+        border-radius: 10px;
+        background: transparent;
+        margin: -3px -5px;
+        padding: 2px 5px;
+        font: inherit;
+        color: inherit;
+        text-align: inherit;
+        resize: none;
+        overflow: hidden;
+      }
+
+      .bubble-input::placeholder {
+        color: currentColor;
+        opacity: 0.4;
+      }
+
+      @media (hover: hover) {
+        .bubble-input:hover {
+          border-color: currentColor;
+          opacity: 0.85;
+        }
+      }
+
+      .bubble-input:focus {
+        outline: none;
+        border-style: solid;
+        border-color: currentColor;
+      }
+
+      .preview-highlight {
+        outline: 2px solid var(--accent-strong);
+        outline-offset: 2px;
+        border-radius: 10px;
+      }
+
+      .preview-peek {
+        opacity: 0.6;
+      }
+
+      .bubble-header-title {
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .bubble-header-date {
+        margin-top: 8px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .bubble-body {
+        display: grid;
+        gap: 14px;
+        padding: 20px 18px 18px;
+      }
+
+      .bubble-title {
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.3;
+        color: #111827;
+        white-space: pre-wrap;
+      }
+
+      .bubble-detail {
+        min-height: 3.4em;
+        padding: 14px;
+        border-radius: 16px;
+        background: #fff7ed;
+        color: #9a3412;
+        font-size: 14px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+
+      .bubble-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: #f59e0b;
+        color: #ffffff;
+      }
+
+      .bubble-action-label {
+        font-size: 14px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .bubble-action.is-disabled {
+        background: #cbd5e1 !important;
+        color: #64748b;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .grid.hidden,
+      .field.hidden,
+      .input.hidden,
+      .textarea.hidden {
+        display: none;
+      }
+
+      .panel {
+        padding: 18px 18px 22px;
+        border-top: 1px solid rgba(245, 158, 11, 0.12);
+      }
+
+      .section-block {
+        padding: 14px;
+        border-radius: 22px;
+        border: 1px solid rgba(245, 158, 11, 0.14);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .section-block + .section-block {
+        margin-top: 12px;
+      }
+
+      .section-block--header {
+        color: #ffffff;
+        background: linear-gradient(135deg, #f59e0b 0%, #fb7185 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      }
+
+      .section-title {
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .section-note {
+        margin: -4px 0 12px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: var(--muted, #78716c);
+      }
+
+      .section-title--light {
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+      .section-head .section-title {
+        margin: 0;
+      }
+
+      .status {
+        min-height: 24px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        color: var(--sub);
+      }
+
+      .status.error {
+        color: #b91c1c;
+      }
+
+      .field-warning {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.6;
+        color: #b91c1c;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field--compact {
+        min-width: 0;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field + .field {
+        margin-top: 16px;
+      }
+
+      .card-settings-accordion > summary {
+        cursor: pointer;
+        list-style: none;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .card-settings-accordion[open] > summary {
+        margin-bottom: 10px;
+      }
+
+      .card-settings-accordion > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .accordion-label::before {
+        content: '▾ ';
+      }
+
+      .card-settings-accordion:not([open]) > summary .accordion-label::before {
+        content: '▸ ';
+      }
+
+      .field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .field label {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--sub);
+      }
+
+      .field-label-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .field-note {
+        font-size: 11px;
+        line-height: 1.5;
+        color: rgba(146, 64, 14, 0.78);
+      }
+
+      .field-count {
+        font-size: 11px;
+        line-height: 1.5;
+        font-variant-numeric: tabular-nums;
+        color: rgba(146, 64, 14, 0.78);
+        white-space: nowrap;
+      }
+
+      .section-block--header .field label {
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .section-block--header .field-note {
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .section-block--header .field-count {
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .input,
+      .select,
+      .textarea {
+        width: 100%;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--ink);
+        padding: 12px 14px;
+        font: inherit;
+      }
+
+      .textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+
+      .section-block--header .input,
+      .section-block--header .select {
+        border-color: rgba(255, 255, 255, 0.24);
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+      }
+
+      .section-block--header .input::placeholder {
+        color: rgba(255, 255, 255, 0.68);
+      }
+
+      .toggle-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: #fffaf0;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--sub);
+        cursor: pointer;
+      }
+
+      .toggle--light {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+      }
+
+      .theme-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .theme-pill {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .theme-pill input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .theme-pill span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.26);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      }
+
+      .theme-pill input:checked + span {
+        border-color: rgba(255, 255, 255, 0.54);
+        box-shadow:
+          0 0 0 3px rgba(255, 255, 255, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      }
+
+      .theme-pill--sunset span {
+        background: linear-gradient(135deg, #f59e0b 0%, #fb7185 100%);
+      }
+
+      .theme-pill--sky span {
+        background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+      }
+
+      .theme-pill--leaf span {
+        background: linear-gradient(135deg, #16a34a 0%, #10b981 100%);
+      }
+
+      .theme-pill--berry span {
+        background: linear-gradient(135deg, #e11d48 0%, #fb7185 100%);
+      }
+
+      .theme-pill--custom span {
+        background: conic-gradient(
+          from 180deg,
+          #f59e0b,
+          #ec4899,
+          #6366f1,
+          #10b981,
+          #f59e0b
+        );
+      }
+
+      #customColorInput {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .size-pills {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+      }
+
+      .size-pill-option {
+        position: relative;
+        cursor: pointer;
+      }
+
+      .size-pill-option input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .size-pill-option span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 38px;
+        padding: 6px 2px;
+        border-radius: 999px;
+        border: 1px solid rgba(120, 90, 40, 0.22);
+        background: rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(120, 90, 40, 0.85);
+        white-space: nowrap;
+      }
+
+      .size-pill-option input:checked + span {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.16);
+        color: #9a3412;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .toggle-panel {
+        margin-top: 12px;
+      }
+
+      .actions {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        background: rgba(255, 251, 235, 0.95);
+        backdrop-filter: blur(14px);
+        border-top: 1px solid var(--card-line);
+        box-shadow: 0 -10px 28px rgba(180, 83, 9, 0.14);
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+        transition: transform 0.18s ease;
+      }
+
+      body.is-typing .actions {
+        transform: translateY(100%);
+      }
+
+      .actions-inner {
+        width: min(100%, 640px);
+        margin: 0 auto;
+        display: grid;
+        gap: 8px;
+      }
+
+      .actions-inner .status {
+        min-height: 0;
+        margin-bottom: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        text-align: center;
+      }
+
+      .actions-inner .status:empty {
+        display: none;
+      }
+
+      .button {
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, var(--accent) 0%, #ef4444 100%);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .button.is-incomplete:not([disabled]) {
+        opacity: 0.55;
+      }
+
+      .button[disabled] {
+        background: #cbd5e1;
+        cursor: not-allowed;
+      }
+
+      .button-secondary {
+        width: 100%;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 18px;
+        background: #fff1f1;
+        color: #9f3434;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .button-secondary--inline {
+        width: auto;
+        flex: 0 0 auto;
+        padding: 6px 14px;
+        font-size: 12px;
+      }
+
+      .note {
+        margin-top: 12px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: var(--sub);
+      }
+
+      @media (hover: none) {
+        .bubble-input {
+          border-color: color-mix(in srgb, currentColor 22%, transparent);
+        }
+      }
+
+      @media (max-width: 560px) {
+        .grid.two {
+          grid-template-columns: 1fr;
+        }
+
+        .page {
+          padding: 16px 12px 24px;
+        }
+
+        .hero {
+          margin-bottom: 12px;
+        }
+
+        .preview {
+          padding: 14px;
+        }
+
+        .panel {
+          padding: 14px;
+        }
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(66, 32, 6, 0.45);
+      }
+
+      .modal-overlay.hidden {
+        display: none;
+      }
+
+      .modal-dialog {
+        width: 100%;
+        max-width: 340px;
+        border-radius: 20px;
+        padding: 22px 20px;
+        background: var(--card-bg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--card-line);
+      }
+
+      .modal-title {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+
+      .modal-body {
+        margin: 0 0 14px;
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--sub);
+      }
+
+      .modal-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 18px;
+        font-size: 13px;
+        color: var(--sub);
+      }
+
+      .modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .modal-actions .button,
+      .modal-actions .button-secondary {
+        width: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <p>
+          カードの文字を直接タップして編集できます。
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="panel">
+          <details class="section-block card-settings-accordion">
+            <summary class="section-title">
+              <span class="accordion-label">カード設定</span>
+              <button id="resetButton" class="button-secondary button-secondary--inline" type="button">
+                入力をリセット
+              </button>
+            </summary>
+            <div class="field field--compact">
+              <div class="field-head">
+                <label>サイズ</label>
+                <div
+                  id="bubbleSizeSelect"
+                  class="size-pills"
+                  role="radiogroup"
+                  aria-label="サイズ"
+                >
+                  <label class="size-pill-option">
+                    <input type="radio" name="bubbleSize" value="nano">
+                    <span>nano</span>
+                  </label>
+                  <label class="size-pill-option">
+                    <input type="radio" name="bubbleSize" value="micro">
+                    <span>micro</span>
+                  </label>
+                  <label class="size-pill-option">
+                    <input type="radio" name="bubbleSize" value="kilo">
+                    <span>kilo</span>
+                  </label>
+                  <label class="size-pill-option">
+                    <input type="radio" name="bubbleSize" value="mega">
+                    <span>mega</span>
+                  </label>
+                  <label class="size-pill-option">
+                    <input type="radio" name="bubbleSize" value="giga" checked>
+                    <span>giga</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field field--compact">
+              <div class="field-head">
+                <label>カラー</label>
+                <div
+                  id="themeSelect"
+                  class="theme-pills"
+                  role="radiogroup"
+                  aria-label="カラー"
+                >
+                  <label class="theme-pill theme-pill--sunset">
+                    <input type="radio" name="theme" value="sunset" checked>
+                    <span aria-hidden="true"></span>
+                    <span class="sr-only">サンセット</span>
+                  </label>
+                  <label class="theme-pill theme-pill--sky">
+                    <input type="radio" name="theme" value="sky">
+                    <span aria-hidden="true"></span>
+                    <span class="sr-only">スカイ</span>
+                  </label>
+                  <label class="theme-pill theme-pill--leaf">
+                    <input type="radio" name="theme" value="leaf">
+                    <span aria-hidden="true"></span>
+                    <span class="sr-only">リーフ</span>
+                  </label>
+                  <label class="theme-pill theme-pill--berry">
+                    <input type="radio" name="theme" value="berry">
+                    <span aria-hidden="true"></span>
+                    <span class="sr-only">ベリー</span>
+                  </label>
+                  <label class="theme-pill theme-pill--custom">
+                    <input type="radio" name="theme" value="custom" tabindex="-1">
+                    <input
+                      id="customColorInput"
+                      type="color"
+                      value="#f59e0b"
+                      aria-label="カスタムカラーを選ぶ"
+                    >
+                    <span aria-hidden="true"></span>
+                    <span class="sr-only">カスタム</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="field field--compact">
+              <div class="field-head">
+                <label>表示設定</label>
+                <div class="toggle-row">
+                  <label class="toggle">
+                    <input id="showDateToggle" type="checkbox" checked>
+                    サブタイトル
+                  </label>
+                  <label class="toggle">
+                    <input id="showDetailToggle" type="checkbox" checked>
+                    詳細
+                  </label>
+                  <label class="toggle">
+                    <input id="showActionToggle" type="checkbox">
+                    リンクボタン
+                  </label>
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="preview">
+          <div class="bubble">
+            <div id="bubbleHeader" class="bubble-header">
+              <input
+                id="headerInput"
+                class="bubble-input bubble-header-title"
+                type="text"
+                placeholder="タイトル"
+              >
+              <input
+                id="dateInput"
+                class="bubble-input bubble-header-date"
+                type="text"
+                placeholder="サブタイトル（表示設定でOFF可）"
+              >
+            </div>
+            <div class="bubble-body">
+              <textarea
+                id="titleInput"
+                class="bubble-input bubble-title"
+                rows="1"
+                placeholder="本文タイトル"
+              ></textarea>
+              <textarea
+                id="detailInput"
+                class="bubble-input bubble-detail hidden"
+                rows="1"
+                placeholder="詳細（表示設定でOFF可）"
+              ></textarea>
+              <div id="bubbleAction" class="bubble-action hidden">
+                <input
+                  id="actionLabelInput"
+                  class="bubble-input bubble-action-label"
+                  type="text"
+                  placeholder="詳しく見る"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div id="actionFieldsWrap" class="section-block hidden">
+            <p class="section-title">リンク詳細</p>
+            <div class="field">
+              <label for="actionUrlInput">URL</label>
+              <input
+                id="actionUrlInput"
+                class="input"
+                type="url"
+                inputmode="url"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="done"
+                placeholder="https://example.com"
+              >
+              <p id="actionUrlWarning" class="field-warning hidden">
+                ※ 外部から渡されたリンクのため、許可されたサイト以外は送信時にボタンごと外れます。
+              </p>
+            </div>
+          </div>
+
+          <p class="preview-note">※ 見え方はイメージです。実際の表示はご利用端末やカードサイズによって異なります。</p>
+          <p class="preview-note preview-note--strong">※ 送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+        </div>
+      </section>
+    </main>
+
+    <div class="actions">
+      <div class="actions-inner">
+        <div id="status" class="status"></div>
+        <button id="shareButton" class="button" type="button">
+          LINEで送信する
+        </button>
+      </div>
+    </div>
+
+    <div id="sendWarningModal" class="modal-overlay hidden">
+      <div class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="sendWarningTitle">
+        <p id="sendWarningTitle" class="modal-title">送信前の確認</p>
+        <p class="modal-body">送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+        <label class="modal-checkbox">
+          <input id="sendWarningDontShow" type="checkbox">
+          以降表示しない
+        </label>
+        <div class="modal-actions">
+          <button id="sendWarningCancel" class="button-secondary" type="button">キャンセル</button>
+          <button id="sendWarningConfirm" class="button" type="button">送信する</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = 'flexshare:lastSentState';
+      const SEND_WARNING_DISMISSED_KEY = 'flexshare:sendWarningDismissed';
+      const DEFAULT_HEADER_TITLE = 'タイトル';
+      const ALLOWED_ACTION_HOSTS = ['katsuan.github.io'];
+      let isActionUrlFromQuery = false;
+      let hasTriedShare = false;
+      let shareEnvironmentReady = false;
+      let lastBuiltShareMessages = null;
+
+      const DEFAULT_CUSTOM_COLOR = '#f59e0b';
+
+      function normalizeHexColor(value) {
+        const match = String(value || '').trim().match(/^#?([0-9a-fA-F]{6})$/);
+        return match ? `#${match[1]}` : DEFAULT_CUSTOM_COLOR;
+      }
+
+      function lightenHex(hex, amount) {
+        const clean = normalizeHexColor(hex).slice(1);
+        const num = parseInt(clean, 16);
+        const mix = (c) => Math.round(c + (255 - c) * amount);
+        const r = mix((num >> 16) & 255);
+        const g = mix((num >> 8) & 255);
+        const b = mix(num & 255);
+        return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+      }
+
+      function getThemePalette(state) {
+        const theme = state.theme;
+
+        switch (theme) {
+          case 'sky':
+            return {
+              pageBg:
+                'radial-gradient(circle at top, #bfdbfe 0%, #eff6ff 40%, #f8fafc 100%)',
+              headerBg: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)',
+              detailBg: '#eff6ff',
+              detailText: '#1d4ed8'
+            };
+          case 'leaf':
+            return {
+              pageBg:
+                'radial-gradient(circle at top, #bbf7d0 0%, #ecfdf5 40%, #f7fee7 100%)',
+              headerBg: 'linear-gradient(135deg, #16a34a 0%, #10b981 100%)',
+              detailBg: '#ecfdf5',
+              detailText: '#047857'
+            };
+          case 'berry':
+            return {
+              pageBg:
+                'radial-gradient(circle at top, #fecdd3 0%, #fff1f2 40%, #fdf2f8 100%)',
+              headerBg: 'linear-gradient(135deg, #e11d48 0%, #fb7185 100%)',
+              detailBg: '#fff1f2',
+              detailText: '#be123c'
+            };
+          case 'custom': {
+            const base = normalizeHexColor(state.customColor);
+            return {
+              pageBg:
+                `radial-gradient(circle at top, ${lightenHex(base, 0.7)} 0%, #fff7ed 40%, #fffbeb 100%)`,
+              headerBg: `linear-gradient(135deg, ${base} 0%, ${lightenHex(base, 0.35)} 100%)`,
+              detailBg: lightenHex(base, 0.88),
+              detailText: base
+            };
+          }
+          case 'sunset':
+          default:
+            return {
+              pageBg:
+                'radial-gradient(circle at top, #fde68a 0%, #fff7ed 40%, #fffbeb 100%)',
+              headerBg: 'linear-gradient(135deg, #f59e0b 0%, #fb7185 100%)',
+              detailBg: '#fff7ed',
+              detailText: '#9a3412'
+            };
+        }
+      }
+
+      async function loadPublicConfig() {
+        if (window.location.protocol === 'file:') {
+          return {
+            lineLiffId: ''
+          };
+        }
+
+        const response = await fetch('./config.json', { cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error(`config.json load failed: ${response.status}`);
+        }
+
+        return response.json();
+      }
+
+      function getLiffId(config) {
+        return String(config?.lineLiffId || '').trim();
+      }
+
+      function getQueryState() {
+        const params = new URLSearchParams(window.location.search);
+
+        return {
+          theme: String(params.get('theme') || 'sunset').trim(),
+          headerTitle: String(params.get('headerTitle') || '').trim(),
+          date: String(params.get('date') || '').trim(),
+          title: String(params.get('title') || '').trim(),
+          detail: String(params.get('detail') || params.get('content') || '').trim(),
+          actionLabel: String(
+            params.get('actionLabel') || params.get('buttonLabel') || ''
+          ).trim(),
+          actionUrl: String(
+            params.get('actionUrl') || params.get('url') || ''
+          ).trim(),
+          showAction: !['0', 'false', 'off'].includes(
+            String(params.get('showAction') || 'false').trim().toLowerCase()
+          ),
+          showDate: !['0', 'false', 'off'].includes(
+            String(params.get('showDate') || 'true').trim().toLowerCase()
+          ),
+          showDetail: !['0', 'false', 'off'].includes(
+            String(params.get('showDetail') || 'true').trim().toLowerCase()
+          ),
+          bubbleSize: String(params.get('bubbleSize') || params.get('size') || 'giga').trim(),
+          customColor: normalizeHexColor(params.get('customColor') || params.get('color') || DEFAULT_CUSTOM_COLOR)
+        };
+      }
+
+      const BUBBLE_SIZES = ['nano', 'micro', 'kilo', 'mega', 'giga'];
+      const THEMES = ['sunset', 'sky', 'leaf', 'berry', 'custom'];
+
+      function getEditorState() {
+        const selectedTheme = document.querySelector('input[name="theme"]:checked');
+        const selectedBubbleSize = document.querySelector('input[name="bubbleSize"]:checked');
+        const headerInput = document.getElementById('headerInput');
+
+        return {
+          theme: selectedTheme ? selectedTheme.value : 'sunset',
+          customColor: normalizeHexColor(document.getElementById('customColorInput').value),
+          bubbleSize: selectedBubbleSize ? selectedBubbleSize.value : 'giga',
+          headerTitle: headerInput.value.trim(),
+          date: document.getElementById('dateInput').value.trim(),
+          title: document.getElementById('titleInput').value.trim(),
+          detail: document.getElementById('detailInput').value.trim(),
+          actionLabel: document.getElementById('actionLabelInput').value.trim(),
+          actionUrl: document.getElementById('actionUrlInput').value.trim(),
+          showAction: document.getElementById('showActionToggle').checked,
+          showDate: document.getElementById('showDateToggle').checked,
+          showDetail: document.getElementById('showDetailToggle').checked
+        };
+      }
+
+      function applyStateToEditor(state) {
+        const nextTheme = THEMES.includes(state.theme) ? state.theme : 'sunset';
+        const nextThemeInput = document.querySelector(
+          `input[name="theme"][value="${nextTheme}"]`
+        );
+
+        if (nextThemeInput) {
+          nextThemeInput.checked = true;
+        }
+
+        document.getElementById('customColorInput').value = normalizeHexColor(state.customColor);
+
+        const nextBubbleSize = BUBBLE_SIZES.includes(state.bubbleSize) ? state.bubbleSize : 'giga';
+        const nextBubbleSizeInput = document.querySelector(
+          `input[name="bubbleSize"][value="${nextBubbleSize}"]`
+        );
+
+        if (nextBubbleSizeInput) {
+          nextBubbleSizeInput.checked = true;
+        }
+
+        const headerInput = document.getElementById('headerInput');
+        headerInput.value = state.headerTitle || '';
+        document.getElementById('dateInput').value = state.date || '';
+        document.getElementById('titleInput').value = state.title || '';
+        document.getElementById('detailInput').value = state.detail || '';
+        document.getElementById('actionLabelInput').value =
+          state.actionLabel || '';
+        document.getElementById('actionUrlInput').value = state.actionUrl || '';
+        document.getElementById('showActionToggle').checked = state.showAction === true;
+        document.getElementById('showDateToggle').checked = state.showDate !== false;
+        document.getElementById('showDetailToggle').checked =
+          state.showDetail !== false;
+      }
+
+      const BLANK_STATE = {
+        theme: 'sunset',
+        customColor: DEFAULT_CUSTOM_COLOR,
+        bubbleSize: 'giga',
+        headerTitle: '',
+        date: '',
+        title: '',
+        detail: '',
+        actionLabel: '',
+        actionUrl: '',
+        showAction: false,
+        showDate: true,
+        showDetail: true
+      };
+
+      function resetEditor() {
+        hasTriedShare = false;
+        applyStateToEditor(BLANK_STATE);
+
+        try {
+          window.localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+          console.error(error);
+        }
+
+        renderPreview(getEditorState());
+        updateShareButtonState(getEditorState());
+        setStatus('入力をリセットしました。', false);
+      }
+
+      function hasQueryOverrides(state) {
+        return Boolean(
+          state.title
+          || state.detail
+          || state.date
+          || state.actionLabel
+          || state.actionUrl
+          || state.showAction === true
+          || state.headerTitle
+          || state.theme !== 'sunset'
+          || state.showDate !== true
+          || state.showDetail !== true
+          || state.bubbleSize !== 'giga'
+          || state.customColor !== DEFAULT_CUSTOM_COLOR
+        );
+      }
+
+      function sanitizeUrl(url) {
+        const trimmedUrl = String(url || '').trim();
+
+        if (!trimmedUrl) {
+          return '';
+        }
+
+        try {
+          const parsedUrl = new URL(trimmedUrl);
+
+          if (!['https:', 'http:'].includes(parsedUrl.protocol)) {
+            return '';
+          }
+
+          return parsedUrl.toString();
+        } catch (error) {
+          return '';
+        }
+      }
+
+      function isAllowedActionHost(url) {
+        try {
+          const hostname = new URL(url).hostname;
+
+          return ALLOWED_ACTION_HOSTS.some(
+            (host) => hostname === host || hostname.endsWith(`.${host}`)
+          );
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function isActionUrlBlocked(actionUrl) {
+        return Boolean(actionUrl) && isActionUrlFromQuery && !isAllowedActionHost(actionUrl);
+      }
+
+      function getActionLabel(state) {
+        return state.actionLabel || '詳しく見る';
+      }
+
+      function loadLastSentState() {
+        try {
+          const rawState = window.localStorage.getItem(STORAGE_KEY);
+
+          if (!rawState) {
+            return null;
+          }
+
+          const parsedState = JSON.parse(rawState);
+
+          if (!parsedState || typeof parsedState !== 'object') {
+            return null;
+          }
+
+          return {
+            theme: THEMES.includes(parsedState.theme) ? parsedState.theme : 'sunset',
+            customColor: normalizeHexColor(parsedState.customColor),
+            bubbleSize: BUBBLE_SIZES.includes(parsedState.bubbleSize) ? parsedState.bubbleSize : 'giga',
+            headerTitle: String(parsedState.headerTitle || '').trim(),
+            date: String(parsedState.date || '').trim(),
+            title: String(parsedState.title || '').trim(),
+            detail: String(parsedState.detail || '').trim(),
+            actionLabel: String(parsedState.actionLabel || '').trim(),
+            actionUrl: String(parsedState.actionUrl || '').trim(),
+            showAction: parsedState.showAction === true,
+            showDate: parsedState.showDate !== false,
+            showDetail: parsedState.showDetail !== false
+          };
+        } catch (error) {
+          console.error(error);
+          return null;
+        }
+      }
+
+      function persistLastSentState(state) {
+        try {
+          window.localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              ...state,
+              actionUrl: sanitizeUrl(state.actionUrl)
+            })
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function syncActionsBarSpacing() {
+        const actions = document.querySelector('.actions');
+        document.body.style.paddingBottom = `${actions.offsetHeight}px`;
+      }
+
+      function setStatus(message, isError) {
+        const status = document.getElementById('status');
+        status.textContent = message || '';
+        status.className = isError ? 'status error' : 'status';
+        syncActionsBarSpacing();
+      }
+
+      function getValidation(state) {
+        if (!state.headerTitle) {
+          return { message: 'タイトルを入力してください。', fieldId: 'headerInput' };
+        }
+
+        if (!state.title) {
+          return { message: '本文タイトルを入力してください。', fieldId: 'titleInput' };
+        }
+
+        if (state.showDate !== false && !state.date) {
+          return {
+            message: 'サブタイトルを入力するか、表示設定でOFFにしてください。',
+            fieldId: 'dateInput'
+          };
+        }
+
+        if (state.showDetail !== false && !state.detail) {
+          return {
+            message: '詳細を入力するか、表示設定でOFFにしてください。',
+            fieldId: 'detailInput'
+          };
+        }
+
+        if (state.showAction === true) {
+          if (!state.actionUrl) {
+            return {
+              message: 'URLボタンを表示する場合は URL を入力してください。',
+              fieldId: 'actionUrlInput'
+            };
+          }
+
+          if (!sanitizeUrl(state.actionUrl)) {
+            return {
+              message: 'URL は http または https で入力してください。',
+              fieldId: 'actionUrlInput'
+            };
+          }
+        }
+
+        return { message: '', fieldId: '' };
+      }
+
+      function updateShareButtonState(state) {
+        const shareButton = document.getElementById('shareButton');
+        const { message } = getValidation(state);
+
+        shareButton.disabled = !shareEnvironmentReady;
+        shareButton.classList.toggle('is-incomplete', Boolean(message));
+
+        if (!shareEnvironmentReady) {
+          return;
+        }
+
+        if (message) {
+          setStatus(message, hasTriedShare);
+          return;
+        }
+
+        setStatus('送信後は修正できません。', false);
+      }
+
+      function focusInvalidField(fieldId) {
+        const field = document.getElementById(fieldId);
+
+        if (!field) {
+          return;
+        }
+
+        field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        field.focus({ preventScroll: true });
+      }
+
+      function updateFieldVisibility(state) {
+        const dateInput = document.getElementById('dateInput');
+        const detailInput = document.getElementById('detailInput');
+        const bubbleAction = document.getElementById('bubbleAction');
+        const actionFieldsWrap = document.getElementById('actionFieldsWrap');
+
+        dateInput.classList.toggle('hidden', state.showDate === false);
+        dateInput.disabled = state.showDate === false;
+
+        detailInput.classList.toggle('hidden', state.showDetail === false);
+        detailInput.disabled = state.showDetail === false;
+
+        bubbleAction.classList.toggle('hidden', state.showAction !== true);
+        document.getElementById('actionLabelInput').disabled = state.showAction !== true;
+
+        actionFieldsWrap.classList.toggle('hidden', state.showAction !== true);
+        document.getElementById('actionUrlInput').disabled = state.showAction !== true;
+
+        const actionUrlWarning = document.getElementById('actionUrlWarning');
+        const actionUrl = sanitizeUrl(state.actionUrl);
+        actionUrlWarning.classList.toggle(
+          'hidden',
+          state.showAction !== true || !isActionUrlBlocked(actionUrl)
+        );
+      }
+
+      function autoGrowTextarea(element) {
+        element.style.height = 'auto';
+        element.style.height = `${element.scrollHeight}px`;
+      }
+
+      function autoGrowAllTextareas() {
+        autoGrowTextarea(document.getElementById('titleInput'));
+        autoGrowTextarea(document.getElementById('detailInput'));
+      }
+
+      function renderPreview(state) {
+        const palette = getThemePalette(state);
+        document.body.style.background = palette.pageBg;
+        document.getElementById('bubbleHeader').style.background = palette.headerBg;
+
+        const detailInput = document.getElementById('detailInput');
+        detailInput.style.background = palette.detailBg;
+        detailInput.style.color = palette.detailText;
+
+        const bubbleAction = document.getElementById('bubbleAction');
+        const actionUrl = sanitizeUrl(state.actionUrl);
+        const hasActionUrl = Boolean(actionUrl);
+        bubbleAction.style.background = themeStartColor(state);
+        bubbleAction.classList.toggle('is-disabled', !hasActionUrl);
+
+        updateFieldVisibility(state);
+        updateShareButtonState(state);
+
+        autoGrowAllTextareas();
+      }
+
+      function buildAltText(state) {
+        const title = state.title || state.detail || '共有';
+        const headerTitle = state.headerTitle || 'FlexShare';
+
+        return `${headerTitle}: ${title}`;
+      }
+
+      function buildShareMessages(state) {
+        const palette = getThemePalette(state);
+        const bodyContents = [];
+        const headerContents = [
+          {
+            type: 'text',
+            text: state.headerTitle || DEFAULT_HEADER_TITLE,
+            color: '#FFFFFF',
+            weight: 'bold',
+            size: 'lg',
+            wrap: true
+          }
+        ];
+
+        if (state.showDate !== false && state.date) {
+          headerContents.push({
+            type: 'text',
+            text: state.date,
+            color: '#FFFFFF',
+            size: 'xs',
+            margin: 'sm',
+            wrap: true
+          });
+        }
+
+        bodyContents.push({
+          type: 'text',
+          text: state.title || '共有タイトル',
+          size: 'xl',
+          weight: 'bold',
+          color: '#111827',
+          wrap: true
+        });
+
+        if (state.showDetail !== false && state.detail) {
+          bodyContents.push({
+            type: 'box',
+            layout: 'vertical',
+            paddingAll: '12px',
+            backgroundColor: palette.detailBg,
+            cornerRadius: '12px',
+            contents: [
+              {
+                type: 'text',
+                text: state.detail,
+                size: 'sm',
+                color: palette.detailText,
+                wrap: true
+              }
+            ]
+          });
+        }
+
+        const actionUrl = sanitizeUrl(state.actionUrl);
+
+        if (state.showAction === true && actionUrl && !isActionUrlBlocked(actionUrl)) {
+          bodyContents.push({
+            type: 'button',
+            style: 'primary',
+            color: themeStartColor(state),
+            action: {
+              type: 'uri',
+              label: getActionLabel(state),
+              uri: actionUrl
+            }
+          });
+        }
+
+        const messages = [
+          {
+            type: 'flex',
+            altText: buildAltText(state),
+            contents: {
+              type: 'bubble',
+              size: BUBBLE_SIZES.includes(state.bubbleSize) ? state.bubbleSize : 'giga',
+              header: {
+                type: 'box',
+                layout: 'vertical',
+                background: themeGradient(state),
+                paddingAll: '16px',
+                contents: headerContents
+              },
+              body: {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'md',
+                contents: bodyContents
+              }
+            }
+          }
+        ];
+
+        lastBuiltShareMessages = messages;
+
+        return messages;
+      }
+
+      function themeStartColor(state) {
+        switch (state.theme) {
+          case 'sky':
+            return '#2563EB';
+          case 'leaf':
+            return '#16A34A';
+          case 'berry':
+            return '#E11D48';
+          case 'custom':
+            return normalizeHexColor(state.customColor);
+          case 'sunset':
+          default:
+            return '#F59E0B';
+        }
+      }
+
+      function themeGradient(state) {
+        // Flexのlinear-gradient角度はCSSのlinear-gradient(Xdeg, ...)と同じ向きなので、
+        // 画面プレビューのCSS(135deg, start 0%, end 100%)とそのまま揃えられる。
+        const colors = (() => {
+          switch (state.theme) {
+            case 'sky':
+              return { startColor: '#2563EB', endColor: '#06B6D4' };
+            case 'leaf':
+              return { startColor: '#16A34A', endColor: '#10B981' };
+            case 'berry':
+              return { startColor: '#E11D48', endColor: '#FB7185' };
+            case 'custom': {
+              const base = normalizeHexColor(state.customColor);
+              return { startColor: base, endColor: lightenHex(base, 0.35) };
+            }
+            case 'sunset':
+            default:
+              return { startColor: '#F59E0B', endColor: '#FB7185' };
+          }
+        })();
+
+        return {
+          type: 'linearGradient',
+          angle: '135deg',
+          startColor: colors.startColor,
+          endColor: colors.endColor
+        };
+      }
+
+      function bindEditorEvents() {
+        [
+          'headerInput',
+          'dateInput',
+          'titleInput',
+          'detailInput',
+          'actionLabelInput',
+          'actionUrlInput',
+          'showActionToggle',
+          'showDateToggle',
+          'showDetailToggle'
+        ].forEach(id => {
+          const element = document.getElementById(id);
+          const eventName = element.type === 'checkbox' ? 'change' : 'input';
+
+          element.addEventListener(eventName, () => {
+            renderPreview(getEditorState());
+          });
+        });
+
+        document.querySelectorAll('input[name="theme"]').forEach(element => {
+          element.addEventListener('change', () => {
+            renderPreview(getEditorState());
+          });
+        });
+
+        document.querySelectorAll('input[name="bubbleSize"]').forEach(element => {
+          element.addEventListener('change', () => {
+            renderPreview(getEditorState());
+          });
+        });
+
+        const textFieldIds = [
+          'headerInput',
+          'dateInput',
+          'titleInput',
+          'detailInput',
+          'actionLabelInput',
+          'actionUrlInput'
+        ];
+
+        textFieldIds.forEach((id, index) => {
+          const field = document.getElementById(id);
+
+          field.addEventListener('focus', () => {
+            document.body.classList.add('is-typing');
+          });
+          field.addEventListener('blur', () => {
+            document.body.classList.remove('is-typing');
+            syncActionsBarSpacing();
+          });
+
+          if (field.tagName !== 'INPUT') {
+            return;
+          }
+
+          field.enterKeyHint = id === 'actionUrlInput' ? 'done' : 'next';
+          field.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' || event.isComposing) {
+              return;
+            }
+
+            event.preventDefault();
+
+            const nextField = textFieldIds
+              .slice(index + 1)
+              .map((nextId) => document.getElementById(nextId))
+              .find((candidate) => candidate && !candidate.disabled && candidate.offsetParent !== null);
+
+            if (nextField) {
+              nextField.focus();
+            } else {
+              field.blur();
+            }
+          });
+        });
+
+        const customColorInput = document.getElementById('customColorInput');
+        customColorInput.addEventListener('input', () => {
+          const customThemeInput = document.querySelector('input[name="theme"][value="custom"]');
+          if (customThemeInput) {
+            customThemeInput.checked = true;
+          }
+          renderPreview(getEditorState());
+        });
+
+        [
+          ['showDateToggle', 'dateInput'],
+          ['showDetailToggle', 'detailInput'],
+          ['showActionToggle', 'bubbleAction']
+        ].forEach(([toggleId, targetId]) => {
+          const toggleInput = document.getElementById(toggleId);
+          const toggleLabel = toggleInput.closest('.toggle');
+          const target = document.getElementById(targetId);
+
+          if (!toggleLabel || !target) return;
+
+          toggleLabel.addEventListener('mouseenter', () => {
+            target.classList.add('preview-highlight');
+            if (!toggleInput.checked) {
+              target.classList.add('preview-peek');
+              target.classList.remove('hidden');
+            }
+          });
+          toggleLabel.addEventListener('mouseleave', () => {
+            target.classList.remove('preview-highlight');
+            if (target.classList.contains('preview-peek')) {
+              target.classList.remove('preview-peek');
+              target.classList.toggle('hidden', !toggleInput.checked);
+            }
+          });
+        });
+      }
+
+      function shouldSkipSendWarning() {
+        try {
+          return window.localStorage.getItem(SEND_WARNING_DISMISSED_KEY) === 'true';
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function confirmSendWarning() {
+        if (shouldSkipSendWarning()) {
+          return Promise.resolve(true);
+        }
+
+        const overlay = document.getElementById('sendWarningModal');
+        const dontShowCheckbox = document.getElementById('sendWarningDontShow');
+        const confirmButton = document.getElementById('sendWarningConfirm');
+        const cancelButton = document.getElementById('sendWarningCancel');
+
+        return new Promise((resolve) => {
+          function close(result) {
+            overlay.classList.add('hidden');
+            confirmButton.removeEventListener('click', onConfirm);
+            cancelButton.removeEventListener('click', onCancel);
+            resolve(result);
+          }
+
+          function onConfirm() {
+            if (dontShowCheckbox.checked) {
+              try {
+                window.localStorage.setItem(SEND_WARNING_DISMISSED_KEY, 'true');
+              } catch (error) {
+                // localStorage が使えない場合は毎回表示する
+              }
+            }
+            close(true);
+          }
+
+          function onCancel() {
+            close(false);
+          }
+
+          dontShowCheckbox.checked = false;
+          confirmButton.addEventListener('click', onConfirm);
+          cancelButton.addEventListener('click', onCancel);
+          overlay.classList.remove('hidden');
+        });
+      }
+
+      async function shareFlexMessage() {
+        if (!window.liff) {
+          setStatus('LIFF SDK を読み込めませんでした。', true);
+          return;
+        }
+
+        if (!liff.isApiAvailable('shareTargetPicker')) {
+          setStatus('LINE アプリ内で開いてください。', true);
+          return;
+        }
+
+        const validation = getValidation(getEditorState());
+
+        if (validation.message) {
+          hasTriedShare = true;
+          setStatus(validation.message, true);
+          focusInvalidField(validation.fieldId);
+          return;
+        }
+
+        const confirmed = await confirmSendWarning();
+
+        if (!confirmed) {
+          setStatus('送信をキャンセルしました。', false);
+          return;
+        }
+
+        try {
+          setStatus('共有先を開いています…', false);
+          const messages = buildShareMessages(getEditorState());
+          console.log('FlexShare messages', JSON.stringify(messages, null, 2));
+          const result = await liff.shareTargetPicker(
+            messages,
+            { isMultiple: true }
+          );
+
+          if (result) {
+            persistLastSentState(getEditorState());
+            setStatus('共有しました。', false);
+
+            if (liff.isInClient()) {
+              setTimeout(() => liff.closeWindow(), 600);
+            }
+
+            return;
+          }
+
+          setStatus('共有はキャンセルされました。', false);
+        } catch (error) {
+          setStatus('共有に失敗しました。時間をおいて再度お試しください。', true);
+          console.error('FlexShare last messages', lastBuiltShareMessages);
+          console.error(error);
+        }
+      }
+
+      async function init() {
+        const shareButton = document.getElementById('shareButton');
+        const queryState = getQueryState();
+        isActionUrlFromQuery = Boolean(queryState.actionUrl);
+        const initialState = hasQueryOverrides(queryState)
+          ? queryState
+          : (loadLastSentState() || queryState);
+
+        applyStateToEditor(initialState);
+        bindEditorEvents();
+        renderPreview(getEditorState());
+        const resetButton = document.getElementById('resetButton');
+        const resetButtonLabel = resetButton.textContent.trim();
+        let resetConfirmTimer = null;
+
+        resetButton.addEventListener('click', (event) => {
+          event.preventDefault();
+
+          if (resetConfirmTimer === null) {
+            resetButton.textContent = 'もう一度タップでリセット';
+            resetConfirmTimer = setTimeout(() => {
+              resetButton.textContent = resetButtonLabel;
+              resetConfirmTimer = null;
+            }, 3000);
+            return;
+          }
+
+          clearTimeout(resetConfirmTimer);
+          resetConfirmTimer = null;
+          resetButton.textContent = resetButtonLabel;
+          resetEditor();
+          document.querySelector('.card-settings-accordion').open = true;
+        });
+        syncActionsBarSpacing();
+        window.addEventListener('resize', () => {
+          syncActionsBarSpacing();
+          autoGrowAllTextareas();
+        });
+        requestAnimationFrame(() => {
+          autoGrowAllTextareas();
+          syncActionsBarSpacing();
+        });
+
+        let publicConfig;
+
+        try {
+          publicConfig = await loadPublicConfig();
+        } catch (error) {
+          shareButton.disabled = true;
+          setStatus(
+            'config.json を読み込めませんでした。公開環境で確認してください。',
+            true
+          );
+          console.error(error);
+          return;
+        }
+
+        const liffId = getLiffId(publicConfig);
+
+        if (window.location.protocol === 'file:') {
+          shareEnvironmentReady = false;
+          setStatus(
+            'ローカルプレビュー中です。共有確認は GitHub Pages など http/https 上で行ってください。',
+            false
+          );
+          updateShareButtonState(getEditorState());
+          return;
+        }
+
+        if (!liffId) {
+          shareEnvironmentReady = false;
+          setStatus(
+            'config.json の lineLiffId が未設定です。config.example.json を元に設定してください。',
+            true
+          );
+          updateShareButtonState(getEditorState());
+          return;
+        }
+
+        try {
+          await liff.init({ liffId: liffId });
+        } catch (error) {
+          shareEnvironmentReady = false;
+          setStatus('LIFF の初期化に失敗しました。', true);
+          console.error(error);
+          updateShareButtonState(getEditorState());
+          return;
+        }
+
+        shareEnvironmentReady = true;
+        shareButton.addEventListener('click', shareFlexMessage);
+        updateShareButtonState(getEditorState());
+      }
+
+      init();
+    </script>
+  </body>
+</html>
