@@ -618,37 +618,41 @@ async function uploadImage_(blob) {
   return data.imageUrl;
 }
 
+// 元の文字アイコン（line-text-icon-sender）で透過と動きの両方が出ていたカードと同じ作りにする
 function buildMessage_(mode, imageUrl, item) {
   if (mode === "image") {
     return { type: "image", originalContentUrl: imageUrl, previewImageUrl: imageUrl };
   }
-  const altText = (item.text?.trim().replace(/\s+/g, " ") || "画像").slice(0, 100);
+  const sourceText = item.text?.trim().replace(/\s+/g, " ") || "";
   const credit = window.LineShareCredit;
+  const notes = [
+    `${sourceText ? `「${sourceText}」` : "画像"}を${item.animated ? "動く画像で" : ""}送信しました。`,
+    ...(item.animated ? ["※ご利用端末によっては、動く画像が取得されない場合があります。"] : [])
+  ];
   return {
     type: "flex",
-    altText,
+    altText: (sourceText || "画像").slice(0, 100),
     contents: {
       type: "bubble",
-      size: "kilo",
+      size: "giga",
       hero: {
         type: "image",
         url: imageUrl,
         size: "full",
-        aspectRatio: `${item.width}:${item.height}`,
+        aspectRatio: aspectRatio_(item.width, item.height),
         aspectMode: "fit",
         animated: item.animated,
         backgroundColor: "#00000000",
-        // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く
-        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
+        // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く（元の文字アイコンも常に付けていた）
+        action: { type: "uri", label: "おくるカード", uri: credit.topUrl() }
       },
-      // 本文がないと LINE が白い背景を描くため、透明な空の本文を置く（元の文字アイコンと同じ構造）
       body: {
         type: "box",
         layout: "vertical",
-        paddingAll: "0px",
+        contents: notes.map((text) => ({ type: "text", text, size: "xxs", color: "#999999", wrap: true })),
+        paddingAll: "12px",
         spacing: "none",
-        backgroundColor: "#00000000",
-        contents: [{ type: "filler" }]
+        backgroundColor: "#00000000"
       },
       styles: {
         hero: { backgroundColor: "#00000000" },
@@ -656,6 +660,17 @@ function buildMessage_(mode, imageUrl, item) {
       }
     }
   };
+}
+
+// 縦横比を約分して「横:縦」にする（LINE の上限に合わせて 3 倍までに抑える）
+function aspectRatio_(width, height) {
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const divisor = gcd(width, height) || 1;
+  let w = width / divisor;
+  let h = height / divisor;
+  if (w / h > 3) [w, h] = [3, 1];
+  if (w / h < 1 / 3) [w, h] = [1, 3];
+  return `${w}:${h}`;
 }
 
 async function send_() {
