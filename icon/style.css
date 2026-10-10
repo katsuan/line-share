@@ -2159,3 +2159,14 @@ canvas {
     bottom: calc(88px + env(safe-area-inset-bottom));
   }
 }
+
+.hub-back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  font-size: 14px;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.7;
+  text-decoration: none;
+}
