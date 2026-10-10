@@ -801,7 +801,7 @@ function renderTemplates() {
 
   const saved = getTemplates().map((template) => {
     const row = document.createElement("div");
-    row.className = "template-item";
+    row.className = "ls-list-row";
     const button = createTemplateButton(template.name, "保存したテンプレート", () => {
       applyTemplateState(template.state);
       setStatus(`「${template.name}」を読み込みました。`);
