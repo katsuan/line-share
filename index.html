@@ -18,7 +18,6 @@
 
       .hub-tools {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         margin: 0;
         padding: 0;
@@ -26,19 +25,19 @@
       }
 
       .hub-tool {
-        display: grid;
-        place-items: center;
-        gap: 6px;
-        aspect-ratio: 1.25;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        min-height: 88px;
+        padding: 0 20px;
         border: 1px solid var(--ls-line);
         border-radius: var(--ls-radius-lg);
         background: var(--ls-surface);
         box-shadow: var(--ls-shadow);
         color: inherit;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 800;
         text-decoration: none;
-        align-content: center;
       }
 
       .hub-tool:active {
@@ -51,7 +50,8 @@
       }
 
       .hub-icon {
-        font-size: 36px;
+        min-width: 72px;
+        font-size: 30px;
         line-height: 1;
       }
 
@@ -66,11 +66,9 @@
     <main id="hub" class="ls-page">
       <h1 class="hub-title">LINEで送る</h1>
       <ul class="hub-tools">
-        <li><a class="hub-tool" href="./plan/?tab=map"><span class="hub-icon" aria-hidden="true">📍</span>場所</a></li>
-        <li><a class="hub-tool" href="./plan/?tab=calendar"><span class="hub-icon" aria-hidden="true">📅</span>予定</a></li>
+        <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定</a></li>
         <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span>カード</a></li>
-        <li><a class="hub-tool" href="./image/?mode=text"><span class="hub-icon" aria-hidden="true">💬</span>文字</a></li>
-        <li><a class="hub-tool" href="./image/?mode=draw"><span class="hub-icon" aria-hidden="true">👆</span>手書き</a></li>
+        <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き</a></li>
       </ul>
     </main>
 
