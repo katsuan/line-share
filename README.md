@@ -24,6 +24,7 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 - `liffId`: LIFF アプリの ID（1つだけ作る）
 - `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
 - `imageApiBaseUrl`: `server/` をデプロイした URL
+- `showCredit`: 送るカードに「Created by おくるカード」を付けるか（`false` で消える）。将来の有償プランでは `LineShareCredit.setEnabled(false)` で消す想定
 
 ### LIFF
 

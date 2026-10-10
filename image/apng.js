@@ -15,7 +15,8 @@ const APNG_FRAME_DURATION_MS = 70;
 const APNG_FRAME_COUNTS = [12, 8, 6, 4];
 const APNG_COLOR_LEVELS = [256, 64, 32, 16, 8];
 
-export function computeMotionTransform(preset, t, size) {
+export function computeMotionTransform(preset, t, width, height = width) {
+  const size = Math.min(width, height);
   const shake = size * (10 / 180);
   const hop = size * (16 / 180);
 
@@ -29,7 +30,7 @@ export function computeMotionTransform(preset, t, size) {
     case "zoom":
       return { scale: 0.9 + Math.sin(t * Math.PI) * 0.16 };
     case "flowLeft":
-      return { offsetX: Math.round(size - size * 2 * t), wrapX: true };
+      return { offsetX: Math.round(width - width * 2 * t), wrapX: true };
     default:
       return {};
   }
@@ -45,49 +46,49 @@ export function canvasToBlob(canvas) {
  * renderFrame(ctx, transform) で1コマずつ描き、300KB に収まるまで色数→コマ数の順に落とす。
  * 収まらなければ { blob, oversized: true } を返す。
  */
-export async function buildAnimationBlob({ size, preset, renderFrame }) {
+export async function buildAnimationBlob({ width, height, preset, renderFrame }) {
   let last = null;
 
   // まずコマ数はそのままに色数を落とし、それでも収まらなければコマ数を減らす
-  const fullFrames = renderFrames_(size, preset, APNG_FRAME_COUNTS[0], renderFrame);
+  const fullFrames = renderFrames_(width, height, preset, APNG_FRAME_COUNTS[0], renderFrame);
   for (const levels of APNG_COLOR_LEVELS) {
-    last = await buildApng_(await encodeFrames_(fullFrames, size, levels), size);
+    last = await buildApng_(await encodeFrames_(fullFrames, width, height, levels), width, height);
     if (last.size <= APNG_MAX_BYTES) return { blob: last, oversized: false };
   }
 
   const minLevels = APNG_COLOR_LEVELS[APNG_COLOR_LEVELS.length - 1];
   for (const count of APNG_FRAME_COUNTS.slice(1)) {
-    const frames = renderFrames_(size, preset, count, renderFrame);
-    last = await buildApng_(await encodeFrames_(frames, size, minLevels), size);
+    const frames = renderFrames_(width, height, preset, count, renderFrame);
+    last = await buildApng_(await encodeFrames_(frames, width, height, minLevels), width, height);
     if (last.size <= APNG_MAX_BYTES) return { blob: last, oversized: false };
   }
 
   return { blob: last, oversized: true };
 }
 
-function renderFrames_(size, preset, frameCount, renderFrame) {
+function renderFrames_(width, height, preset, frameCount, renderFrame) {
   const frames = [];
   for (let i = 0; i < frameCount; i += 1) {
     const t = frameCount <= 1 ? 0 : i / (frameCount - 1);
     const edge = i === 0 || i === frameCount - 1;
     const frame = document.createElement("canvas");
-    frame.width = size;
-    frame.height = size;
+    frame.width = width;
+    frame.height = height;
     const frameCtx = frame.getContext("2d");
-    renderFrame(frameCtx, edge && preset !== "flowLeft" ? {} : computeMotionTransform(preset, t, size));
-    frames.push(frameCtx.getImageData(0, 0, size, size));
+    renderFrame(frameCtx, edge && preset !== "flowLeft" ? {} : computeMotionTransform(preset, t, width, height));
+    frames.push(frameCtx.getImageData(0, 0, width, height));
   }
   return frames;
 }
 
-async function encodeFrames_(frames, size, colorLevels) {
+async function encodeFrames_(frames, width, height, colorLevels) {
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext("2d");
   const blobs = [];
   for (const frame of frames) {
-    const imageData = new ImageData(new Uint8ClampedArray(frame.data), size, size);
+    const imageData = new ImageData(new Uint8ClampedArray(frame.data), width, height);
     if (colorLevels < 256) quantize_(imageData, colorLevels);
     ctx.putImageData(imageData, 0, 0);
     blobs.push(await canvasToBlob(canvas));
@@ -157,18 +158,18 @@ async function frameParts_(blob) {
   return { ihdr, idatData };
 }
 
-function fcTL_(sequence, size) {
+function fcTL_(sequence, width, height) {
   const data = new Uint8Array(26);
   const view = new DataView(data.buffer);
   view.setUint32(0, sequence, false);
-  view.setUint32(4, size, false);
-  view.setUint32(8, size, false);
+  view.setUint32(4, width, false);
+  view.setUint32(8, height, false);
   view.setUint16(20, APNG_FRAME_DURATION_MS, false);
   view.setUint16(22, 1000, false);
   return chunk_("fcTL", data);
 }
 
-async function buildApng_(frameBlobs, size) {
+async function buildApng_(frameBlobs, width, height) {
   const parts = await Promise.all(frameBlobs.map(frameParts_));
   const acTL = new Uint8Array(8);
   new DataView(acTL.buffer).setUint32(0, parts.length, false); // 再生回数 0 = 無限ループ
@@ -176,7 +177,7 @@ async function buildApng_(frameBlobs, size) {
   const chunks = [chunk_("IHDR", parts[0].ihdr), chunk_("acTL", acTL)];
   let sequence = 0;
   parts.forEach((part, index) => {
-    chunks.push(fcTL_(sequence, size));
+    chunks.push(fcTL_(sequence, width, height));
     sequence += 1;
     if (index === 0) {
       chunks.push(chunk_("IDAT", part.idatData));

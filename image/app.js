@@ -1,12 +1,21 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
 import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js";
+import { addSent, deleteSent, listSent } from "./history.js";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
-const SIZE = 480; // 静止画の一辺
-const ANIMATION_SIZE = 240; // 動く画像は 300KB に収めるため小さめに作る
-const BASE = 480; // 太さなどの数値はこの一辺を基準にした px
+const LONG_SIDE = 480; // 静止画の長い辺
+const ANIMATION_LONG_SIDE = 240; // 動く画像は 300KB に収めるため小さめに作る
+const BASE = 480; // 太さなどの数値は「短い辺 = 480px」を基準にした px
+
+// 画像の形（横:縦）
+const SHAPES = [
+  { label: "正方形", value: "1:1" },
+  { label: "横長", value: "4:3" },
+  { label: "ワイド", value: "16:9" },
+  { label: "縦長", value: "3:4" }
+];
 const EDGE_MARGIN = 10;
 const PREFS_KEY = "line-share:image-prefs";
 
@@ -48,6 +57,7 @@ const DEFAULT_PREFS = {
   outlineWidth: OUTLINE_WIDTHS[1].value,
   background: null,
   motion: "none",
+  shape: "1:1",
   backdrop: "checker"
 };
 
@@ -72,13 +82,11 @@ document.addEventListener("DOMContentLoaded", () => {
     "outlineList", "outlineWidthList", "backgroundList", "motionList", "backdropList",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
-    "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendMotionNote"
+    "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendMotionNote",
+    "shapeList", "historyPanel", "historyList"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
-
-  els.canvas.width = SIZE;
-  els.canvas.height = SIZE;
 
   Object.assign(state, loadPrefs_());
   const modeParam = new URLSearchParams(location.search).get("mode");
@@ -87,28 +95,37 @@ document.addEventListener("DOMContentLoaded", () => {
   buildControls_();
   bindEvents_();
   applyState_();
+  renderHistory_();
   initLiff_();
 });
 
 // ---- 描画 ----
 
+// 長い辺を longSide にしたときの幅と高さ
+function dims_(longSide) {
+  const [w, h] = state.shape.split(":").map(Number);
+  return w >= h
+    ? { width: longSide, height: Math.round((longSide * h) / w) }
+    : { width: Math.round((longSide * w) / h), height: longSide };
+}
+
 /**
  * 文字と手書きを重ね、縁取りまでかけた1枚（動きをかける前）を作る。
  */
-function buildLayer(size) {
-  const scale = size / BASE;
-  const content = renderContent_(size, scale);
+function buildLayer(width, height) {
+  const scale = Math.min(width, height) / BASE;
+  const content = renderContent_(width, height, scale);
   const layer = document.createElement("canvas");
-  layer.width = size;
-  layer.height = size;
+  layer.width = width;
+  layer.height = height;
   const layerCtx = layer.getContext("2d");
 
-  const width = state.outline === "none" ? 0 : Math.max(1, Math.round(state.outlineWidth * scale));
+  const ring = state.outline === "none" ? 0 : Math.max(1, Math.round(state.outlineWidth * scale));
   if (state.outline === "double") {
-    drawOutline_(layerCtx, content, width * 2, "#ffffff");
-    drawOutline_(layerCtx, content, width, "#18222f");
-  } else if (width > 0) {
-    drawOutline_(layerCtx, content, width, state.outline === "white" ? "#ffffff" : "#18222f");
+    drawOutline_(layerCtx, content, ring * 2, "#ffffff");
+    drawOutline_(layerCtx, content, ring, "#18222f");
+  } else if (ring > 0) {
+    drawOutline_(layerCtx, content, ring, state.outline === "white" ? "#ffffff" : "#18222f");
   }
   layerCtx.drawImage(content, 0, 0);
   return layer;
@@ -117,29 +134,29 @@ function buildLayer(size) {
 /**
  * 背景を敷き、動きの変形をかけて layer を ctx に描く。
  */
-function compose(ctx, size, layer, transform = {}) {
-  ctx.clearRect(0, 0, size, size);
+function compose(ctx, width, height, layer, transform = {}) {
+  ctx.clearRect(0, 0, width, height);
   if (state.background) {
     ctx.fillStyle = state.background;
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, width, height);
   }
 
   const { offsetX = 0, offsetY = 0, scale: zoom = 1, rotation = 0, wrapX = false } = transform;
-  for (const tileX of wrapX ? [-size, 0, size] : [0]) {
+  for (const tileX of wrapX ? [-width, 0, width] : [0]) {
     ctx.save();
-    ctx.translate(size / 2 + offsetX + tileX, size / 2 + offsetY);
+    ctx.translate(width / 2 + offsetX + tileX, height / 2 + offsetY);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(zoom, zoom);
-    ctx.translate(-size / 2, -size / 2);
+    ctx.translate(-width / 2, -height / 2);
     ctx.drawImage(layer, 0, 0);
     ctx.restore();
   }
 }
 
-function renderContent_(size, scale) {
+function renderContent_(width, height, scale) {
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext("2d");
 
   const text = state.text.trim();
@@ -147,17 +164,21 @@ function renderContent_(size, scale) {
     const lines = text.split("\n");
     const outline = state.outline === "none" ? 0 : state.outlineWidth * scale * (state.outline === "double" ? 2 : 1);
     const padding = EDGE_MARGIN * scale + outline;
-    const fontSize = fitFontSize_(ctx, lines, size - padding * 2);
+    const fontSize = fitFontSize_(ctx, lines, width - padding * 2, height - padding * 2);
     const lineHeight = fontSize * 1.15;
-    const startY = size / 2 - (lines.length * lineHeight) / 2 + lineHeight / 2;
+    const startY = height / 2 - (lines.length * lineHeight) / 2 + lineHeight / 2;
 
     ctx.font = font_(fontSize);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = state.textColor;
-    lines.forEach((line, index) => ctx.fillText(line, size / 2, startY + index * lineHeight));
+    lines.forEach((line, index) => ctx.fillText(line, width / 2, startY + index * lineHeight));
   }
 
+  // 手書きの点は「中心からの距離 ÷ 短い辺」で持つので、形を変えても線が伸び縮みしない
+  const unit = Math.min(width, height);
+  const toX = (x) => width / 2 + x * unit;
+  const toY = (y) => height / 2 + y * unit;
   const strokes = state.currentStroke ? [...state.strokes, state.currentStroke] : state.strokes;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -166,12 +187,12 @@ function renderContent_(size, scale) {
     ctx.strokeStyle = stroke.color;
     ctx.beginPath();
     stroke.points.forEach(([x, y], index) => {
-      if (index === 0) ctx.moveTo(x * size, y * size);
-      else ctx.lineTo(x * size, y * size);
+      if (index === 0) ctx.moveTo(toX(x), toY(y));
+      else ctx.lineTo(toX(x), toY(y));
     });
     if (stroke.points.length === 1) {
       const [x, y] = stroke.points[0];
-      ctx.lineTo(x * size + 0.01, y * size);
+      ctx.lineTo(toX(x) + 0.01, toY(y));
     }
     ctx.stroke();
   }
@@ -183,9 +204,9 @@ function font_(px) {
   return `800 ${px}px ${state.font}`;
 }
 
-function fitFontSize_(ctx, lines, box) {
+function fitFontSize_(ctx, lines, maxWidth, maxHeight) {
   let low = 8;
-  let high = Math.floor(box / (lines.length * 1.15));
+  let high = Math.floor(maxHeight / (lines.length * 1.15));
   // 二分探索で枠に収まる最大の文字サイズを探す
   while (low < high) {
     const mid = Math.ceil((low + high) / 2);
@@ -196,7 +217,7 @@ function fitFontSize_(ctx, lines, box) {
         return m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
       })
     );
-    if (width <= box) low = mid;
+    if (width <= maxWidth) low = mid;
     else high = mid - 1;
   }
   return low;
@@ -231,9 +252,10 @@ function requestRender() {
   renderQueued = true;
   requestAnimationFrame(() => {
     renderQueued = false;
-    previewLayer = buildLayer(SIZE);
+    const { width, height } = dims_(LONG_SIDE);
+    previewLayer = buildLayer(width, height);
     if (state.motion === "none") {
-      compose(els.canvas.getContext("2d"), SIZE, previewLayer);
+      compose(els.canvas.getContext("2d"), width, height, previewLayer);
     }
   });
 }
@@ -241,16 +263,22 @@ function requestRender() {
 function restartPreview_() {
   cancelAnimationFrame(animationFrame);
   animationFrame = null;
+  const { width, height } = dims_(LONG_SIDE);
+  if (els.canvas.width !== width || els.canvas.height !== height) {
+    els.canvas.width = width;
+    els.canvas.height = height;
+  }
+  els.canvasFrame.style.aspectRatio = `${width} / ${height}`;
   const ctx = els.canvas.getContext("2d");
-  previewLayer = buildLayer(SIZE);
+  previewLayer = buildLayer(width, height);
   if (state.motion === "none") {
-    compose(ctx, SIZE, previewLayer);
+    compose(ctx, width, height, previewLayer);
     return;
   }
   const start = performance.now();
   const loop = (now) => {
     const t = ((now - start) % 900) / 900;
-    compose(ctx, SIZE, previewLayer, computeMotionTransform(state.motion, t, SIZE));
+    compose(ctx, width, height, previewLayer, computeMotionTransform(state.motion, t, width, height));
     animationFrame = requestAnimationFrame(loop);
   };
   animationFrame = requestAnimationFrame(loop);
@@ -260,9 +288,10 @@ function restartPreview_() {
 
 function pointFromEvent_(event) {
   const rect = els.canvas.getBoundingClientRect();
+  const unit = Math.min(rect.width, rect.height);
   return [
-    Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width)),
-    Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height))
+    (event.clientX - rect.left - rect.width / 2) / unit,
+    (event.clientY - rect.top - rect.height / 2) / unit
   ];
 }
 
@@ -341,6 +370,7 @@ function buildControls_() {
   buildChoices_(els.outlineWidthList, OUTLINE_WIDTHS, () => state.outlineWidth, (value) => (state.outlineWidth = value));
   buildSwatches_(els.backgroundList, BACKGROUNDS, () => state.background, (color) => (state.background = color), "透明");
   buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => (state.motion = value));
+  buildChoices_(els.shapeList, SHAPES, () => state.shape, (value) => (state.shape = value));
   buildChoices_(
     els.backdropList,
     [
@@ -497,22 +527,25 @@ function setStatus_(message, tone = "") {
 
 async function buildImage_() {
   if (state.motion === "none") {
+    const { width, height } = dims_(LONG_SIDE);
     const canvas = document.createElement("canvas");
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    compose(canvas.getContext("2d"), SIZE, buildLayer(SIZE));
-    return { blob: await canvasToBlob(canvas), size: SIZE, animated: false };
+    canvas.width = width;
+    canvas.height = height;
+    compose(canvas.getContext("2d"), width, height, buildLayer(width, height));
+    return { blob: await canvasToBlob(canvas), width, height, animated: false };
   }
-  const layer = buildLayer(ANIMATION_SIZE);
+  const { width, height } = dims_(ANIMATION_LONG_SIDE);
+  const layer = buildLayer(width, height);
   const { blob, oversized } = await buildAnimationBlob({
-    size: ANIMATION_SIZE,
+    width,
+    height,
     preset: state.motion,
-    renderFrame: (ctx, transform) => compose(ctx, ANIMATION_SIZE, layer, transform)
+    renderFrame: (ctx, transform) => compose(ctx, width, height, layer, transform)
   });
   if (oversized) {
     setStatus_("動く画像がLINEの上限（300KB）を超えたため、止まって表示される場合があります。", "error");
   }
-  return { blob, size: ANIMATION_SIZE, animated: true };
+  return { blob, width, height, animated: true };
 }
 
 async function openSaveSheet_() {
@@ -539,9 +572,8 @@ function closeSheet_(sheet) {
 
 // ---- 送信 ----
 
-function chooseSendMode_(previewUrl) {
+function chooseSendMode_(previewUrl, animated) {
   els.sendPreview.src = previewUrl;
-  const animated = state.motion !== "none";
   els.sendMotionNote.hidden = !animated;
   openSheet_(els.sendSheet);
 
@@ -581,11 +613,12 @@ async function uploadImage_(blob) {
   return data.imageUrl;
 }
 
-function buildMessage_(mode, imageUrl, animated) {
-  const altText = (state.text.trim().replace(/\s+/g, " ") || "画像").slice(0, 100);
+function buildMessage_(mode, imageUrl, item) {
   if (mode === "image") {
     return { type: "image", originalContentUrl: imageUrl, previewImageUrl: imageUrl };
   }
+  const altText = (item.text?.trim().replace(/\s+/g, " ") || "画像").slice(0, 100);
+  const credit = window.LineShareCredit;
   return {
     type: "flex",
     altText,
@@ -596,12 +629,11 @@ function buildMessage_(mode, imageUrl, animated) {
         type: "image",
         url: imageUrl,
         size: "full",
-        aspectRatio: "1:1",
+        aspectRatio: `${item.width}:${item.height}`,
         aspectMode: "fit",
-        animated,
-        ...(config.liffId
-          ? { action: { type: "uri", label: "自分も作る", uri: `https://liff.line.me/${config.liffId}/image/` } }
-          : {})
+        animated: item.animated,
+        // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く
+        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
       },
       styles: { hero: { backgroundColor: "#00000000" } }
     }
@@ -609,11 +641,17 @@ function buildMessage_(mode, imageUrl, animated) {
 }
 
 async function send_() {
-  if (state.busy) return;
   if (!hasContent_()) {
     setStatus_("文字を入れるか、手書きで描いてください。", "error");
     return;
   }
+  const image = await buildImage_();
+  await sendImage_({ ...image, text: state.text });
+}
+
+// 作った画像・送った画像のどちらも、ここから送る
+async function sendImage_(item) {
+  if (state.busy) return;
   if (!state.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
     setStatus_("LINEアプリ内で開くと送れます。", "error");
     return;
@@ -622,9 +660,8 @@ async function send_() {
   state.busy = true;
   els.sendButton.disabled = true;
   try {
-    const { blob, animated } = await buildImage_();
-    const previewUrl = URL.createObjectURL(blob);
-    const mode = await chooseSendMode_(previewUrl);
+    const previewUrl = URL.createObjectURL(item.blob);
+    const mode = await chooseSendMode_(previewUrl, item.animated);
     URL.revokeObjectURL(previewUrl);
     if (!mode) {
       setStatus_("送信をやめました。");
@@ -633,10 +670,15 @@ async function send_() {
 
     els.sendButton.textContent = "準備中...";
     setStatus_("画像を準備しています…");
-    const imageUrl = await uploadImage_(blob);
-    const message = window.LineShareCredit.withCredit(buildMessage_(mode, imageUrl, animated));
-    const result = await liff.shareTargetPicker([message], { isMultiple: true });
-    setStatus_(result ? "送信しました。" : "送信をやめました。", result ? "success" : "");
+    const imageUrl = await uploadImage_(item.blob);
+    const result = await liff.shareTargetPicker([buildMessage_(mode, imageUrl, item)], { isMultiple: true });
+    if (result) {
+      setStatus_("送信しました。", "success");
+      await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "" });
+      renderHistory_();
+    } else {
+      setStatus_("送信をやめました。");
+    }
   } catch (error) {
     console.error(error);
     setStatus_("送信に失敗しました。時間をおいてもう一度お試しください。", "error");
@@ -645,6 +687,50 @@ async function send_() {
     els.sendButton.disabled = !state.liffReady;
     els.sendButton.textContent = "トークに送る";
   }
+}
+
+// ---- 送った画像 ----
+
+let historyUrls = [];
+
+async function renderHistory_() {
+  const items = await listSent();
+  historyUrls.forEach((url) => URL.revokeObjectURL(url));
+  historyUrls = [];
+
+  els.historyPanel.hidden = items.length === 0;
+  els.historyList.replaceChildren(
+    ...items.map((item) => {
+      const url = URL.createObjectURL(item.blob);
+      historyUrls.push(url);
+
+      const cell = document.createElement("div");
+      cell.className = "history-item";
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "history-thumb ls-checker";
+      button.setAttribute("aria-label", `${item.text || "画像"}を送り直す`);
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "";
+      button.append(img);
+      button.addEventListener("click", () => sendImage_(item));
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "history-remove";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "履歴から消す");
+      remove.addEventListener("click", async () => {
+        await deleteSent(item.id);
+        renderHistory_();
+      });
+
+      cell.append(button, remove);
+      return cell;
+    })
+  );
 }
 
 async function initLiff_() {
