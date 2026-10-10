@@ -2,7 +2,7 @@
 // （例: https://katsuan.github.io/line-share/）を設定する。
 // 各ツールは https://liff.line.me/<liffId>/plan/ のようにパスを付けて開く。
 window.LINE_SHARE_CONFIG = {
-  liffId: "",
+  liffId: "2009927876-DioOJd0z",
 
   // 場所の検索に使う Google Maps JavaScript API のキー。
   // Google Cloud でこのサイトのURLだけに使えるよう「HTTPリファラー」で制限して設定する。

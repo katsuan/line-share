@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>文字・手書きを送る</title>
+    <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークへ画像で送れるページです。" />
+    <link rel="stylesheet" href="../shared/ui.css" />
+    <link rel="stylesheet" href="./style.css" />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="../config.js"></script>
+    <script src="../shared/ui.js" defer></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body class="ls-has-sendbar">
+    <main class="page">
+      <header class="ls-topbar">
+        <a class="ls-back" href="../">ツール一覧</a>
+        <h1 class="ls-title">文字・手書き</h1>
+        <span class="ls-topbar-end"></span>
+      </header>
+
+      <div class="mode-tabs" role="tablist" aria-label="作り方">
+        <button id="modeText" class="mode-tab" type="button" role="tab" aria-controls="textPanel">💬 文字</button>
+        <button id="modeDraw" class="mode-tab" type="button" role="tab" aria-controls="drawPanel">👆 手書き</button>
+      </div>
+
+      <section class="stage">
+        <div id="canvasFrame" class="canvas-frame" data-backdrop="checker">
+          <canvas id="canvas" aria-label="プレビュー"></canvas>
+          <p id="drawHint" class="draw-hint" hidden>ここを指でなぞって描けます</p>
+        </div>
+        <div id="backdropList" class="chip-row chip-row-small" aria-label="プレビューの背景"></div>
+      </section>
+
+      <section id="textPanel" class="panel" role="tabpanel" aria-labelledby="modeText">
+        <label class="field">
+          <span class="field-label">文字</span>
+          <textarea id="textInput" rows="2" maxlength="40" placeholder="例：OK / ありがとう"></textarea>
+        </label>
+        <div id="textPresets" class="chip-row" aria-label="よく使う文字"></div>
+        <div class="field">
+          <span class="field-label">文字の色</span>
+          <div id="textColors" class="swatch-row"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">書体</span>
+          <div id="fontList" class="chip-row"></div>
+        </div>
+        <p class="note">手書きタブに切り替えると、文字の上から描き足せます。</p>
+      </section>
+
+      <section id="drawPanel" class="panel" role="tabpanel" aria-labelledby="modeDraw" hidden>
+        <div class="field">
+          <span class="field-label">ペンの色</span>
+          <div id="penColors" class="swatch-row"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">ペンの太さ</span>
+          <div id="penSizes" class="chip-row"></div>
+        </div>
+        <div class="draw-actions">
+          <button id="undoButton" class="chip" type="button" disabled>↶ 元に戻す</button>
+          <button id="clearButton" class="chip" type="button" disabled>手書きを全部消す</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2 class="panel-title">仕上げ</h2>
+        <div class="field">
+          <span class="field-label">縁取り</span>
+          <div id="outlineList" class="chip-row"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">縁取りの太さ</span>
+          <div id="outlineWidthList" class="chip-row"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">背景</span>
+          <div id="backgroundList" class="swatch-row"></div>
+        </div>
+        <div class="field">
+          <span class="field-label">動き</span>
+          <div id="motionList" class="chip-row"></div>
+          <p class="note">動きはカードで送ったときに再生されます。</p>
+        </div>
+      </section>
+    </main>
+
+    <div class="ls-sendbar">
+      <div class="ls-sendbar-inner">
+        <p id="status" class="ls-status" aria-live="polite"></p>
+        <div class="ls-sendbar-row">
+          <button id="saveButton" class="ls-send ls-send-secondary" type="button">保存</button>
+          <button id="sendButton" class="ls-send" type="button" disabled>LINEで送る</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="saveSheet" class="sheet" hidden>
+      <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+        <p id="saveTitle" class="sheet-title">画像を保存</p>
+        <img id="savePreview" class="sheet-preview" alt="保存する画像" />
+        <p class="note">うまく保存できないときは、画像を長押しして保存してください。</p>
+        <div class="sheet-actions">
+          <button id="saveClose" class="ls-send ls-send-secondary" type="button">閉じる</button>
+          <a id="saveDownload" class="ls-send sheet-link" href="#" download>端末に保存</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="sendSheet" class="sheet" hidden>
+      <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sendTitle">
+        <p id="sendTitle" class="sheet-title">送り方を選ぶ</p>
+        <img id="sendPreview" class="sheet-preview" alt="送る画像" />
+        <p class="note"><strong>画像</strong>：そのまま画像で届きます。<br /><strong>カード</strong>：トーク上でカードとして表示され、動きも再生されます。</p>
+        <p id="sendMotionNote" class="note note-warn" hidden>動きは「カード」で送ったときだけ再生されます（画像では止まった状態になります）。</p>
+        <p class="note">送信後の修正はできません。</p>
+        <div class="sheet-actions">
+          <button id="sendAsImage" class="ls-send ls-send-secondary" type="button">画像で送る</button>
+          <button id="sendAsCard" class="ls-send" type="button">カードで送る</button>
+        </div>
+        <button id="sendCancel" class="sheet-cancel" type="button">やめる</button>
+      </div>
+    </div>
+  </body>
+</html>
