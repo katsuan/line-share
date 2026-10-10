@@ -8,7 +8,7 @@ const LINE = {
 const GOOGLE_MAPS_API_KEY = PROPS.getProperty('GOOGLE_MAPS_API_KEY');
 
 const APP = {
-  // スクリプトプロパティ LIFF_PAGE_URL で上書き可能（統合版LIFFのURLを設定する）
+  // スクリプトプロパティ LIFF_PAGE_URL で上書き可能（統合版では https://liff.line.me/<LIFF ID>/plan/ を設定する）
   LIFF_PAGE_URL: PROPS.getProperty('LIFF_PAGE_URL') || 'https://liff.line.me/2009965829-2KRcrwks',
 };
 

@@ -1244,7 +1244,7 @@ function getLiffShareUrl() {
     }
   }
   if (config.liffId) {
-    return `https://liff.line.me/${config.liffId}`;
+    return `https://liff.line.me/${config.liffId}/icon/`;
   }
   throw new Error("LIFF のリンク先 URL を作成できませんでした。");
 }
