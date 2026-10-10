@@ -1,42 +1,66 @@
-# LIFF Calendar Share
+# LINEで共有
 
-GitHub Pages にそのまま配置できる、静的な LIFF アプリです。Google カレンダー登録用 URL を生成し、LINE のトークへ Flex Message で共有できます。
+場所・予定・カード・文字アイコン・手書きを、LINE のトークへ送れる LIFF ツール集です。
+GitHub Pages で配信する静的サイトで、GAS は使いません。
 
-## ファイル構成
+公開URL: https://katsuan.github.io/line-share/
 
-- `index.html`
-- `assets/styles.css`
-- `assets/app.js`
+## ツール
 
-## 対応内容
+| パス | 内容 |
+|---|---|
+| `/` | ツール一覧 |
+| `/plan/` | 📍 場所 / 📅 予定。Google Maps の場所を写真・バッジ・コメント付きで送る。場所から「この場所で予定を作る」で Google カレンダー登録リンク付きの予定カードにできる |
+| `/card/` | 🪧 カード。見出し・写真・バッジ・リンクボタン付きのお知らせカード。カード上で直接編集でき、ひな形・テンプレート保存・JSONコピーあり |
+| `/image/` | 💬 文字 / 👆 手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
+| `server/` | 画像アップロード用 API（Render で動かす Node.js） |
 
-- 必須入力
-  - 件名
-  - 開始日 / 開始時刻
-  - 終了日 / 終了時刻
-- 追加オプションのアコーディオン
-  - 場所 `location`
-  - 関連URL
-  - 予定詳細 `details`
-  - タイムゾーン `ctz`
-  - 繰り返しルール `recur`
-  - 参照元情報 `sprop`
-  - 任意の追加クエリパラメータ
-- GoogleカレンダーURL生成
-- Flex Messageプレビュー
-- LIFF からの共有
-  - `liff.sendMessages()` で現在のトークに送信
-  - `liff.shareTargetPicker()` で送信先を選択
+全ページ共通の骨格（上部バー・下部の送信バー・入力中の送信バー非表示）は `shared/` にあります。
 
-## GitHub Pages 前提の使い方
+## 設定
 
-1. `index.html` と `assets/` をそのままリポジトリへ配置します。
-2. `assets/app.js` の `CONFIG.liffId` を対象の LIFF ID に合わせます。
-3. GitHub Pages を有効化して公開 URL を取得します。
-4. LINE Developers の LIFF エンドポイント URL に GitHub Pages の URL を設定します。
+`config.js` の1か所にまとめています。
 
-## 実装メモ
+- `liffId`: LIFF アプリの ID（1つだけ作る）
+- `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
+- `imageApiBaseUrl`: `server/` をデプロイした URL
 
-- モバイルの `datetime-local` 崩れを避けるため、日時は `date` と `time` の分離入力にしています。
-- GoogleカレンダーURLは `https://calendar.google.com/calendar/render?action=TEMPLATE...` を利用します。
-- カスタムパラメータ欄は、既知の項目以外を任意に追加したい場合の逃げ道として入れています。
+### LIFF
+
+1. LINE Developers で LIFF アプリを1つ作る（Scope: `profile` / `chat_message.write`、Share Target Picker を有効化）
+2. エンドポイント URL に `https://katsuan.github.io/line-share/` を設定する
+3. 各ツールは `https://liff.line.me/<LIFF ID>/plan/` のようにパスを付けて開く。トップページが `liff.state` を受けて各ツールへ転送する
+
+### Google Maps（任意）
+
+Google Cloud で Maps JavaScript API と Places API (New) を有効にし、API キーを「HTTP リファラー」で `https://katsuan.github.io/*` に制限して `googleMapsApiKey` に設定します。
+未設定のときは、Google Maps の共有 URL を貼って場所名を手入力する方式になります。
+
+### 画像アップロード（server/）
+
+LINE の画像メッセージには HTTPS で公開された画像 URL が必要なため、`server/` を Render などにデプロイします。
+
+- Root Directory: `server`
+- Build Command: `npm install`
+- Start Command: `npm start`
+- 環境変数: `ALLOWED_ORIGIN=https://katsuan.github.io`、`PUBLIC_BASE_URL=https://<サービス名>.onrender.com`
+
+Render のローカルディスクは永続ではないため、保存した画像は再起動で消えます。
+
+## ローカルでの確認
+
+```bash
+python3 -m http.server 8790
+```
+
+`http://localhost:8790/` を開きます。LINE の外のブラウザでは送信はできませんが、作成・プレビュー・保存は確認できます。
+
+## 由来
+
+次のリポジトリを履歴ごと取り込んで統合しました。
+
+- line-googlemap（LIFF-GoogleMap）
+- line-calendar-share（LIFF-calender）
+- line-flex-share / line-flex-builder（LIFF-flexSender）
+- line-text-icon-sender
+- line-draw-share（LIFF-image）
