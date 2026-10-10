@@ -2,7 +2,7 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>💬TextIconSender</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
@@ -28,20 +28,59 @@
         </p>
       </section>
 
-      <section id="historySection" class="sender-section panel">
+      <section id="previewSection" class="sender-section sender-preview-section panel">
         <div class="section-head">
           <div class="section-head-left">
-            <button id="historyToggle" class="section-toggle" type="button" aria-expanded="true" aria-controls="historyBody" aria-label="History を閉じる">▼</button>
-            <h2>History</h2>
-            <button id="refreshHistory" class="secondary-action history-action" type="button">更新</button>
+            <h2>Preview</h2>
+            <div class="preview-tabs-wrap">
+              <div class="preview-tabs" role="tablist" aria-label="プレビュー背景">
+                <button class="preview-tab is-active" id="previewTabTransparent" type="button" role="tab" aria-selected="true" aria-controls="previewPanelTransparentMobile" data-preview-tab="transparent">透過</button>
+                <button class="preview-tab" id="previewTabWhite" type="button" role="tab" aria-selected="false" aria-controls="previewPanelWhiteMobile" data-preview-tab="white">白背景</button>
+                <button class="preview-tab" id="previewTabDark" type="button" role="tab" aria-selected="false" aria-controls="previewPanelDarkMobile" data-preview-tab="dark">黒背景</button>
+              </div>
+            </div>
           </div>
-          <span id="historySummary">履歴を保存・送信できます</span>
+          <span>見え方を確認</span>
         </div>
-        <div id="historyBody" class="section-toggle-body">
-          <div id="historyList" class="history-list" aria-live="polite">
-            <p class="sender-help">履歴を開くと読み込みます。</p>
+
+        <div class="sender-stage-wrap">
+          <div class="sender-preview-grid sender-preview-grid-desktop">
+            <div class="sender-preview-card">
+              <span>透過</span>
+              <div class="sender-stage surface-transparent">
+                <canvas id="preview" width="256" height="256" aria-label="Transparent preview"></canvas>
+              </div>
+            </div>
+            <div class="sender-preview-card">
+              <span>白背景</span>
+              <div class="sender-stage surface-white">
+                <canvas id="previewWhite" width="256" height="256" aria-label="White background preview"></canvas>
+              </div>
+            </div>
+            <div class="sender-preview-card">
+              <span>黒背景</span>
+              <div class="sender-stage surface-dark">
+                <canvas id="previewDark" width="256" height="256" aria-label="Dark background preview"></canvas>
+              </div>
+            </div>
           </div>
-          <button id="loadMoreHistory" class="secondary-action history-action history-load-more" type="button" hidden>もっと見る</button>
+          <div class="sender-preview-mobile">
+            <section class="preview-mobile-panel is-active" id="previewPanelTransparentMobile" data-preview-panel="transparent" role="tabpanel" aria-labelledby="previewTabTransparent">
+              <div class="sender-stage surface-transparent">
+                <canvas id="previewMobileTransparent" width="256" height="256" aria-label="Transparent preview mobile"></canvas>
+              </div>
+            </section>
+            <section class="preview-mobile-panel" id="previewPanelWhiteMobile" data-preview-panel="white" role="tabpanel" aria-labelledby="previewTabWhite" hidden>
+              <div class="sender-stage surface-white">
+                <canvas id="previewMobileWhite" width="256" height="256" aria-label="White background preview mobile"></canvas>
+              </div>
+            </section>
+            <section class="preview-mobile-panel" id="previewPanelDarkMobile" data-preview-panel="dark" role="tabpanel" aria-labelledby="previewTabDark" hidden>
+              <div class="sender-stage surface-dark">
+                <canvas id="previewMobileDark" width="256" height="256" aria-label="Dark background preview mobile"></canvas>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -53,7 +92,7 @@
 
         <label class="field">
           <span>テキスト</span>
-          <textarea id="text" rows="3">OK</textarea>
+          <textarea id="text" rows="3" enterkeyhint="done">OK</textarea>
         </label>
         <p id="textCounter" class="sender-help text-counter"></p>
 
@@ -271,59 +310,20 @@
         </div>
       </section>
 
-      <section class="sender-section panel">
+      <section id="historySection" class="sender-section panel">
         <div class="section-head">
           <div class="section-head-left">
-            <h2>Preview</h2>
-            <div class="preview-tabs-wrap">
-              <div class="preview-tabs" role="tablist" aria-label="プレビュー背景">
-                <button class="preview-tab is-active" id="previewTabTransparent" type="button" role="tab" aria-selected="true" aria-controls="previewPanelTransparentMobile" data-preview-tab="transparent">透過</button>
-                <button class="preview-tab" id="previewTabWhite" type="button" role="tab" aria-selected="false" aria-controls="previewPanelWhiteMobile" data-preview-tab="white">白背景</button>
-                <button class="preview-tab" id="previewTabDark" type="button" role="tab" aria-selected="false" aria-controls="previewPanelDarkMobile" data-preview-tab="dark">黒背景</button>
-              </div>
-            </div>
+            <button id="historyToggle" class="section-toggle" type="button" aria-expanded="true" aria-controls="historyBody" aria-label="History を閉じる">▼</button>
+            <h2>History</h2>
+            <button id="refreshHistory" class="secondary-action history-action" type="button">更新</button>
           </div>
-          <span>見え方を確認</span>
+          <span id="historySummary">履歴を保存・送信できます</span>
         </div>
-
-        <div class="sender-stage-wrap">
-          <div class="sender-preview-grid sender-preview-grid-desktop">
-            <div class="sender-preview-card">
-              <span>透過</span>
-              <div class="sender-stage surface-transparent">
-                <canvas id="preview" width="256" height="256" aria-label="Transparent preview"></canvas>
-              </div>
-            </div>
-            <div class="sender-preview-card">
-              <span>白背景</span>
-              <div class="sender-stage surface-white">
-                <canvas id="previewWhite" width="256" height="256" aria-label="White background preview"></canvas>
-              </div>
-            </div>
-            <div class="sender-preview-card">
-              <span>黒背景</span>
-              <div class="sender-stage surface-dark">
-                <canvas id="previewDark" width="256" height="256" aria-label="Dark background preview"></canvas>
-              </div>
-            </div>
+        <div id="historyBody" class="section-toggle-body">
+          <div id="historyList" class="history-list" aria-live="polite">
+            <p class="sender-help">履歴を開くと読み込みます。</p>
           </div>
-          <div class="sender-preview-mobile">
-            <section class="preview-mobile-panel is-active" id="previewPanelTransparentMobile" data-preview-panel="transparent" role="tabpanel" aria-labelledby="previewTabTransparent">
-              <div class="sender-stage surface-transparent">
-                <canvas id="previewMobileTransparent" width="256" height="256" aria-label="Transparent preview mobile"></canvas>
-              </div>
-            </section>
-            <section class="preview-mobile-panel" id="previewPanelWhiteMobile" data-preview-panel="white" role="tabpanel" aria-labelledby="previewTabWhite" hidden>
-              <div class="sender-stage surface-white">
-                <canvas id="previewMobileWhite" width="256" height="256" aria-label="White background preview mobile"></canvas>
-              </div>
-            </section>
-            <section class="preview-mobile-panel" id="previewPanelDarkMobile" data-preview-panel="dark" role="tabpanel" aria-labelledby="previewTabDark" hidden>
-              <div class="sender-stage surface-dark">
-                <canvas id="previewMobileDark" width="256" height="256" aria-label="Dark background preview mobile"></canvas>
-              </div>
-            </section>
-          </div>
+          <button id="loadMoreHistory" class="secondary-action history-action history-load-more" type="button" hidden>もっと見る</button>
         </div>
       </section>
 
@@ -331,10 +331,12 @@
         <button id="download" class="primary-action" type="button">保存</button>
         <button id="send" class="secondary-action" type="button">送信</button>
         <button id="saveTest" class="secondary-action" type="button" hidden>Drive保存をテスト</button>
-        <p class="sender-caption">送信方法を選んだあとに、送信先を選べます。</p>
+        <p class="sender-caption sender-send-caption">送信方法を選んだあとに、送信先を選べます。</p>
         <p id="localCaption" class="sender-caption">`Drive保存をテスト` は `GAS Web App URL` だけで確認できます。`画像送信` と `Flex送信` は `LIFF ID` も必要です。</p>
       </section>
     </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <dialog id="sendModeDialog" class="send-mode-dialog">
       <form method="dialog" class="send-mode-card">

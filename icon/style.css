@@ -1894,3 +1894,268 @@ canvas {
     grid-column: auto;
   }
 }
+
+/* ---- Toast (status feedback visible outside debug mode) ---- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(108px + env(safe-area-inset-bottom));
+  z-index: 50;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-strong);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  transform: translateX(-50%);
+  animation: toast-in 0.18s ease-out;
+}
+
+.toast.is-success {
+  background: #edf9f1;
+  border-color: #5eaa78;
+}
+
+.toast.is-warn {
+  background: #fff7e8;
+  border-color: #cc9a41;
+}
+
+.toast.is-error {
+  background: #fff0f0;
+  border-color: #ce6666;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+
+/* ---- Mobile-first layout ---- */
+@media (max-width: 640px) {
+  .sender-app {
+    padding: 12px 12px 0;
+    gap: 12px;
+  }
+
+  .sender-hero,
+  .sender-section {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .sender-hero {
+    gap: 4px;
+  }
+
+  .sender-hero .lead {
+    font-size: 0.88rem;
+  }
+
+  /* Preview: compact and pinned to the top while editing */
+  .sender-preview-section {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    margin: 0 -12px;
+    padding: 10px 12px;
+    border-width: 0 0 1.5px;
+    border-radius: 0 0 20px 20px;
+    background: rgba(255, 253, 248, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .sender-preview-section .sender-stage-wrap {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .sender-preview-section .section-head {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .sender-preview-section .section-head > span {
+    display: none;
+  }
+
+  .sender-preview-section .section-head-left,
+  .sender-preview-section .section-head-left:has(.preview-tabs-wrap) {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .sender-preview-section h2 {
+    font-size: 0.95rem;
+  }
+
+  .sender-preview-section .preview-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .sender-preview-section .preview-tab {
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 4px;
+  }
+
+  .sender-preview-section .sender-stage {
+    width: 120px;
+    height: 120px;
+    min-height: 0;
+    border-radius: 14px;
+  }
+
+  .sender-preview-section .sender-stage canvas {
+    max-width: 104px;
+    max-height: 104px;
+    border-width: 1px;
+  }
+
+  /* Bigger tap targets */
+  .preset-button {
+    min-height: 40px;
+    padding: 0 14px;
+  }
+
+  .style-tab {
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .style-tabs-wrap,
+  .style-tabs {
+    width: 100%;
+  }
+
+  #styleSection .section-head-left {
+    flex-wrap: wrap;
+  }
+
+  #styleSection .style-tabs-wrap {
+    order: 3;
+    flex: 1 0 100%;
+  }
+
+  .section-toggle {
+    width: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .history-action,
+  .history-button {
+    min-height: 40px;
+  }
+
+  .history-delete-pill {
+    min-height: 34px;
+  }
+
+  .history-list {
+    grid-auto-columns: minmax(150px, 44vw);
+  }
+
+  /* Colors: one row per color, swatches + custom picker in a line */
+  .compact-color-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .compact-color-grid .field {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .compact-color-grid .field > span {
+    grid-column: 1 / -1;
+  }
+
+  .compact-color-grid .swatch-row {
+    grid-column: 1;
+    grid-row: 2;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .compact-color-grid .swatch-button {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 10px;
+  }
+
+  .compact-color-grid input[type="color"] {
+    grid-column: 2;
+    grid-row: 2;
+    width: 52px;
+    height: 40px;
+    padding: 3px;
+    border-radius: 12px;
+  }
+
+  .sender-section .sender-style-top,
+  .sender-section .sender-outline-row,
+  .sender-style-top {
+    grid-template-columns: 1fr;
+  }
+
+  .sender-section .align-button {
+    width: 52px;
+    min-height: 44px;
+  }
+
+  .sender-section .align-picker {
+    grid-template-columns: repeat(3, 52px);
+  }
+
+  /* Prevent iOS zoom on focus */
+  textarea,
+  select,
+  input[type="text"],
+  input[type="number"] {
+    font-size: 16px;
+  }
+
+  /* Send bar: docked to the bottom edge */
+  .sender-actions-bar {
+    bottom: 0;
+    margin: 0 -12px;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    border-width: 1.5px 0 0;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .sender-actions-bar .primary-action,
+  .sender-actions-bar .secondary-action {
+    min-height: 52px;
+  }
+
+  .sender-send-caption {
+    display: none;
+  }
+
+  .toast {
+    bottom: calc(88px + env(safe-area-inset-bottom));
+  }
+}
