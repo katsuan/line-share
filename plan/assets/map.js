@@ -1,6 +1,6 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610101950";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610101950";
-import { createPlaceFlex } from "./flex.js?v=202610101950";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610101955";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610101955";
+import { createPlaceFlex } from "./flex.js?v=202610101955";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;

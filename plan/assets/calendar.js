@@ -12,10 +12,10 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610101950";
-import { MAX_URI_LENGTH } from "./config.js?v=202610101950";
-import { createEventFlex } from "./flex.js?v=202610101950";
-import { bindPlaceSearch } from "./place-search.js?v=202610101950";
+} from "./common.js?v=202610101955";
+import { MAX_URI_LENGTH } from "./config.js?v=202610101955";
+import { createEventFlex } from "./flex.js?v=202610101955";
+import { bindPlaceSearch } from "./place-search.js?v=202610101955";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};

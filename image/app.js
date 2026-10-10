@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101950";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610101950";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101955";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610101955";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -58,7 +58,8 @@ const DEFAULT_PREFS = {
   background: null,
   motion: "none",
   shape: "1:1",
-  backdrop: "light"
+  // 送り方。画像は透過できるが動かない、カードは動くが背景が白くなる（今の LINE の表示）
+  sendMode: "image"
 };
 
 const state = {
@@ -81,10 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
     "penColors", "penSizes", "undoButton", "clearButton",
-    "outlineList", "outlineWidthList", "backgroundList", "motionList", "backdropList",
+    "outlineList", "outlineWidthList", "backgroundList", "motionList", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
-    "sendSheet", "sendPreview", "sendAsImage", "sendAsCard", "sendCancel", "sendRecommend",
     "shapeList", "historyPanel", "historyList", "motionToggle",
     "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta", "motionMeta"
   ].forEach((id) => {
@@ -382,21 +382,14 @@ function buildControls_() {
   buildChoices_(els.outlineList, OUTLINES, () => state.outline, (value) => (state.outline = value));
   buildChoices_(els.outlineWidthList, OUTLINE_WIDTHS, () => state.outlineWidth, (value) => (state.outlineWidth = value));
   buildSwatches_(els.backgroundList, BACKGROUNDS, () => state.background, (color) => (state.background = color), "透明");
-  buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => (state.motion = value));
+  buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => {
+    state.motion = value;
+    if (value !== "none" && state.sendMode === "image") {
+      state.sendMode = "card";
+      setStatus_("動きを付けたので「カード」で送ります（カードは背景が白くなります）。");
+    }
+  });
   buildChoices_(els.shapeList, SHAPES, () => state.shape, (value) => (state.shape = value));
-  buildChoices_(
-    els.backdropList,
-    [
-      { label: "トーク明", value: "light" },
-      { label: "トーク暗", value: "dark" },
-      { label: "白", value: "white" },
-      { label: "黒", value: "black" },
-      { label: "透過", value: "checker" }
-    ],
-    () => state.backdrop,
-    (value) => (state.backdrop = value),
-    (button) => button.classList.add("is-small")
-  );
 }
 
 const choiceGroups = [];
@@ -481,11 +474,20 @@ function applyState_() {
   els.textPanel.hidden = isDraw;
   els.drawPanel.hidden = !isDraw;
   els.canvasFrame.classList.toggle("is-drawing", isDraw);
-  // 「背景で確認」はトーク画面にあたるプレビュー枠全体の色を変える（画像そのものの背景は「仕上げ → 背景」）
-  els.previewStage.dataset.backdrop = state.backdrop;
+  // 送り方でプレビューの見え方（トークの上に画像だけ／白いカードの中）と使える設定を切り替える
+  const isCard = state.sendMode === "card";
+  els.previewStage.dataset.sendMode = state.sendMode;
+  els.sendModeImage.setAttribute("aria-checked", String(!isCard));
+  els.sendModeImage.classList.toggle("is-active", !isCard);
+  els.sendModeCard.setAttribute("aria-checked", String(isCard));
+  els.sendModeCard.classList.toggle("is-active", isCard);
+  els.backgroundHint.textContent = isCard
+    ? "画像そのものの背景です。カードで送ると、透明にしても白い背景になります。"
+    : "画像そのものの背景です。透明にすると、トークの背景が透けて見えます。";
+  if (!state.busy) els.sendButton.textContent = sendLabel_();
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
-  els.motionToggle.hidden = state.motion === "none";
+  els.motionToggle.hidden = state.motion === "none" || state.sendMode !== "card";
   els.motionToggle.textContent = state.previewPaused ? "▶ 動きを再生" : "⏸ 動きを止める";
   updateMeta_();
   syncChoices_();
@@ -503,7 +505,11 @@ function updateMeta_() {
   els.outlineMeta.textContent =
     state.outline === "none" ? "なし" : `${labelOf(OUTLINES, state.outline)}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
   els.backgroundMeta.textContent = state.background ? "色あり" : "透明";
-  els.motionMeta.textContent = labelOf(MOTIONS, state.motion);
+  els.motionMeta.textContent = state.sendMode === "card" ? labelOf(MOTIONS, state.motion) : "なし（画像）";
+}
+
+function sendLabel_() {
+  return state.sendMode === "card" ? "カードで送る" : "画像で送る";
 }
 
 function onChange_() {
@@ -520,6 +526,20 @@ function bindEvents_() {
     state.mode = "draw";
     // 動いていると描きにくいので、手書きに切り替えたらプレビューの動きを止める
     if (state.motion !== "none") state.previewPaused = true;
+    onChange_();
+  });
+  els.sendModeImage.addEventListener("click", () => {
+    if (state.sendMode === "image") return;
+    state.sendMode = "image";
+    if (state.motion !== "none") {
+      state.motion = "none";
+      setStatus_("画像では動きが止まるため、動きを「なし」にしました。");
+    }
+    onChange_();
+  });
+  els.sendModeCard.addEventListener("click", () => {
+    if (state.sendMode === "card") return;
+    state.sendMode = "card";
     onChange_();
   });
   els.motionToggle.addEventListener("click", () => {
@@ -565,7 +585,7 @@ function setStatus_(message, tone = "") {
 // ---- 書き出し ----
 
 async function buildImage_() {
-  if (state.motion === "none") {
+  if (state.motion === "none" || state.sendMode !== "card") {
     const { width, height } = dims_(LONG_SIDE);
     const canvas = document.createElement("canvas");
     canvas.width = width;
@@ -595,7 +615,6 @@ async function openSaveSheet_() {
   const { blob } = await buildImage_();
   const url = URL.createObjectURL(blob);
   els.savePreview.src = url;
-  els.savePreview.dataset.backdrop = state.backdrop;
   els.saveDownload.href = url;
   els.saveDownload.download = `line-share-${Date.now()}.png`;
   openSheet_(els.saveSheet);
@@ -612,28 +631,6 @@ function closeSheet_(sheet) {
 
 // ---- 送信 ----
 
-function chooseSendMode_(previewUrl, animated) {
-  els.sendPreview.src = previewUrl;
-  els.sendPreview.dataset.backdrop = state.backdrop;
-  // 今の LINE ではカード（Flex）の透過が出ないため、動きの有無でおすすめを切り替える
-  els.sendRecommend.textContent = animated
-    ? "動きがあるので「カードで送る」がおすすめです。"
-    : "動きがないので「画像で送る」がおすすめです（透過のまま届きます）。";
-  els.sendAsImage.classList.toggle("ls-send-secondary", animated);
-  els.sendAsCard.classList.toggle("ls-send-secondary", !animated);
-  openSheet_(els.sendSheet);
-
-  return new Promise((resolve) => {
-    const done = (mode) => {
-      closeSheet_(els.sendSheet);
-      els.sendAsImage.onclick = els.sendAsCard.onclick = els.sendCancel.onclick = null;
-      resolve(mode);
-    };
-    els.sendAsImage.onclick = () => done("image");
-    els.sendAsCard.onclick = () => done("card");
-    els.sendCancel.onclick = () => done(null);
-  });
-}
 
 async function uploadImage_(blob) {
   const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
@@ -717,7 +714,7 @@ async function send_() {
     return;
   }
   const image = await buildImage_();
-  await sendImage_({ ...image, text: state.text });
+  await sendImage_({ ...image, text: state.text, mode: state.sendMode });
 }
 
 // 作った画像・送った画像のどちらも、ここから送る
@@ -731,13 +728,8 @@ async function sendImage_(item) {
   state.busy = true;
   els.sendButton.disabled = true;
   try {
-    const previewUrl = URL.createObjectURL(item.blob);
-    const mode = await chooseSendMode_(previewUrl, item.animated);
-    URL.revokeObjectURL(previewUrl);
-    if (!mode) {
-      setStatus_("送信をやめました。");
-      return;
-    }
+    // 送った画像を送り直すときは、送ったときと同じ送り方にする
+    const mode = item.mode || (item.animated ? "card" : "image");
 
     els.sendButton.textContent = "準備中...";
     setStatus_("画像を準備しています…");
@@ -746,7 +738,7 @@ async function sendImage_(item) {
     const result = await liff.shareTargetPicker([message], { isMultiple: true });
     if (result) {
       setStatus_("送信しました。", "success");
-      await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "" });
+      await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode });
       renderHistory_();
     } else {
       setStatus_("送信をやめました。");
@@ -757,7 +749,7 @@ async function sendImage_(item) {
   } finally {
     state.busy = false;
     els.sendButton.disabled = !state.liffReady;
-    els.sendButton.textContent = "トークに送る";
+    els.sendButton.textContent = sendLabel_();
   }
 }
 

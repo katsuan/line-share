@@ -3,41 +3,11 @@
 /* 画像の範囲。塗りつぶさず点線だけにして、画像そのものの背景（仕上げ → 背景）をそのまま見せる */
 .canvas-frame {
   position: relative;
-  justify-self: center;
-  width: min(100%, 320px);
+  width: 100%;
   aspect-ratio: 1;
   border-radius: 6px;
   outline: 1.5px dashed rgba(128, 128, 128, 0.55);
   outline-offset: 2px;
-}
-
-/* 「背景で確認」：トーク画面にあたるプレビュー枠全体の色を切り替える */
-.image-stage[data-backdrop="light"] {
-  background: var(--ls-talk-bg);
-}
-
-.image-stage[data-backdrop="dark"] {
-  background: var(--ls-talk-dark);
-}
-
-.image-stage[data-backdrop="white"] {
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px var(--ls-line);
-}
-
-.image-stage[data-backdrop="black"] {
-  background: #000000;
-}
-
-.image-stage[data-backdrop="checker"] {
-  background-color: #fff;
-  background-image:
-    linear-gradient(45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(-45deg, #e9e7e1 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e9e7e1 75%),
-    linear-gradient(-45deg, transparent 75%, #e9e7e1 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
 }
 
 .canvas-frame canvas {
@@ -75,30 +45,6 @@
   pointer-events: none;
 }
 
-.backdrop-row {
-  display: grid;
-  justify-items: center;
-  gap: 6px;
-}
-
-.backdrop-label {
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.backdrop-chips {
-  flex-wrap: nowrap;
-  justify-content: center;
-  gap: 6px;
-}
-
-.backdrop-chips .ls-chip {
-  padding: 0 10px;
-}
 
 .text-input {
   min-height: 64px;
@@ -160,29 +106,52 @@
   cursor: pointer;
 }
 
-/* 保存・送信シートのプレビューも、選んだ背景で見せる */
-.sheet-preview[data-backdrop="light"] { background: var(--ls-talk-bg); }
-.sheet-preview[data-backdrop="dark"] { background: var(--ls-talk-dark); }
-.sheet-preview[data-backdrop="white"] { background: #ffffff; box-shadow: inset 0 0 0 1px var(--ls-line); }
-.sheet-preview[data-backdrop="black"] { background: #000000; }
 
 .motion-toggle {
   justify-self: center;
   background: rgba(255, 255, 255, 0.92);
 }
 
-/* 送り方の説明 */
-.send-modes {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--ls-subtext);
-  font-size: 13px;
-  line-height: 1.6;
+
+/* 送り方ごとの見え方。画像：トークの背景の上に画像だけ／カード：白いカードの中に画像 */
+.card-frame {
+  justify-self: center;
+  width: min(100%, 320px);
 }
 
-.send-modes strong {
-  color: var(--ls-text);
+.image-stage[data-send-mode="card"] .card-frame {
+  display: grid;
+  gap: 4px;
+  padding: 10px 10px 0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+.image-stage[data-send-mode="image"] .card-only {
+  display: none;
+}
+
+.send-mode-row {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.send-mode-label {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.send-mode-chips {
+  justify-content: center;
+  gap: 6px;
+}
+
+.send-mode-chips .ls-chip:not(.is-active) {
+  background: rgba(255, 255, 255, 0.92);
 }
