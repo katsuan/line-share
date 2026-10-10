@@ -49,10 +49,14 @@
 
         <div class="ls-folds">
           <details class="ls-fold" open>
-            <summary>ひな形</summary>
+            <summary>テンプレート</summary>
             <div class="ls-fold-body">
-              <p class="ls-hint">用途に合わせたひな形を当てはめてから、文面やリンク先を直せます。</p>
-              <div id="presetGrid" class="ls-list"></div>
+              <p class="ls-hint">選ぶとカードの中身が入れ替わります。今のカードも名前を付けて保存できます。</p>
+              <div id="templateList" class="ls-list"></div>
+              <div class="ls-row">
+                <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
+                <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
+              </div>
             </div>
           </details>
 
@@ -155,24 +159,11 @@
             </div>
           </details>
 
-          <details class="ls-fold">
-            <summary>テンプレート・その他</summary>
-            <div class="ls-fold-body">
-              <div class="ls-row">
-                <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="テンプレート名" aria-label="テンプレート名" />
-                <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
-              </div>
-              <div class="ls-row">
-                <select id="templateSelect" class="ls-input" aria-label="保存済みテンプレート"></select>
-                <button id="loadTemplateButton" class="ls-button" type="button">読込</button>
-                <button id="deleteTemplateButton" class="ls-icon-button" type="button" aria-label="選んだテンプレートを削除">🗑</button>
-              </div>
-              <div class="ls-actions">
-                <button id="copyJsonButton" class="ls-button" type="button">JSONをコピー</button>
-                <button id="resetButton" class="ls-button is-danger" type="button">入力をリセット</button>
-              </div>
-            </div>
-          </details>
+        </div>
+
+        <div class="card-tools">
+          <button id="copyJsonButton" class="ls-button" type="button">JSONをコピー</button>
+          <button id="resetButton" class="ls-button is-danger" type="button">入力をリセット</button>
         </div>
       </div>
     </main>

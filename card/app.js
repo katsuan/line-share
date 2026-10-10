@@ -109,8 +109,7 @@ async function init() {
     "photoShapeField", "photoShapeHint", "photoFitField",
     "badgeList", "badgeInput", "addBadgeButton",
     "buttonList", "addButtonButton", "buttonWarning",
-    "presetGrid", "templateNameInput", "templateSelect",
-    "saveTemplateButton", "loadTemplateButton", "deleteTemplateButton",
+    "templateList", "templateNameInput", "saveTemplateButton",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
@@ -121,8 +120,7 @@ async function init() {
   state = hydrate(queryState ?? loadJson(LAST_SENT_KEY) ?? BLANK_STATE);
 
   bindEvents();
-  renderPresets();
-  renderTemplateOptions();
+  renderTemplates();
   applyStateToEditor();
   render();
 
@@ -357,27 +355,6 @@ function createInput(type, value, placeholder, ariaLabel) {
     input.spellcheck = false;
   }
   return input;
-}
-
-function renderPresets() {
-  els.presetGrid.replaceChildren(
-    ...Object.entries(PRESETS).map(([key, preset]) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "ls-list-item";
-      button.innerHTML = `<strong></strong><small></small>`;
-      button.querySelector("strong").textContent = preset.label;
-      button.querySelector("small").textContent = preset.description;
-      button.addEventListener("click", () => {
-        state = hydrate({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...PRESETS[key].state });
-        queryUrls.clear();
-        applyStateToEditor();
-        render();
-        setStatus(`「${preset.label}」のひな形を適用しました。リンク先を入力してください。`);
-      });
-      return button;
-    })
-  );
 }
 
 function autoGrowAll() {
@@ -813,57 +790,75 @@ function getTemplates() {
   return Array.isArray(templates) ? templates : [];
 }
 
-function renderTemplateOptions() {
-  const options = getTemplates().map((template) => {
-    const option = document.createElement("option");
-    option.value = template.name;
-    option.textContent = template.name;
-    return option;
+// 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる
+function renderTemplates() {
+  const builtIn = Object.values(PRESETS).map((preset) =>
+    createTemplateButton(preset.label, preset.description, () => {
+      applyTemplateState({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...preset.state });
+      setStatus(`「${preset.label}」を当てはめました。リンク先を入力してください。`);
+    })
+  );
+
+  const saved = getTemplates().map((template) => {
+    const row = document.createElement("div");
+    row.className = "template-item";
+    const button = createTemplateButton(template.name, "保存したテンプレート", () => {
+      applyTemplateState(template.state);
+      setStatus(`「${template.name}」を読み込みました。`);
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ls-icon-button";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `「${template.name}」を削除`);
+    remove.addEventListener("click", () => deleteTemplate(template.name));
+    row.append(button, remove);
+    return row;
   });
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "保存済みテンプレート";
-  els.templateSelect.replaceChildren(placeholder, ...options);
+
+  els.templateList.replaceChildren(...builtIn, ...saved);
+}
+
+function createTemplateButton(title, description, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "ls-list-item";
+  const name = document.createElement("span");
+  name.textContent = title;
+  const note = document.createElement("small");
+  note.textContent = description;
+  button.append(name, note);
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function applyTemplateState(source) {
+  state = hydrate(source);
+  queryUrls.clear();
+  applyStateToEditor();
+  render();
 }
 
 function saveTemplate() {
   const name = els.templateNameInput.value.trim();
   if (!name) {
-    setStatus("テンプレート名を入力してください。", true);
+    setStatus("保存する名前を入力してください。", true);
+    els.templateNameInput.focus();
     return;
   }
   const templates = getTemplates().filter((template) => template.name !== name);
   templates.push({ name, state: getEditorState(), savedAt: new Date().toISOString() });
   saveJson(TEMPLATE_KEY, templates);
-  renderTemplateOptions();
-  els.templateSelect.value = name;
+  renderTemplates();
   els.templateNameInput.value = "";
-  setStatus(`テンプレート「${name}」を保存しました。`);
+  setStatus(`「${name}」として保存しました。`);
 }
 
-function loadTemplate() {
-  const template = getTemplates().find((item) => item.name === els.templateSelect.value);
-  if (!template) {
-    setStatus("テンプレートを選択してください。", true);
-    return;
-  }
-  state = hydrate(template.state);
-  queryUrls.clear();
-  applyStateToEditor();
-  render();
-  setStatus(`テンプレート「${template.name}」を読み込みました。`);
-}
-
-function deleteTemplate() {
-  const name = els.templateSelect.value;
-  if (!name) {
-    setStatus("テンプレートを選択してください。", true);
-    return;
-  }
-  if (!confirm(`テンプレート「${name}」を削除しますか？`)) return;
+function deleteTemplate(name) {
+  if (!confirm(`「${name}」を削除しますか？`)) return;
   saveJson(TEMPLATE_KEY, getTemplates().filter((template) => template.name !== name));
-  renderTemplateOptions();
-  setStatus(`テンプレート「${name}」を削除しました。`);
+  renderTemplates();
+  setStatus(`「${name}」を削除しました。`);
 }
 
 async function copyJson() {
@@ -985,8 +980,12 @@ function bindEvents() {
   });
 
   els.saveTemplateButton.addEventListener("click", saveTemplate);
-  els.loadTemplateButton.addEventListener("click", loadTemplate);
-  els.deleteTemplateButton.addEventListener("click", deleteTemplate);
+  els.templateNameInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      saveTemplate();
+    }
+  });
   els.copyJsonButton.addEventListener("click", copyJson);
 
   const resetLabel = els.resetButton.textContent;
