@@ -9,13 +9,13 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるカード</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610101958" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610101958" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610101959" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610101959" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610101958"></script>
-    <script src="../shared/credit.js?v=202610101958"></script>
-    <script src="../shared/ui.js?v=202610101958" defer></script>
-    <script type="module" src="./assets/main.js?v=202610101958"></script>
+    <script src="../config.js?v=202610101959"></script>
+    <script src="../shared/credit.js?v=202610101959"></script>
+    <script src="../shared/ui.js?v=202610101959" defer></script>
+    <script type="module" src="./assets/main.js?v=202610101959"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -36,18 +36,6 @@
           <span class="ls-preview-label">送信プレビュー</span>
           <div id="mapPreview" class="talk-card"></div>
         </section>
-
-        <details class="ls-fold">
-          <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
-          <div class="ls-fold-body">
-            <p class="ls-hint">バッジとコメントをまとめて入れます。今の内容を保存すると、場所ごと残せます。</p>
-            <div id="mapTemplateList" class="ls-list"></div>
-            <div class="ls-row">
-              <input id="mapTemplateName" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
-              <button id="mapTemplateSave" class="ls-button" type="button">保存</button>
-            </div>
-          </div>
-        </details>
 
         <section class="ls-panel">
           <div class="ls-panel-head">
@@ -86,22 +74,38 @@
           </div>
         </section>
 
-        <section class="ls-panel">
-          <div class="ls-field">
-            <span class="ls-label">バッジ</span>
-            <div id="badgeList" class="ls-chips"></div>
-            <div class="ls-row">
-              <input id="customBadge" class="ls-input" type="text" maxlength="12" aria-label="バッジを追加" placeholder="例：駅近 / 子連れOK" />
-              <button id="addBadgeButton" class="ls-button" type="button">追加</button>
+        <div class="ls-folds">
+          <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
+            <div class="ls-fold-body">
+              <p class="ls-hint">バッジとコメントをまとめて入れます。今の内容を保存すると、場所ごと残せます。</p>
+              <div id="mapTemplateList" class="ls-list"></div>
+              <div class="ls-row">
+                <input id="mapTemplateName" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
+                <button id="mapTemplateSave" class="ls-button" type="button">保存</button>
+              </div>
             </div>
-            <p class="ls-hint">最大5つまで選べます。</p>
-          </div>
+          </details>
 
-          <label class="ls-field">
-            <span class="ls-label">コメント</span>
-            <textarea id="mapComment" class="ls-input" rows="3" placeholder="例：ここ行ってみたい！"></textarea>
-          </label>
-        </section>
+          <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ <span id="badgeMeta" class="ls-fold-meta">なし</span></summary>
+            <div class="ls-fold-body">
+              <div id="badgeList" class="ls-chips"></div>
+              <div class="ls-row">
+                <input id="customBadge" class="ls-input" type="text" maxlength="12" aria-label="バッジを追加" placeholder="例：駅近 / 子連れOK" />
+                <button id="addBadgeButton" class="ls-button" type="button">追加</button>
+              </div>
+              <p class="ls-hint">最大5つまで選べます。</p>
+            </div>
+          </details>
+
+          <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>コメント <span id="commentMeta" class="ls-fold-meta">未入力</span></summary>
+            <div class="ls-fold-body">
+              <textarea id="mapComment" class="ls-input" rows="3" aria-label="コメント" placeholder="例：ここ行ってみたい！"></textarea>
+            </div>
+          </details>
+        </div>
 
         <button id="mapShareButton" type="button" hidden>トークに送る</button>
         <p id="mapMessage" class="message" hidden></p>
@@ -222,18 +226,18 @@
                 </div>
               </div>
             </details>
-          </div>
 
-          <section class="ls-panel">
-            <label class="ls-field">
-              <span class="ls-label">カレンダー登録用のリンク</span>
-              <textarea id="generatedUrl" class="ls-input url-output" rows="3" readonly></textarea>
-            </label>
-            <div class="ls-actions">
-              <button id="openUrlButton" class="ls-button" type="button">カレンダーで開く</button>
-              <button id="copyUrlButton" class="ls-button" type="button">リンクをコピー</button>
-            </div>
-          </section>
+            <details class="ls-fold">
+              <summary><span class="ls-fold-icon" aria-hidden="true">📋</span>登録用リンク <span class="ls-fold-meta">開く・コピー</span></summary>
+              <div class="ls-fold-body">
+                <textarea id="generatedUrl" class="ls-input url-output" rows="3" readonly aria-label="カレンダー登録用のリンク"></textarea>
+                <div class="ls-actions">
+                  <button id="openUrlButton" class="ls-button" type="button">カレンダーで開く</button>
+                  <button id="copyUrlButton" class="ls-button" type="button">リンクをコピー</button>
+                </div>
+              </div>
+            </details>
+          </div>
 
           <button id="shareTargetButton" type="button" hidden>トークに送る</button>
           <p id="statusMessage" class="message" hidden></p>
