@@ -9,10 +9,10 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>おくるカード</title>
     <meta name="description" content="場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れます。" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610101959" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610102001" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610101959"></script>
-    <script src="./shared/credit.js?v=202610101959"></script>
+    <script src="./config.js?v=202610102001"></script>
+    <script src="./shared/credit.js?v=202610102001"></script>
     <style>
       .hub-title {
         display: flex;
@@ -70,6 +70,75 @@
         letter-spacing: -2px;
       }
 
+      /* メイン機能とは別の、ほかのページへのリンク */
+      .hub-more {
+        margin-top: 28px;
+      }
+
+      .hub-more-title {
+        margin: 0 4px 8px;
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hub-links {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-lg);
+        background: var(--ls-surface);
+        overflow: hidden;
+      }
+
+      .hub-links li + li {
+        border-top: 1px solid var(--ls-line);
+      }
+
+      .hub-link {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 60px;
+        padding: 8px 16px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .hub-link:active {
+        background: var(--ls-surface-sub);
+      }
+
+      .hub-link:focus-visible {
+        outline: 2px solid var(--ls-text);
+        outline-offset: -2px;
+      }
+
+      .hub-link-icon {
+        font-size: 24px;
+        text-align: center;
+      }
+
+      .hub-link-name {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .hub-link-desc {
+        display: block;
+        color: var(--ls-subtext);
+        font-size: 12px;
+      }
+
+      .hub-link-arrow {
+        color: var(--ls-faint);
+        font-size: 14px;
+      }
+
       .hub-redirect {
         padding-top: 30vh;
         color: var(--ls-subtext);
@@ -85,6 +154,26 @@
         <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span><span>お知らせ<wbr />カード</span></a></li>
         <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き</a></li>
       </ul>
+
+      <section class="hub-more" aria-labelledby="hubMoreTitle">
+        <h2 id="hubMoreTitle" class="hub-more-title">ほかのツール</h2>
+        <ul class="hub-links">
+          <li>
+            <a class="hub-link" href="https://katsuan.github.io/gender-reveal/create.html">
+              <span class="hub-link-icon" aria-hidden="true">🐣</span>
+              <span><span class="hub-link-name">ジェンダーリビール</span><span class="hub-link-desc">赤ちゃんの性別をプレゼント演出で発表</span></span>
+              <span class="hub-link-arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li>
+            <a class="hub-link" href="https://katsuan.github.io/pomodoro/">
+              <span class="hub-link-icon" aria-hidden="true">🍅</span>
+              <span><span class="hub-link-name">ポモドーロ</span><span class="hub-link-desc">集中と休憩をくり返すタイマー</span></span>
+              <span class="hub-link-arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        </ul>
+      </section>
     </main>
 
     <script>
