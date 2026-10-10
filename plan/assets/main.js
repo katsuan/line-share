@@ -1,6 +1,6 @@
-import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610102340";
-import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610102340";
-import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610102340";
+import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610110012";
+import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610110012";
+import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610110012";
 
 const TABS = ["map", "calendar"];
 

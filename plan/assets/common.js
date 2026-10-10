@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610102340";
+import { MAX_URI_LENGTH } from "./config.js?v=202610110012";
 
 export const app = {
   liffReady: false
@@ -112,4 +112,11 @@ export function formatPlaceLocation(place) {
   if (!title) return address;
   if (!address || address.includes(title)) return title;
   return `${title} ${address}`;
+}
+
+/**
+ * プレビューの部分に付ける属性。タップすると id の設定を開き、入力欄（空白区切りで候補）に移る（shared/ui.js）。
+ */
+export function jumpAttrs(id, focusIds = "") {
+  return `data-jump="${id}"${focusIds ? ` data-jump-focus="${focusIds}"` : ""} role="button" tabindex="0"`;
 }
