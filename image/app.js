@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101907";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610101907";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610101915";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610101915";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -675,8 +675,8 @@ function buildMessage_(mode, imageUrl, item) {
         aspectMode: "fit",
         animated: item.animated,
         backgroundColor: "#00000000",
-        // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く（元の文字アイコンも常に付けていた）
-        action: { type: "uri", label: "おくるカード", uri: credit.topUrl() }
+        // 透過を保つためフッターは付けず、Created by が ON のときだけ画像のタップで「おくるカード」を開く
+        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
       },
       // 下に文字を入れると透過しなくなるため、元の文字アイコンの「文字なし」と同じく空の本文にする
       body: {

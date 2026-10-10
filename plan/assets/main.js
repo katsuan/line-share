@@ -1,7 +1,7 @@
-import { CONFIG } from "./config.js?v=202610101907";
-import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610101907";
-import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610101907";
-import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610101907";
+import { CONFIG } from "./config.js?v=202610101915";
+import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610101915";
+import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610101915";
+import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610101915";
 
 const TABS = ["map", "calendar"];
 
