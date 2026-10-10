@@ -26,6 +26,7 @@ const THEMES = {
 const PRESETS = {
   emergency: {
     label: "緊急",
+    icon: "🚨",
     description: "障害告知・営業時間変更など",
     state: {
       theme: "berry",
@@ -39,6 +40,7 @@ const PRESETS = {
   },
   share: {
     label: "共有",
+    icon: "📣",
     description: "資料共有・周知・案内など",
     state: {
       theme: "sky",
@@ -52,6 +54,7 @@ const PRESETS = {
   },
   link: {
     label: "リンク誘導",
+    icon: "🔗",
     description: "予約・商品詳細・記事など",
     state: {
       theme: "leaf",
@@ -110,7 +113,7 @@ async function init() {
     "photoShapeField", "photoShapeHint", "photoFitField",
     "badgeList", "badgeInput", "addBadgeButton",
     "buttonList", "addButtonButton", "buttonWarning",
-    "templateList", "templateNameInput", "saveTemplateButton",
+    "presetGrid", "templateList", "templateNameInput", "saveTemplateButton",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
@@ -810,12 +813,25 @@ function getTemplates() {
 
 // 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる
 function renderTemplates() {
-  const builtIn = Object.values(PRESETS).map((preset) =>
-    createTemplateButton(preset.label, preset.description, () => {
+  // 用意済みのテンプレートは横に3つ並べ、保存したものはその下に一覧で出す
+  const builtIn = Object.values(PRESETS).map((preset) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "preset-tile";
+    button.title = preset.description;
+    const icon = document.createElement("span");
+    icon.className = "preset-tile-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = preset.icon;
+    const name = document.createElement("span");
+    name.textContent = preset.label;
+    button.append(icon, name);
+    button.addEventListener("click", () => {
       applyTemplateState({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...preset.state });
       setStatus(`「${preset.label}」を当てはめました。リンク先を入力してください。`);
-    })
-  );
+    });
+    return button;
+  });
 
   const saved = getTemplates().map((template) => {
     const row = document.createElement("div");
@@ -834,7 +850,8 @@ function renderTemplates() {
     return row;
   });
 
-  els.templateList.replaceChildren(...builtIn, ...saved);
+  els.presetGrid.replaceChildren(...builtIn);
+  els.templateList.replaceChildren(...saved);
 }
 
 function createTemplateButton(title, description, onClick) {
