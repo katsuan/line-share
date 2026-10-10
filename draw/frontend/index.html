@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LIFF Draw Send</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      :root {
+        --bg: #f4efe4;
+        --panel: rgba(255, 251, 244, 0.9);
+        --ink: #18222f;
+        --accent: #ed6a3a;
+        --accent-strong: #cf4b1f;
+        --accent-soft: #ffcf99;
+        --line: rgba(24, 34, 47, 0.12);
+        --success: #1c7c54;
+        --error: #b42318;
+        --tool-height: 44px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Zen Kaku Gothic New", sans-serif;
+        color: var(--ink);
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        background:
+          radial-gradient(circle at top left, rgba(255, 207, 153, 0.8), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(237, 106, 58, 0.18), transparent 28%),
+          linear-gradient(135deg, #f9f4ea 0%, #efe5d2 100%);
+      }
+
+      .shell {
+        width: min(880px, calc(100% - 24px));
+        margin: 0 auto;
+        padding: 16px 0 28px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      body.debug-mode .grid {
+        grid-template-columns: 340px minmax(0, 1fr);
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--panel);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 16px 32px rgba(90, 63, 34, 0.08);
+      }
+
+      .config {
+        padding: 22px;
+      }
+
+      .config[hidden] {
+        display: none;
+      }
+
+      .config h2 {
+        margin: 0 0 16px;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 1.1rem;
+        letter-spacing: -0.03em;
+      }
+
+      .field {
+        margin-bottom: 14px;
+      }
+
+      .field.is-disabled {
+        opacity: 0.38;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid rgba(24, 34, 47, 0.14);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        font: inherit;
+        color: inherit;
+      }
+
+      .actions {
+        display: grid;
+        gap: 10px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 13px 18px;
+        font: 700 0.96rem/1 "Space Grotesk", sans-serif;
+        cursor: pointer;
+        transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      button[aria-busy="true"] {
+        cursor: wait;
+      }
+
+      .primary {
+        color: white;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        box-shadow: 0 10px 24px rgba(207, 75, 31, 0.28);
+      }
+
+      .secondary {
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(24, 34, 47, 0.08);
+      }
+
+      .ghost {
+        color: var(--ink);
+        background: rgba(255, 207, 153, 0.35);
+      }
+
+      .status {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        line-height: 1.5;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(24, 34, 47, 0.08);
+      }
+
+      .status[data-tone="success"] {
+        color: var(--success);
+      }
+
+      .status[data-tone="error"] {
+        color: var(--error);
+      }
+
+      .status[hidden] {
+        display: none;
+      }
+
+      .hint {
+        margin-top: 12px;
+        font-size: 0.88rem;
+        line-height: 1.6;
+        color: rgba(24, 34, 47, 0.72);
+      }
+
+      .board {
+        padding: 16px;
+      }
+
+      .canvas-frame {
+        position: relative;
+        padding: 12px;
+        border-radius: 26px;
+        -webkit-user-select: none;
+        user-select: none;
+        background:
+          linear-gradient(180deg, rgba(24, 34, 47, 0.05), rgba(24, 34, 47, 0.02)),
+          white;
+        border: 1px solid rgba(24, 34, 47, 0.08);
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        max-width: 820px;
+        margin: 0 auto;
+        aspect-ratio: 1 / 1;
+        border-radius: 18px;
+        background:
+          linear-gradient(45deg, rgba(24, 34, 47, 0.04) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.04) 75%, rgba(24, 34, 47, 0.04)),
+          linear-gradient(45deg, rgba(24, 34, 47, 0.04) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.04) 75%, rgba(24, 34, 47, 0.04));
+        background-position: 0 0, 14px 14px;
+        background-size: 28px 28px;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+        box-shadow: inset 0 0 0 1px rgba(24, 34, 47, 0.08);
+      }
+
+      canvas.is-filled {
+        background: var(--canvas-fill, white);
+      }
+
+      .board-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .board-actions button {
+        flex: 1 1 120px;
+      }
+
+      .board-actions .primary {
+        flex: 2 1 240px;
+      }
+
+      .board-actions .secondary {
+        padding-inline: 8px;
+      }
+
+      .sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(24, 34, 47, 0.45);
+      }
+
+      .sheet[hidden] {
+        display: none;
+      }
+
+      .sheet-body {
+        width: min(440px, 100%);
+        max-height: 100%;
+        overflow-y: auto;
+        padding: 18px;
+        background: #fffbf4;
+      }
+
+      .sheet-body h2 {
+        margin: 0 0 12px;
+        font-size: 1rem;
+      }
+
+      .save-preview-frame {
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid rgba(24, 34, 47, 0.12);
+      }
+
+      /* 本体は長押しメニューを止めているが、保存用の画像だけは長押しで保存できるようにする */
+      .save-preview-frame img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        -webkit-touch-callout: default;
+        -webkit-user-select: auto;
+        user-select: auto;
+      }
+
+      .sheet-actions {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .board-status {
+        margin-top: 14px;
+      }
+
+      .debug-link {
+        display: none;
+        margin-top: 12px;
+        font-size: 0.82rem;
+        color: rgba(24, 34, 47, 0.56);
+      }
+
+      .compact-status {
+        margin-top: 12px;
+      }
+
+      .checker {
+        background-color: white;
+        background-image:
+          linear-gradient(45deg, rgba(24, 34, 47, 0.12) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.12) 75%),
+          linear-gradient(45deg, rgba(24, 34, 47, 0.12) 25%, transparent 25%, transparent 75%, rgba(24, 34, 47, 0.12) 75%);
+        background-position: 0 0, 5px 5px;
+        background-size: 10px 10px;
+      }
+
+      .tool-summary-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .tool-summary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: var(--tool-height);
+        padding: 0 8px;
+        white-space: nowrap;
+        border: 1px solid rgba(24, 34, 47, 0.14);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--ink);
+        font: 700 0.86rem/1 "Zen Kaku Gothic New", sans-serif;
+        box-shadow: none;
+      }
+
+      .tool-summary::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        margin-left: 2px;
+        border-right: 2px solid rgba(24, 34, 47, 0.45);
+        border-bottom: 2px solid rgba(24, 34, 47, 0.45);
+        transform: translateY(-2px) rotate(45deg);
+        transition: transform 140ms ease;
+      }
+
+      .tool-summary[aria-expanded="true"] {
+        background: linear-gradient(135deg, rgba(255, 207, 153, 0.65), rgba(237, 106, 58, 0.18));
+        border-color: rgba(237, 106, 58, 0.32);
+      }
+
+      .tool-summary[aria-expanded="true"]::after {
+        transform: translateY(2px) rotate(-135deg);
+      }
+
+      .preview-dot,
+      .size-dot {
+        display: block;
+        flex: none;
+        border-radius: 50%;
+        background-color: var(--dot-color, transparent);
+        box-shadow:
+          0 0 0 var(--ring, 0px) var(--ring-color, transparent),
+          0 0 0 calc(var(--ring, 0px) + 1px) rgba(24, 34, 47, 0.18);
+      }
+
+      .preview-dot {
+        width: 18px;
+        height: 18px;
+      }
+
+      .preview-dot.has-ring {
+        width: 12px;
+        height: 12px;
+        --ring: 3px;
+      }
+
+      .preview-dot.is-none {
+        background: transparent;
+        box-shadow: none;
+        border: 1.5px dashed rgba(24, 34, 47, 0.4);
+      }
+
+      .tool-panel {
+        margin-bottom: 10px;
+        padding: 14px;
+        border: 1px solid rgba(24, 34, 47, 0.08);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      .tool-panel[hidden] {
+        display: none;
+      }
+
+      .tool-label {
+        margin: 0 0 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: rgba(24, 34, 47, 0.72);
+      }
+
+      .swatches + .tool-label {
+        margin-top: 14px;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 40px));
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .swatch {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        padding: 0;
+        border: 1px solid rgba(24, 34, 47, 0.18);
+        border-radius: 50%;
+        background-color: var(--swatch, white);
+        color: var(--ink);
+        font: 700 0.68rem/1 "Zen Kaku Gothic New", sans-serif;
+        cursor: pointer;
+      }
+
+      .swatch[aria-pressed="true"],
+      .swatch-custom.is-selected {
+        box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent);
+      }
+
+      .swatch-custom {
+        background: conic-gradient(#e5484d, #f5a524, #f7d046, #30a46c, #3e7bfa, #8e4ec6, #e5484d);
+      }
+
+      .swatch-custom.is-selected::after {
+        content: "";
+        position: absolute;
+        inset: 7px;
+        border-radius: 50%;
+        background: var(--swatch);
+        box-shadow: 0 0 0 1px rgba(24, 34, 47, 0.18);
+      }
+
+      .swatch-custom input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .sizes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .size-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        height: 58px;
+        padding: 0;
+        border: 1px solid rgba(24, 34, 47, 0.12);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.85);
+        color: rgba(24, 34, 47, 0.72);
+        font: 500 0.72rem/1 "Zen Kaku Gothic New", sans-serif;
+      }
+
+      .size-option[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: rgba(255, 207, 153, 0.35);
+        color: var(--ink);
+      }
+
+      .size-option .size-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 24px;
+      }
+
+      /* 白い縁取りでも太さの違いが見えるよう、プレビュー部分だけ背景を敷く */
+      #outlineSizes .size-slot {
+        width: 36px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(24, 34, 47, 0.12);
+      }
+
+      .size-range {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      .size-range input {
+        flex: 1;
+        min-width: 0;
+        height: 32px;
+        accent-color: var(--accent);
+      }
+
+      .size-range output {
+        flex: none;
+        min-width: 3.4em;
+        font: 700 0.85rem/1 "Space Grotesk", sans-serif;
+        text-align: right;
+      }
+
+      .size-range.is-disabled {
+        opacity: 0.45;
+      }
+
+      .panel-note {
+        margin: 12px 0 0;
+        font-size: 0.8rem;
+        line-height: 1.5;
+        color: rgba(24, 34, 47, 0.6);
+      }
+
+      body.debug-mode .debug-link {
+        display: block;
+      }
+
+      @media (max-width: 900px) {
+        body.debug-mode .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .board-actions .primary {
+          flex-basis: 100%;
+        }
+
+        .board-actions .secondary {
+          flex-basis: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="grid">
+        <aside id="configPanel" class="panel config">
+          <h2>Config</h2>
+
+          <div class="field">
+            <label for="liffId">LIFF ID</label>
+            <input id="liffId" type="text" placeholder="例: 2000000000-xxxxxxxx" />
+          </div>
+
+          <div class="field">
+            <label for="apiBaseUrl">Render API Base URL</label>
+            <input id="apiBaseUrl" type="url" placeholder="https://your-app.onrender.com" />
+          </div>
+
+          <div class="actions">
+            <button id="saveConfigButton" class="secondary" type="button">Save Config</button>
+            <button id="initLiffButton" class="ghost" type="button">Initialize LIFF</button>
+          </div>
+
+          <p class="hint">
+            GitHub Pages 側ではこの入力値を localStorage に保持します。Share
+            Target Picker は LINE アプリ内ブラウザで開いたときのみ利用できます。通常画面では
+            `?debug=1` を付けたときだけこの設定欄を表示します。
+          </p>
+        </aside>
+
+        <section class="panel board">
+          <div class="tool-summary-bar">
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="penPanel">
+              <span id="penPreview" class="preview-dot"></span>ペン
+            </button>
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="outlinePanel">
+              <span id="outlinePreview" class="preview-dot"></span>縁取り
+            </button>
+            <button class="tool-summary" type="button" aria-expanded="false" aria-controls="backgroundPanel">
+              <span id="backgroundPreview" class="preview-dot"></span>背景
+            </button>
+          </div>
+
+          <div id="penPanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="brushSwatches" class="swatches"></div>
+            <p class="tool-label">太さ</p>
+            <div id="brushSizes" class="sizes"></div>
+          </div>
+
+          <div id="outlinePanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="outlineSwatches" class="swatches"></div>
+            <p class="tool-label">太さ</p>
+            <div id="outlineSizes" class="sizes"></div>
+            <p class="panel-note">線のまわりにフチをつけます。トークの背景が暗くても線が見やすくなります。</p>
+          </div>
+
+          <div id="backgroundPanel" class="tool-panel" hidden>
+            <p class="tool-label">色</p>
+            <div id="backgroundSwatches" class="swatches"></div>
+            <p class="panel-note">「透明」にすると、描いた線だけの画像になります。</p>
+          </div>
+
+          <div class="canvas-frame">
+            <canvas id="drawCanvas" width="1024" height="1024"></canvas>
+          </div>
+
+          <div class="board-actions">
+            <button id="shareButton" class="primary" type="button">トークに送る</button>
+            <button id="saveButton" class="secondary" type="button">画像を保存</button>
+            <button id="undoButton" class="secondary" type="button" disabled>元に戻す</button>
+            <button id="clearButton" class="secondary" type="button">全部消す</button>
+          </div>
+
+          <div id="status" class="status compact-status" data-tone="default" role="status" aria-live="polite">
+            準備しています...
+          </div>
+
+          <div id="debugInfo" class="status compact-status" data-tone="default" hidden></div>
+          <p class="debug-link">Debug mode: URL の末尾に `?debug=1` を付けると設定欄を表示します。</p>
+        </section>
+      </section>
+    </main>
+
+    <div id="saveSheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="saveSheetTitle" hidden>
+      <div class="sheet-body panel">
+        <h2 id="saveSheetTitle">画像を保存</h2>
+        <div class="save-preview-frame checker">
+          <img id="savePreview" alt="保存する画像" />
+        </div>
+        <p class="panel-note">うまく保存できないときは、画像を長押しして保存してください。</p>
+        <div class="sheet-actions">
+          <button id="saveConfirmButton" class="primary" type="button">端末に保存</button>
+          <button id="saveCloseButton" class="secondary" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const defaultConfig = {
+        liffId: "2009927876-M1sXwp0q",
+        apiBaseUrl: "https://liff-image.onrender.com",
+      };
+
+      const storageKeys = {
+        liffId: "liff-draw-send:liff-id",
+        apiBaseUrl: "liff-draw-send:api-base-url",
+        brushColor: "liff-draw-send:brush-color",
+        brushSize: "liff-draw-send:brush-size",
+        transparentBackground: "liff-draw-send:transparent-background",
+        backgroundColor: "liff-draw-send:background-color",
+        outlineEnabled: "liff-draw-send:outline-enabled",
+        outlineColor: "liff-draw-send:outline-color",
+        outlineSize: "liff-draw-send:outline-size",
+      };
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const isDebugMode = searchParams.get("debug") === "1";
+      const isMockMode = searchParams.get("mock") === "1";
+
+      const state = {
+        liffInitialized: false,
+        drawing: false,
+        pointerId: null,
+        currentStroke: null,
+        strokeBase: null,
+        isBlank: true,
+        // 描いた順のストロークと「全部消す」の記録。元に戻すときはここから描き直す
+        history: [],
+        // 色ごとに「いま見えているペン色部分」だけを持つレイヤー
+        inkLayers: new Map(),
+      };
+
+      const statusElement = document.getElementById("status");
+      const debugInfoElement = document.getElementById("debugInfo");
+      const liffIdInput = document.getElementById("liffId");
+      const apiBaseUrlInput = document.getElementById("apiBaseUrl");
+      const initLiffButton = document.getElementById("initLiffButton");
+      const saveConfigButton = document.getElementById("saveConfigButton");
+      const shareButton = document.getElementById("shareButton");
+      const clearButton = document.getElementById("clearButton");
+      const undoButton = document.getElementById("undoButton");
+      const saveButton = document.getElementById("saveButton");
+      const saveSheet = document.getElementById("saveSheet");
+      const savePreview = document.getElementById("savePreview");
+      const saveConfirmButton = document.getElementById("saveConfirmButton");
+      const saveCloseButton = document.getElementById("saveCloseButton");
+      const configPanel = document.getElementById("configPanel");
+      const canvas = document.getElementById("drawCanvas");
+      const context = canvas.getContext("2d");
+      const maskCanvas = createLayer();
+      const summaryButtons = document.querySelectorAll(".tool-summary");
+      const penPreview = document.getElementById("penPreview");
+      const outlinePreview = document.getElementById("outlinePreview");
+      const backgroundPreview = document.getElementById("backgroundPreview");
+
+      const prefs = {};
+
+      // null は「なし」「透明」を表す
+      const colorGroups = [
+        {
+          container: document.getElementById("brushSwatches"),
+          colors: [
+            { color: "#18222f", name: "黒" },
+            { color: "#ffffff", name: "白" },
+            { color: "#e5484d", name: "赤" },
+            { color: "#f5a524", name: "オレンジ" },
+            { color: "#30a46c", name: "緑" },
+            { color: "#3e7bfa", name: "青" },
+          ],
+          get: () => prefs.brushColor,
+          set: (color) => {
+            prefs.brushColor = color;
+          },
+        },
+        {
+          container: document.getElementById("outlineSwatches"),
+          noneLabel: "なし",
+          colors: [
+            { color: "#ffffff", name: "白" },
+            { color: "#18222f", name: "黒" },
+            { color: "#f7d046", name: "黄色" },
+            { color: "#ff9ec7", name: "ピンク" },
+            { color: "#7cc4ff", name: "水色" },
+          ],
+          get: () => (prefs.outlineEnabled ? prefs.outlineColor : null),
+          set: (color) => {
+            prefs.outlineEnabled = color !== null;
+            if (color !== null) {
+              prefs.outlineColor = color;
+            }
+          },
+        },
+        {
+          container: document.getElementById("backgroundSwatches"),
+          noneLabel: "透明",
+          noneClass: "checker",
+          colors: [
+            { color: "#ffffff", name: "白" },
+            { color: "#fff4d6", name: "クリーム" },
+            { color: "#ffe1ea", name: "ピンク" },
+            { color: "#dff1ff", name: "水色" },
+            { color: "#e0f5e9", name: "ミント" },
+          ],
+          get: () => (prefs.transparentBackground ? null : prefs.backgroundColor),
+          set: (color) => {
+            prefs.transparentBackground = color === null;
+            if (color !== null) {
+              prefs.backgroundColor = color;
+            }
+          },
+        },
+      ];
+
+      // dot / ring は選択肢の見た目用の px で、実際の線幅 (value) とは別
+      const sizeGroups = [
+        {
+          container: document.getElementById("brushSizes"),
+          options: [
+            { value: 4, label: "細い", dot: 6 },
+            { value: 8, label: "ふつう", dot: 10 },
+            { value: 14, label: "太い", dot: 17 },
+          ],
+          range: { min: 1, max: 40, label: "ペンの太さを細かく調整" },
+          get: () => prefs.brushSize,
+          set: (value) => {
+            prefs.brushSize = value;
+          },
+        },
+        {
+          container: document.getElementById("outlineSizes"),
+          options: [
+            { value: 2, label: "細い", dot: 10, ring: 2 },
+            { value: 4, label: "ふつう", dot: 10, ring: 3 },
+            { value: 6, label: "太い", dot: 10, ring: 5 },
+          ],
+          range: { min: 1, max: 20, label: "縁取りの太さを細かく調整" },
+          get: () => prefs.outlineSize,
+          set: (value) => {
+            prefs.outlineSize = value;
+          },
+          isDisabled: () => !prefs.outlineEnabled,
+        },
+      ];
+
+      function setStatus(message, tone = "default") {
+        statusElement.textContent = message;
+        statusElement.dataset.tone = tone;
+      }
+
+      function setDebugInfo(message, tone = "default") {
+        if (!message) {
+          debugInfoElement.hidden = true;
+          debugInfoElement.textContent = "";
+          debugInfoElement.dataset.tone = "default";
+          return;
+        }
+
+        if (!isDebugMode) {
+          debugInfoElement.hidden = true;
+          debugInfoElement.textContent = "";
+          debugInfoElement.dataset.tone = "default";
+          return;
+        }
+
+        debugInfoElement.hidden = false;
+        debugInfoElement.textContent = message;
+        debugInfoElement.dataset.tone = tone;
+      }
+
+      function showError(message, debugDetail) {
+        setStatus(message, "error");
+        setDebugInfo(debugDetail, "error");
+      }
+
+      function describeError(error) {
+        return (
+          (error && error.code ? error.code + " / " : "") +
+          (error && error.message ? error.message : String(error))
+        );
+      }
+
+      function saveConfig() {
+        localStorage.setItem(storageKeys.liffId, liffIdInput.value.trim());
+        localStorage.setItem(storageKeys.apiBaseUrl, apiBaseUrlInput.value.trim());
+        setStatus("設定を保存しました。", "success");
+      }
+
+      function saveDrawPreferences() {
+        localStorage.setItem(storageKeys.brushColor, prefs.brushColor);
+        localStorage.setItem(storageKeys.brushSize, String(prefs.brushSize));
+        localStorage.setItem(storageKeys.transparentBackground, String(prefs.transparentBackground));
+        localStorage.setItem(storageKeys.backgroundColor, prefs.backgroundColor);
+        localStorage.setItem(storageKeys.outlineEnabled, String(prefs.outlineEnabled));
+        localStorage.setItem(storageKeys.outlineColor, prefs.outlineColor);
+        localStorage.setItem(storageKeys.outlineSize, String(prefs.outlineSize));
+      }
+
+      function loadConfig() {
+        liffIdInput.value = localStorage.getItem(storageKeys.liffId) || defaultConfig.liffId;
+        apiBaseUrlInput.value = localStorage.getItem(storageKeys.apiBaseUrl) || defaultConfig.apiBaseUrl;
+        prefs.brushColor = localStorage.getItem(storageKeys.brushColor) || "#18222f";
+        prefs.brushSize = Number(localStorage.getItem(storageKeys.brushSize) || "8");
+        prefs.transparentBackground =
+          (localStorage.getItem(storageKeys.transparentBackground) || "true") === "true";
+        prefs.backgroundColor = localStorage.getItem(storageKeys.backgroundColor) || "#ffffff";
+        prefs.outlineEnabled = (localStorage.getItem(storageKeys.outlineEnabled) || "true") === "true";
+        prefs.outlineColor = localStorage.getItem(storageKeys.outlineColor) || "#ffffff";
+        prefs.outlineSize = Number(localStorage.getItem(storageKeys.outlineSize) || "4");
+      }
+
+      function updatePreference(apply) {
+        apply();
+        saveDrawPreferences();
+        renderTools();
+      }
+
+      function createSwatch(group, entry) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "swatch";
+
+        if (entry === null) {
+          button.classList.add("swatch-none");
+          if (group.noneClass) {
+            button.classList.add(group.noneClass);
+          }
+          button.textContent = group.noneLabel;
+          button.dataset.color = "";
+        } else {
+          button.style.setProperty("--swatch", entry.color);
+          button.setAttribute("aria-label", entry.name);
+          button.dataset.color = entry.color;
+        }
+
+        button.addEventListener("click", () =>
+          updatePreference(() => group.set(entry === null ? null : entry.color)),
+        );
+        return button;
+      }
+
+      function buildColorGroup(group) {
+        if (group.noneLabel) {
+          group.container.append(createSwatch(group, null));
+        }
+        group.colors.forEach((entry) => group.container.append(createSwatch(group, entry)));
+
+        const custom = document.createElement("label");
+        custom.className = "swatch swatch-custom";
+        const input = document.createElement("input");
+        input.type = "color";
+        input.setAttribute("aria-label", "ほかの色を選ぶ");
+        input.addEventListener("input", () => updatePreference(() => group.set(input.value.toLowerCase())));
+        custom.append(input);
+        group.container.append(custom);
+
+        group.customSwatch = custom;
+        group.customInput = input;
+      }
+
+      function buildSizeGroup(group) {
+        group.options.forEach((option) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "size-option";
+          button.dataset.value = String(option.value);
+
+          const slot = document.createElement("span");
+          slot.className = "size-slot";
+          const dot = document.createElement("span");
+          dot.className = "size-dot";
+          dot.style.width = option.dot + "px";
+          dot.style.height = option.dot + "px";
+          if (option.ring) {
+            dot.style.setProperty("--ring", option.ring + "px");
+          }
+          slot.append(dot);
+
+          button.append(slot, option.label);
+          button.addEventListener("click", () => updatePreference(() => group.set(option.value)));
+          group.container.append(button);
+        });
+
+        // プリセット以外の太さも選べるよう、スライダーで任意の px を指定できるようにする
+        const row = document.createElement("div");
+        row.className = "size-range";
+        const input = document.createElement("input");
+        input.type = "range";
+        input.min = String(group.range.min);
+        input.max = String(group.range.max);
+        input.step = "1";
+        input.setAttribute("aria-label", group.range.label);
+        const output = document.createElement("output");
+        input.addEventListener("input", () => updatePreference(() => group.set(Number(input.value))));
+        row.append(input, output);
+        group.container.after(row);
+
+        group.rangeRow = row;
+        group.rangeInput = input;
+        group.rangeOutput = output;
+      }
+
+      function renderTools() {
+        colorGroups.forEach((group) => {
+          const current = group.get();
+          let matched = false;
+
+          group.container.querySelectorAll("button.swatch").forEach((button) => {
+            const selected = (button.dataset.color || null) === current;
+            button.setAttribute("aria-pressed", String(selected));
+            matched = matched || selected;
+          });
+
+          group.customSwatch.classList.toggle("is-selected", !matched);
+          if (current !== null) {
+            group.customSwatch.style.setProperty("--swatch", current);
+            group.customInput.value = current;
+          }
+        });
+
+        sizeGroups.forEach((group) => {
+          group.container.style.setProperty("--dot-color", prefs.brushColor);
+          group.container.style.setProperty("--ring-color", prefs.outlineColor);
+          group.container.querySelectorAll(".size-option").forEach((button) => {
+            button.setAttribute("aria-pressed", String(Number(button.dataset.value) === group.get()));
+            button.disabled = group.isDisabled ? group.isDisabled() : false;
+          });
+
+          const disabled = group.isDisabled ? group.isDisabled() : false;
+          group.rangeInput.value = String(group.get());
+          group.rangeInput.disabled = disabled;
+          group.rangeOutput.textContent = group.get() + " px";
+          group.rangeRow.classList.toggle("is-disabled", disabled);
+        });
+
+        penPreview.style.setProperty("--dot-color", prefs.brushColor);
+
+        outlinePreview.classList.toggle("is-none", !prefs.outlineEnabled);
+        outlinePreview.classList.toggle("has-ring", prefs.outlineEnabled);
+        outlinePreview.style.setProperty("--dot-color", prefs.brushColor);
+        outlinePreview.style.setProperty("--ring-color", prefs.outlineColor);
+
+        backgroundPreview.classList.toggle("checker", prefs.transparentBackground);
+        backgroundPreview.style.setProperty(
+          "--dot-color",
+          prefs.transparentBackground ? "transparent" : prefs.backgroundColor,
+        );
+
+        canvas.classList.toggle("is-filled", !prefs.transparentBackground);
+        canvas.style.setProperty("--canvas-fill", prefs.backgroundColor);
+      }
+
+      function toggleToolPanel(target) {
+        const willOpen = target.getAttribute("aria-expanded") !== "true";
+
+        summaryButtons.forEach((button) => {
+          const open = button === target && willOpen;
+          button.setAttribute("aria-expanded", String(open));
+          document.getElementById(button.getAttribute("aria-controls")).hidden = !open;
+        });
+      }
+
+      function createLayer() {
+        const layer = document.createElement("canvas");
+        layer.width = canvas.width;
+        layer.height = canvas.height;
+        return layer;
+      }
+
+      function snapshotCanvas() {
+        const snapshot = createLayer();
+        snapshot.getContext("2d").drawImage(canvas, 0, 0);
+        return snapshot;
+      }
+
+      function traceStroke(targetContext, points) {
+        targetContext.beginPath();
+        targetContext.moveTo(points[0].x, points[0].y);
+        if (points.length === 1) {
+          targetContext.lineTo(points[0].x, points[0].y);
+        }
+        for (let index = 1; index < points.length; index += 1) {
+          targetContext.lineTo(points[index].x, points[index].y);
+        }
+      }
+
+      function strokePath(targetContext, stroke, width, color) {
+        targetContext.lineCap = "round";
+        targetContext.lineJoin = "round";
+        targetContext.lineWidth = width;
+        targetContext.strokeStyle = color;
+        traceStroke(targetContext, stroke.points);
+        targetContext.stroke();
+      }
+
+      function outerWidth(stroke) {
+        return stroke.outline ? stroke.size + stroke.outline.size * 2 : stroke.size;
+      }
+
+      // 縁取りが同じペン色の線を切らないよう、同色のペン部分をくり抜いた縁取りを描く。
+      // 描いた後に上から描き戻すと、縁取りの端のアンチエイリアスで細い継ぎ目が出るため
+      function drawOutline(targetContext, stroke) {
+        const layer = state.inkLayers.get(stroke.color);
+        if (!layer) {
+          strokePath(targetContext, stroke, outerWidth(stroke), stroke.outline.color);
+          return;
+        }
+
+        const maskContext = maskCanvas.getContext("2d");
+        maskContext.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        strokePath(maskContext, stroke, outerWidth(stroke), stroke.outline.color);
+        maskContext.globalCompositeOperation = "destination-out";
+        maskContext.drawImage(layer, 0, 0);
+        maskContext.globalCompositeOperation = "source-over";
+        targetContext.drawImage(maskCanvas, 0, 0);
+      }
+
+      function drawStroke(targetContext, stroke) {
+        if (stroke.outline) {
+          drawOutline(targetContext, stroke);
+        }
+        strokePath(targetContext, stroke, stroke.size, stroke.color);
+      }
+
+      function commitInkLayers(stroke) {
+        state.inkLayers.forEach((layer, color) => {
+          if (color === stroke.color) {
+            return;
+          }
+          const layerContext = layer.getContext("2d");
+          layerContext.globalCompositeOperation = "destination-out";
+          strokePath(layerContext, stroke, outerWidth(stroke), "#000");
+          layerContext.globalCompositeOperation = "source-over";
+        });
+
+        if (!state.inkLayers.has(stroke.color)) {
+          state.inkLayers.set(stroke.color, createLayer());
+        }
+        strokePath(state.inkLayers.get(stroke.color).getContext("2d"), stroke, stroke.size, stroke.color);
+      }
+
+      function clearDrawing() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        state.inkLayers.clear();
+      }
+
+      function redrawHistory() {
+        clearDrawing();
+        state.history.forEach((entry) => {
+          if (entry.type === "clear") {
+            clearDrawing();
+            return;
+          }
+          drawStroke(context, entry);
+          commitInkLayers(entry);
+        });
+
+        const last = state.history[state.history.length - 1];
+        state.isBlank = !last || last.type === "clear";
+        undoButton.disabled = state.history.length === 0;
+      }
+
+      function undo() {
+        if (state.drawing || state.history.length === 0) {
+          return;
+        }
+
+        state.history.pop();
+        redrawHistory();
+      }
+
+      function clearCanvas() {
+        if (state.drawing || state.isBlank) {
+          return;
+        }
+
+        state.history.push({ type: "clear" });
+        clearDrawing();
+        state.isBlank = true;
+        undoButton.disabled = false;
+        setStatus("全部消しました。「元に戻す」で戻せます。");
+      }
+
+      function getPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        return {
+          x: (event.clientX - rect.left) * scaleX,
+          y: (event.clientY - rect.top) * scaleY,
+        };
+      }
+
+      // 縁取りが同じストローク内の線を上書きしないよう、毎回ストローク全体を描き直す
+      function renderCurrentStroke() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(state.strokeBase, 0, 0);
+        drawStroke(context, state.currentStroke);
+      }
+
+      function handlePointerDown(event) {
+        event.preventDefault();
+
+        // 2 本目の指で別のストロークが始まって線が乱れないよう、描画中は他のポインターを無視する
+        if (state.drawing || !event.isPrimary) {
+          return;
+        }
+
+        canvas.setPointerCapture(event.pointerId);
+
+        state.drawing = true;
+        state.pointerId = event.pointerId;
+        state.strokeBase = snapshotCanvas();
+        state.currentStroke = {
+          type: "stroke",
+          points: [getPoint(event)],
+          color: prefs.brushColor,
+          size: prefs.brushSize,
+          outline: prefs.outlineEnabled ? { color: prefs.outlineColor, size: prefs.outlineSize } : null,
+        };
+        renderCurrentStroke();
+      }
+
+      function handlePointerMove(event) {
+        event.preventDefault();
+
+        if (!state.drawing || event.pointerId !== state.pointerId) {
+          return;
+        }
+
+        state.currentStroke.points.push(getPoint(event));
+        renderCurrentStroke();
+      }
+
+      function handlePointerUp(event) {
+        if (event.pointerId !== state.pointerId) {
+          return;
+        }
+
+        commitInkLayers(state.currentStroke);
+        state.history.push(state.currentStroke);
+        state.isBlank = false;
+        undoButton.disabled = false;
+
+        state.drawing = false;
+        state.pointerId = null;
+        state.currentStroke = null;
+        state.strokeBase = null;
+      }
+
+      function buildExportCanvas() {
+        if (prefs.transparentBackground) {
+          return canvas;
+        }
+
+        const exportCanvas = createLayer();
+        const exportContext = exportCanvas.getContext("2d");
+        exportContext.fillStyle = prefs.backgroundColor;
+        exportContext.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+        exportContext.drawImage(canvas, 0, 0);
+        return exportCanvas;
+      }
+
+      function buildExportDataUrl() {
+        return buildExportCanvas().toDataURL("image/png");
+      }
+
+      function buildSaveFileName() {
+        const now = new Date();
+        const pad = (value) => String(value).padStart(2, "0");
+        return (
+          "drawing-" +
+          now.getFullYear() +
+          pad(now.getMonth() + 1) +
+          pad(now.getDate()) +
+          "-" +
+          pad(now.getHours()) +
+          pad(now.getMinutes()) +
+          pad(now.getSeconds()) +
+          ".png"
+        );
+      }
+
+      // iOS の共有シートはタップ直後に呼ばないと開けないため、画像ファイルはシートを開く時点で作っておく
+      function openSaveSheet() {
+        if (state.isBlank) {
+          setStatus("先に絵を描いてください。", "error");
+          return;
+        }
+
+        buildExportCanvas().toBlob((blob) => {
+          if (!blob) {
+            setStatus("画像を作れませんでした。もう一度お試しください。", "error");
+            return;
+          }
+
+          state.saveFile = new File([blob], buildSaveFileName(), { type: "image/png" });
+          state.saveUrl = URL.createObjectURL(blob);
+          savePreview.src = state.saveUrl;
+          saveSheet.hidden = false;
+          saveConfirmButton.focus();
+        }, "image/png");
+      }
+
+      function closeSaveSheet() {
+        saveSheet.hidden = true;
+        savePreview.removeAttribute("src");
+        if (state.saveUrl) {
+          URL.revokeObjectURL(state.saveUrl);
+        }
+        state.saveUrl = null;
+        state.saveFile = null;
+      }
+
+      function downloadSaveFile() {
+        const link = document.createElement("a");
+        link.href = state.saveUrl;
+        link.download = state.saveFile.name;
+        document.body.append(link);
+        link.click();
+        link.remove();
+      }
+
+      function saveImage() {
+        const file = state.saveFile;
+        if (!file) {
+          return;
+        }
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator
+            .share({ files: [file] })
+            .then(() => closeSaveSheet())
+            .catch((error) => {
+              if (error && error.name === "AbortError") {
+                return;
+              }
+              console.error(error);
+              downloadSaveFile();
+            });
+          return;
+        }
+
+        downloadSaveFile();
+      }
+
+      async function initLiff() {
+        const liffId = liffIdInput.value.trim();
+
+        if (isMockMode) {
+          state.liffInitialized = true;
+          setStatus("Mock mode: LINE 認証なしで UI を確認できます。", "success");
+          return;
+        }
+
+        if (!liffId) {
+          showError("画面の準備に失敗しました。LINE アプリから開き直してください。", "LIFF ID が未設定です。");
+          return;
+        }
+
+        if (typeof liff === "undefined") {
+          showError(
+            "読み込みに失敗しました。通信環境を確認して開き直してください。",
+            "LIFF SDK の読み込みに失敗しました。",
+          );
+          return;
+        }
+
+        try {
+          setStatus("準備しています...");
+          await liff.init({ liffId });
+
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+
+          if (!liff.isApiAvailable("shareTargetPicker")) {
+            showError(
+              "この画面からは送信できません。LINE アプリで開いてください。",
+              "shareTargetPicker が利用できない環境です。",
+            );
+            return;
+          }
+
+          state.liffInitialized = true;
+          setStatus("描けたら「トークに送る」で送信できます。", "success");
+          setDebugInfo("");
+        } catch (error) {
+          console.error(error);
+          showError(
+            "画面の準備に失敗しました。LINE アプリから開き直してください。",
+            "LIFF 初期化に失敗しました: " + describeError(error),
+          );
+        }
+      }
+
+      async function uploadImage(dataUrl) {
+        const apiBaseUrl = apiBaseUrlInput.value.trim().replace(/\/$/, "");
+
+        if (!apiBaseUrl) {
+          throw new Error("Render API Base URL を入力してください。");
+        }
+
+        const response = await fetch(apiBaseUrl + "/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ imageData: dataUrl }),
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || "画像アップロードに失敗しました。");
+        }
+
+        return response.json();
+      }
+
+      async function shareImage() {
+        if (state.isBlank) {
+          setStatus("先に絵を描いてください。", "error");
+          return;
+        }
+
+        if (isMockMode) {
+          setStatus("Mock mode では送信しません。UI 確認専用です。", "default");
+          return;
+        }
+
+        // 失敗理由は initLiff 側で表示済み
+        if (!state.liffInitialized) {
+          await initLiff();
+
+          if (!state.liffInitialized) {
+            return;
+          }
+        }
+
+        shareButton.disabled = true;
+        shareButton.setAttribute("aria-busy", "true");
+        shareButton.textContent = "送信中...";
+        setDebugInfo("");
+
+        try {
+          setStatus("画像を準備しています...");
+          const exportDataUrl = buildExportDataUrl();
+          const { imageUrl } = await uploadImage(exportDataUrl);
+          setDebugInfo("アップロード済み画像 URL: " + imageUrl, "success");
+
+          setStatus("送信先を選択しています...");
+          const result = await liff.shareTargetPicker([
+            {
+              type: "image",
+              originalContentUrl: imageUrl,
+              previewImageUrl: imageUrl,
+            },
+          ]);
+
+          if (result === null) {
+            setStatus("送信はキャンセルされました。", "default");
+            setDebugInfo("送信はキャンセルされました。画像 URL: " + imageUrl, "default");
+          } else {
+            setStatus("画像を送信しました。", "success");
+            setDebugInfo(
+              "shareTargetPicker は解決されました。画像 URL: " +
+                imageUrl +
+                (result && result.status ? " / status: " + result.status : ""),
+              "success",
+            );
+          }
+        } catch (error) {
+          console.error(error);
+          setStatus("共有処理に失敗しました。時間をおいてもう一度お試しください。", "error");
+          setDebugInfo("詳細: " + describeError(error), "error");
+        } finally {
+          shareButton.disabled = false;
+          shareButton.removeAttribute("aria-busy");
+          shareButton.textContent = "トークに送る";
+        }
+      }
+
+      loadConfig();
+      document.body.classList.toggle("debug-mode", isDebugMode);
+      configPanel.hidden = !isDebugMode;
+      debugInfoElement.hidden = !isDebugMode;
+      colorGroups.forEach(buildColorGroup);
+      sizeGroups.forEach(buildSizeGroup);
+      renderTools();
+
+      summaryButtons.forEach((button) => button.addEventListener("click", () => toggleToolPanel(button)));
+      saveConfigButton.addEventListener("click", saveConfig);
+      initLiffButton.addEventListener("click", () => initLiff());
+      shareButton.addEventListener("click", shareImage);
+      undoButton.addEventListener("click", undo);
+      saveButton.addEventListener("click", openSaveSheet);
+      saveConfirmButton.addEventListener("click", saveImage);
+      saveCloseButton.addEventListener("click", closeSaveSheet);
+      saveSheet.addEventListener("click", (event) => {
+        if (event.target === saveSheet) {
+          closeSaveSheet();
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !saveSheet.hidden) {
+          closeSaveSheet();
+        }
+      });
+      clearButton.addEventListener("click", clearCanvas);
+
+      canvas.addEventListener("pointerdown", handlePointerDown);
+      canvas.addEventListener("pointermove", handlePointerMove);
+      canvas.addEventListener("pointerup", handlePointerUp);
+      canvas.addEventListener("pointerleave", handlePointerUp);
+      canvas.addEventListener("pointercancel", handlePointerUp);
+      canvas.addEventListener("dragstart", (event) => event.preventDefault());
+      canvas.addEventListener("selectstart", (event) => event.preventDefault());
+
+      initLiff();
+    </script>
+  </body>
+</html>
