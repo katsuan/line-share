@@ -793,3 +793,19 @@ body.is-typing .ls-sendbar {
   font-size: 10px;
   text-align: center;
 }
+
+/* 一覧の行：選ぶボタンの右に削除ボタン（保存したテンプレートなど） */
+.ls-list-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ls-list-row > .ls-list-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.ls-list-row > .ls-icon-button {
+  align-self: stretch;
+  height: auto;
+}

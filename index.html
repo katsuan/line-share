@@ -25,6 +25,7 @@
 
       .hub-tools {
         display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
         margin: 0;
         padding: 0;
@@ -33,17 +34,23 @@
 
       .hub-tool {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 16px;
-        min-height: 88px;
-        padding: 0 20px;
+        justify-content: center;
+        gap: 10px;
+        height: 100%;
+        min-height: 128px;
+        padding: 14px 6px;
         border: 1px solid var(--ls-line);
         border-radius: var(--ls-radius-lg);
         background: var(--ls-surface);
         box-shadow: var(--ls-shadow);
         color: inherit;
-        font-size: 18px;
+        font-size: 14px;
         font-weight: 800;
+        line-height: 1.35;
+        text-align: center;
+        word-break: keep-all;
         text-decoration: none;
       }
 
@@ -57,9 +64,9 @@
       }
 
       .hub-icon {
-        min-width: 72px;
         font-size: 30px;
         line-height: 1;
+        letter-spacing: -2px;
       }
 
       .hub-redirect {
@@ -74,7 +81,7 @@
       <h1 class="hub-title"><img src="./shared/icon.svg" alt="" width="36" height="36" />おくるカード</h1>
       <ul class="hub-tools">
         <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定</a></li>
-        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span>お知らせカード</a></li>
+        <li><a class="hub-tool" href="./card/"><span class="hub-icon" aria-hidden="true">🪧</span><span>お知らせ<wbr />カード</span></a></li>
         <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">💬👆</span>文字・手書き</a></li>
       </ul>
     </main>

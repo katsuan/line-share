@@ -175,22 +175,6 @@
   cursor: pointer;
 }
 
-/* テンプレート一覧：保存したものは右に削除ボタン */
-.template-item {
-  display: flex;
-  gap: 8px;
-}
-
-.template-item > .ls-list-item {
-  flex: 1;
-  min-width: 0;
-}
-
-.template-item > .ls-icon-button {
-  align-self: stretch;
-  height: auto;
-}
-
 /* テンプレートとは別の道具（JSONコピー・リセット）はページ下に控えめに置く */
 .card-tools {
   display: flex;

@@ -5,6 +5,15 @@ import { createPlaceFlex } from "./flex.js";
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
 const MAX_BADGE_LENGTH = 12;
+const TEMPLATE_KEY = "line-share:place-templates";
+
+// 用意済みのテンプレートはバッジとコメントだけを入れ替え、選んだ場所はそのまま残す
+const PLACE_PRESETS = [
+  { name: "🍽️ ランチ候補", badges: ["おすすめ", "近い", "コスパ○"], comment: "ランチここどう？" },
+  { name: "📍 集合場所", badges: ["集合場所"], comment: "ここに集合で！" },
+  { name: "✨ 行きたい", badges: ["行きたい", "雰囲気◎"], comment: "今度ここ行ってみたい！" },
+  { name: "👶 子連れOK", badges: ["子連れOK", "駅近"], comment: "子どもと一緒でも行けそう！" }
+];
 
 const dom = {};
 const state = {
@@ -32,6 +41,9 @@ export function initMapTab({ onCreateEvent }) {
   dom.shareButton = document.getElementById("mapShareButton");
   dom.message = document.getElementById("mapMessage");
   dom.preview = document.getElementById("mapPreview");
+  dom.templateList = document.getElementById("mapTemplateList");
+  dom.templateName = document.getElementById("mapTemplateName");
+  dom.templateSave = document.getElementById("mapTemplateSave");
 
   dom.mapUrl.addEventListener("input", handleMapUrlInput_);
   dom.title.addEventListener("input", refreshMapTab);
@@ -59,8 +71,16 @@ export function initMapTab({ onCreateEvent }) {
   dom.pasteButton.addEventListener("click", pasteMapUrl_);
   dom.createEventButton.addEventListener("click", createEvent_);
   dom.shareButton.addEventListener("click", share_);
+  dom.templateSave.addEventListener("click", saveTemplate_);
+  dom.templateName.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      saveTemplate_();
+    }
+  });
 
   renderBadges_();
+  renderTemplates_();
   refreshMapTab();
 }
 
@@ -274,6 +294,115 @@ function renderPreview_(place, hasUrl) {
     </div>
     <p class="ls-credit">Created by おくるカード ›</p>
   `;
+}
+
+// ---- テンプレート ----
+
+function renderTemplates_() {
+  const builtIn = PLACE_PRESETS.map((preset) =>
+    createTemplateButton_(preset.name, describeTemplate_(preset), () => applyTemplate_(preset))
+  );
+
+  const saved = loadTemplates_().map((template) => {
+    const row = document.createElement("div");
+    row.className = "ls-list-row";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ls-icon-button";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", `「${template.name}」を削除`);
+    remove.addEventListener("click", () => deleteTemplate_(template.name));
+    row.append(createTemplateButton_(template.name, describeTemplate_(template), () => applyTemplate_(template)), remove);
+    return row;
+  });
+
+  dom.templateList.replaceChildren(...builtIn, ...saved);
+}
+
+function describeTemplate_(template) {
+  const parts = [];
+  if (template.place?.title) parts.push(`📍${template.place.title}`);
+  if (template.badges?.length) parts.push(template.badges.join("・"));
+  if (template.comment) parts.push(`「${template.comment}」`);
+  return parts.join("　") || "バッジ・コメントなし";
+}
+
+function createTemplateButton_(title, description, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "ls-list-item";
+  const name = document.createElement("span");
+  name.textContent = title;
+  const note = document.createElement("small");
+  note.textContent = description;
+  button.append(name, note);
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function applyTemplate_(template) {
+  if (template.place?.mapUrl || template.place?.title) {
+    loadPlace({
+      mapUrl: template.place.mapUrl || "",
+      title: template.place.title || "",
+      address: template.place.address || "",
+      photoUrl: template.place.photoUrl || ""
+    });
+  }
+  state.selectedBadges = (template.badges || []).slice(0, MAX_BADGES);
+  dom.comment.value = template.comment || "";
+  renderBadges_();
+  refreshMapTab();
+  setMessage(dom.message, `「${template.name}」を当てはめました。`);
+}
+
+function saveTemplate_() {
+  const name = dom.templateName.value.trim();
+  if (!name) {
+    setMessage(dom.message, "保存する名前を入力してください。", "error");
+    dom.templateName.focus();
+    return;
+  }
+  const place = getPlace_();
+  const template = {
+    name,
+    place: {
+      mapUrl: dom.mapUrl.value.trim(),
+      title: place.title,
+      address: place.address,
+      photoUrl: place.photoUrl
+    },
+    badges: place.badges,
+    comment: place.comment
+  };
+  saveTemplates_([...loadTemplates_().filter((item) => item.name !== name), template]);
+  dom.templateName.value = "";
+  renderTemplates_();
+  setMessage(dom.message, `「${name}」として保存しました。`, "success");
+}
+
+function deleteTemplate_(name) {
+  if (!confirm(`「${name}」を削除しますか？`)) return;
+  saveTemplates_(loadTemplates_().filter((item) => item.name !== name));
+  renderTemplates_();
+  setMessage(dom.message, `「${name}」を削除しました。`);
+}
+
+function loadTemplates_() {
+  try {
+    const templates = JSON.parse(localStorage.getItem(TEMPLATE_KEY) || "[]");
+    return Array.isArray(templates) ? templates : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTemplates_(templates) {
+  try {
+    localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates));
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function setSending_(isSending) {
