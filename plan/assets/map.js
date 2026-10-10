@@ -1,4 +1,5 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, resolveMapInfo, setMessage, shareFlex, toUserMessage, UserError, app } from "./common.js";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js";
 import { createPlaceFlex } from "./flex.js";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
@@ -24,7 +25,6 @@ export function initMapTab({ onCreateEvent }) {
   dom.badgeList = document.getElementById("badgeList");
   dom.customBadge = document.getElementById("customBadge");
   dom.addBadgeButton = document.getElementById("addBadgeButton");
-  dom.resolveButton = document.getElementById("mapResolveButton");
   dom.openButton = document.getElementById("mapOpenButton");
   dom.createEventButton = document.getElementById("mapCreateEventButton");
   dom.shareButton = document.getElementById("mapShareButton");
@@ -34,7 +34,17 @@ export function initMapTab({ onCreateEvent }) {
   dom.mapUrl.addEventListener("input", handleMapUrlInput_);
   dom.title.addEventListener("input", refreshMapTab);
   dom.comment.addEventListener("input", refreshMapTab);
-  dom.resolveButton.addEventListener("click", () => resolve_());
+  if (!hasPlaceSearch()) {
+    document.getElementById("mapIntro").textContent =
+      "Google Mapsで「共有」→「リンクをコピー」したURLを貼り、場所名を入力してください。";
+  }
+  bindPlaceSearch({
+    input: document.getElementById("mapSearchInput"),
+    button: document.getElementById("mapSearchButton"),
+    results: document.getElementById("mapSearchResults"),
+    message: dom.message,
+    onSelect: selectPlace_
+  });
   dom.addBadgeButton.addEventListener("click", addCustomBadge_);
   dom.customBadge.addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.isComposing) {
@@ -53,17 +63,13 @@ export function initMapTab({ onCreateEvent }) {
 /**
  * URL パラメータ（GAS の Bot 返信から開かれた場合など）で場所を読み込む。
  */
-export async function loadPlace({ mapUrl, title, address, photoUrl }) {
+export function loadPlace({ mapUrl, title, address, photoUrl }) {
   dom.mapUrl.value = mapUrl;
-  dom.title.value = title;
+  dom.title.value = title || titleFromMapUrl(mapUrl);
   state.address = address;
   state.photoUrl = photoUrl;
   state.lastResolvedUrl = mapUrl;
   refreshMapTab();
-
-  if (mapUrl && (!title || !address || !photoUrl)) {
-    await resolve_({ keepTitle: Boolean(title) });
-  }
 }
 
 export function refreshMapTab() {
@@ -95,27 +101,21 @@ function handleMapUrlInput_() {
   if (url !== state.lastResolvedUrl) {
     state.address = "";
     state.photoUrl = "";
+    if (!dom.title.value.trim()) {
+      dom.title.value = titleFromMapUrl(url);
+    }
   }
   refreshMapTab();
 }
 
-async function resolve_({ keepTitle = false } = {}) {
-  setResolving_(true);
+function selectPlace_(place) {
+  dom.mapUrl.value = place.mapUrl;
+  dom.title.value = place.title;
+  state.address = place.address;
+  state.photoUrl = place.photoUrl;
+  state.lastResolvedUrl = place.mapUrl;
   setMessage(dom.message, "");
-  try {
-    const info = await resolveMapInfo(dom.mapUrl.value.trim());
-    state.lastResolvedUrl = info.mapUrl;
-    state.address = info.address;
-    state.photoUrl = info.photoUrl;
-    if (!keepTitle || !dom.title.value.trim()) {
-      dom.title.value = info.title || "Google Maps";
-    }
-  } catch (error) {
-    setMessage(dom.message, toUserMessage(error), "error");
-  } finally {
-    setResolving_(false);
-    refreshMapTab();
-  }
+  refreshMapTab();
 }
 
 function openMap_() {
@@ -249,11 +249,6 @@ function renderPreview_(place, hasUrl) {
       <a class="preview-link primary" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">地図を開く</a>
     </div>
   `;
-}
-
-function setResolving_(isResolving) {
-  dom.resolveButton.disabled = isResolving;
-  dom.resolveButton.textContent = isResolving ? "取得中..." : "情報を取得";
 }
 
 function setSending_(isSending) {

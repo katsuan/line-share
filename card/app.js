@@ -114,14 +114,8 @@ async function init() {
   applyStateToEditor();
   render();
 
-  window.addEventListener("resize", () => {
-    syncActionsBarSpacing();
-    autoGrowAll();
-  });
-  requestAnimationFrame(() => {
-    autoGrowAll();
-    syncActionsBarSpacing();
-  });
+  window.addEventListener("resize", autoGrowAll);
+  requestAnimationFrame(autoGrowAll);
 
   await initLiff();
 }
@@ -369,11 +363,6 @@ function autoGrowAll() {
   }
 }
 
-function syncActionsBarSpacing() {
-  const actions = document.querySelector(".actions");
-  document.body.style.paddingBottom = `${actions.offsetHeight}px`;
-}
-
 // ---- 色 ----
 
 function getPalette() {
@@ -475,8 +464,7 @@ function updateShareButtonState() {
 
 function setStatus(message, isError = false) {
   els.status.textContent = message || "";
-  els.status.classList.toggle("error", isError);
-  syncActionsBarSpacing();
+  els.status.classList.toggle("is-error", isError);
 }
 
 function buildFlexMessage() {
@@ -843,17 +831,6 @@ function bindEvents() {
     applyStateToEditor();
     render();
     setStatus("入力をリセットしました。");
-  });
-
-  // 入力中はスマホのキーボードと重ならないよう送信バーを隠す
-  document.addEventListener("focusin", (event) => {
-    if (event.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=color]), textarea")) {
-      document.body.classList.add("is-typing");
-    }
-  });
-  document.addEventListener("focusout", () => {
-    document.body.classList.remove("is-typing");
-    syncActionsBarSpacing();
   });
 
   // カード上の1行入力は Enter で次の欄へ

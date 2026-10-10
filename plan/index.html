@@ -8,23 +8,20 @@
       name="description"
       content="Google Mapsの場所や予定を、見やすいカードにしてLINEで送れるページです。"
     />
+    <link rel="stylesheet" href="../shared/ui.css" />
     <link rel="stylesheet" href="./assets/styles.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="../config.js"></script>
+    <script src="../shared/ui.js" defer></script>
     <script type="module" src="./assets/main.js"></script>
   </head>
-  <body>
+  <body class="ls-has-sendbar">
     <main class="app-shell">
-      <section class="hero">
-        <div class="hero-top">
-          <a class="back-link" href="../">← ツール一覧</a>
-          <span id="liffBadge" class="badge">接続確認中</span>
-        </div>
-        <h1>場所と予定を送りやすくする</h1>
-        <p class="hero-text">
-          Google Mapsの場所や予定を、相手が開きやすいカードにしてトークへ送れます。
-        </p>
-      </section>
+      <header class="ls-topbar">
+        <a class="ls-back" href="../">ツール一覧</a>
+        <h1 class="ls-title">場所と予定</h1>
+        <span class="ls-topbar-end"><span id="liffBadge" class="ls-pill">接続確認中</span></span>
+      </header>
 
       <div class="tabs" role="tablist" aria-label="共有する内容">
         <button id="tab-map" class="tab" type="button" role="tab" data-tab="map" aria-controls="panel-map" aria-selected="true">📍 場所</button>
@@ -36,17 +33,23 @@
           <div class="card-header">
             <div>
               <h2>場所の情報</h2>
-              <p class="section-note">Google MapsのURLを入れると、場所名・住所・写真を取り込みます。</p>
+              <p id="mapIntro" class="section-note">場所を検索して選ぶと、場所名・住所・写真が入ります。Google MapsのURLを貼って場所名を入力することもできます。</p>
             </div>
           </div>
 
-          <div class="field">
-            <label class="field-label" for="mapUrl">Google Maps URL</label>
+          <div class="field" data-place-search>
+            <label class="field-label" for="mapSearchInput">場所を検索</label>
             <div class="input-row">
-              <input id="mapUrl" type="url" inputmode="url" placeholder="https://maps.app.goo.gl/..." />
-              <button id="mapResolveButton" class="button button-soft" type="button">情報を取得</button>
+              <input id="mapSearchInput" type="search" enterkeyhint="search" placeholder="例：東京タワー / 渋谷 カフェ" />
+              <button id="mapSearchButton" class="button button-soft" type="button">検索</button>
             </div>
+            <div id="mapSearchResults" class="place-results"></div>
           </div>
+
+          <label class="field">
+            <span>Google Maps URL</span>
+            <input id="mapUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://maps.app.goo.gl/..." />
+          </label>
 
           <label class="field">
             <span>場所名</span>
@@ -169,11 +172,17 @@
                   <div class="field field-compact">
                     <input id="location" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
                   </div>
-                  <div class="input-row">
-                    <input id="locationMapUrl" type="url" inputmode="url" aria-label="場所のGoogle Maps URL" placeholder="Google Maps URL（任意）" />
-                    <button id="locationResolveButton" class="button button-soft" type="button">取得</button>
+                  <div data-place-search>
+                    <div class="input-row">
+                      <input id="locationSearchInput" type="search" enterkeyhint="search" aria-label="地図で場所を検索" placeholder="地図で場所を検索" />
+                      <button id="locationSearchButton" class="button button-soft" type="button">検索</button>
+                    </div>
+                    <div id="locationSearchResults" class="place-results"></div>
                   </div>
-                  <p class="help-text">Google MapsのURLを入れると、場所名と住所を取り込み、送るカードに写真と地図ボタンが付きます。</p>
+                  <div class="input-row">
+                    <input id="locationMapUrl" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="場所のGoogle Maps URL" placeholder="Google Maps URL（任意）" />
+                  </div>
+                  <p class="help-text">地図の場所を付けると、送るカードに写真と「地図を開く」ボタンが付きます。</p>
                 </div>
               </details>
 
@@ -281,10 +290,10 @@
       </div>
     </main>
 
-    <div class="send-bar">
-      <div class="send-bar-inner">
-        <p id="sendBarMessage" class="send-bar-message" aria-live="polite"></p>
-        <button id="sendBarButton" class="button button-main" type="button" disabled>ほかのトークに送る</button>
+    <div class="ls-sendbar">
+      <div class="ls-sendbar-inner">
+        <p id="sendBarMessage" class="ls-status" aria-live="polite"></p>
+        <button id="sendBarButton" class="ls-send" type="button" disabled>ほかのトークに送る</button>
       </div>
     </div>
   </body>

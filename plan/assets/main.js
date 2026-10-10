@@ -7,9 +7,9 @@ const TABS = ["map", "calendar"];
 
 document.addEventListener("DOMContentLoaded", async () => {
   initMapTab({
-    onCreateEvent: async (place) => {
+    onCreateEvent: (place) => {
       selectTab("calendar");
-      await applyPlace(place);
+      applyPlace(place);
       focusCalendarTitle();
     }
   });
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initializeLiff_();
 
   // LIFF の初期化後に読む（liff.state からの転送後に正しいクエリになるため）
-  await applyQuery_(new URLSearchParams(location.search));
+  applyQuery_(new URLSearchParams(location.search));
 });
 
 async function initializeLiff_() {
@@ -44,7 +44,7 @@ async function initializeLiff_() {
   }
 }
 
-async function applyQuery_(params) {
+function applyQuery_(params) {
   const mapUrl = params.get("mapUrl") || "";
   const photoUrl = params.get("photoUrl") || "";
   const place = {
@@ -64,9 +64,9 @@ async function applyQuery_(params) {
   }
 
   if (tab === "calendar") {
-    await applyPlace(place);
+    applyPlace(place);
   } else {
-    await loadPlace(place);
+    loadPlace(place);
   }
 }
 
@@ -84,7 +84,7 @@ function bindTabs_() {
   }
 }
 
-// スマホでは送信ボタンを画面下に固定し、表示中タブの送信ボタンと状態を連動させる
+// 送信は画面下の共通バーから行い、表示中タブの送信ボタンと状態を連動させる
 const SEND_TARGETS = {
   map: { button: "mapShareButton", message: "mapMessage" },
   calendar: { button: "shareTargetButton", message: "statusMessage" }
@@ -104,14 +104,6 @@ function bindSendBar_() {
     document.getElementById(SEND_TARGETS[activeTab_()].button).click();
   });
 
-  // 入力中はキーボードと重ならないよう隠す
-  document.addEventListener("focusin", (event) => {
-    if (event.target.matches("input:not([type=checkbox]), textarea")) {
-      document.body.classList.add("is-typing");
-    }
-  });
-  document.addEventListener("focusout", () => document.body.classList.remove("is-typing"));
-
   function syncSendBar_() {
     const target = SEND_TARGETS[activeTab_()];
     const source = document.getElementById(target.button);
@@ -119,7 +111,7 @@ function bindSendBar_() {
     barButton.disabled = source.disabled;
     barButton.textContent = source.textContent;
     barMessage.textContent = message.textContent;
-    barMessage.className = `send-bar-message ${message.className.replace("message", "")}`;
+    barMessage.className = `ls-status ${message.className.replace("message", "")}`;
   }
 
   window.syncSendBar = syncSendBar_;

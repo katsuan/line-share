@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>カードを送る</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのカードを作って、LINEで送れるページです。" />
+    <link rel="stylesheet" href="../shared/ui.css" />
     <link rel="stylesheet" href="./style.css" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="../config.js"></script>
+    <script src="../shared/ui.js" defer></script>
     <script src="./app.js" defer></script>
   </head>
-  <body>
+  <body class="ls-has-sendbar">
     <main class="page">
+      <header class="ls-topbar">
+        <a class="ls-back" href="../">ツール一覧</a>
+        <h1 class="ls-title">カード</h1>
+        <span class="ls-topbar-end"></span>
+      </header>
       <section class="hero">
-        <a class="back-link" href="../">← ツール一覧</a>
         <p>カードの文字を直接タップして編集できます。写真やボタンは下の設定から追加できます。</p>
       </section>
 
@@ -135,10 +141,10 @@
       </section>
     </main>
 
-    <div class="actions">
-      <div class="actions-inner">
-        <div id="status" class="status" aria-live="polite"></div>
-        <button id="shareButton" class="button" type="button" disabled>LINEで送信する</button>
+    <div class="ls-sendbar">
+      <div class="ls-sendbar-inner">
+        <p id="status" class="ls-status" aria-live="polite"></p>
+        <button id="shareButton" class="ls-send" type="button" disabled>LINEで送信する</button>
       </div>
     </div>
 

@@ -1,4 +1,4 @@
-import { CONFIG, MAX_URI_LENGTH } from "./config.js";
+import { MAX_URI_LENGTH } from "./config.js";
 
 export const app = {
   liffReady: false
@@ -66,33 +66,18 @@ export function assertUriLength(uri, label) {
 }
 
 /**
- * GAS 経由で Google Maps URL から場所名・住所・写真を取得する。
+ * Google Maps の URL から場所名を読み取る（/maps/place/<名前>/ や ?q=<名前> の形式のみ）。
+ * 短縮URL（maps.app.goo.gl）はブラウザから展開できないため空文字を返す。
  */
-export async function resolveMapInfo(url) {
-  if (!isGoogleMapsUrl(url)) {
-    throw new UserError("Google MapsのURLを入力してください。");
-  }
-
-  let data;
+export function titleFromMapUrl(url) {
   try {
-    const res = await fetch(`${CONFIG.gasApiUrl}?action=resolveMap&url=${encodeURIComponent(url)}`);
-    data = await res.json();
-  } catch (error) {
-    console.error(error);
-    throw new UserError("地図情報の取得に失敗しました。時間をおいてもう一度お試しください。");
+    const parsed = new URL(url);
+    const place = parsed.pathname.match(/\/maps\/place\/([^/]+)/);
+    const raw = place ? place[1] : parsed.searchParams.get("q") || parsed.searchParams.get("query") || "";
+    return decodeURIComponent(raw.replace(/\+/g, " ")).split(",")[0].trim();
+  } catch {
+    return "";
   }
-
-  if (!data.ok) {
-    console.error("resolveMap failed", data);
-    throw new UserError("地図情報を取得できませんでした。場所名は手動で入力してください。");
-  }
-
-  return {
-    mapUrl: url,
-    title: data.title || "",
-    address: data.address || "",
-    photoUrl: isHttpsUrl(data.photoUrl) ? data.photoUrl : ""
-  };
 }
 
 /**
