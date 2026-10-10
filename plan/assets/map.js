@@ -1,6 +1,6 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610102340";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610102340";
-import { createPlaceFlex } from "./flex.js?v=202610102340";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610110012";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610110012";
+import { createPlaceFlex } from "./flex.js?v=202610110012";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -275,26 +275,27 @@ function addCustomBadge_() {
 
 function renderPreview_(place, hasUrl) {
   if (!hasUrl) {
-    dom.preview.innerHTML = `<p class="preview-empty">場所を選ぶか、Google MapsのURLを入れると<br />送る内容をここで確認できます。</p>`;
+    dom.preview.innerHTML = `<p class="preview-empty" ${jumpAttrs("mapPlacePanel", "mapSearchInput mapTitle")}>場所を選ぶか、Google MapsのURLを入れると<br />送る内容をここで確認できます。</p>`;
     return;
   }
 
   const badges = place.badges.map((label) => `<span class="preview-badge">${escapeHtml(label)}</span>`).join("");
+  const placeJump = jumpAttrs("mapPlacePanel", "mapTitle");
 
   dom.preview.innerHTML = `
-    ${place.photoUrl ? `<img class="preview-photo" src="${escapeHtml(place.photoUrl)}" alt="" />` : ""}
+    ${place.photoUrl ? `<img class="preview-photo" src="${escapeHtml(place.photoUrl)}" alt="" ${placeJump} />` : ""}
     <div class="talk-card-body">
-      <h3 class="preview-title">📍 ${escapeHtml(place.title || "Google Maps")}</h3>
-      ${place.address ? `<p class="preview-sub">${escapeHtml(place.address)}</p>` : ""}
-      ${badges ? `<div class="preview-badges">${badges}</div>` : ""}
+      <h3 class="preview-title" ${placeJump}>📍 ${escapeHtml(place.title || "Google Maps")}</h3>
+      ${place.address ? `<p class="preview-sub" ${placeJump}>${escapeHtml(place.address)}</p>` : ""}
+      ${badges ? `<div class="preview-badges" ${jumpAttrs("mapBadgeFold", "customBadge")}>${badges}</div>` : ""}
       ${
         place.comment
-          ? `<div class="preview-grid"><div class="preview-item"><div class="preview-key">コメント</div><div class="preview-value">${escapeHtml(place.comment)}</div></div></div>`
+          ? `<div class="preview-grid"><div class="preview-item" ${jumpAttrs("mapCommentFold", "mapComment")}><div class="preview-key">コメント</div><div class="preview-value">${escapeHtml(place.comment)}</div></div></div>`
           : ""
       }
     </div>
     <div class="preview-actions">
-      <a class="preview-link primary" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">地図を開く</a>
+      <span class="preview-link primary" ${jumpAttrs("mapPlacePanel", "mapUrl")}>地図を開く</span>
     </div>
     <p class="ls-credit">Created by おくるカード ›</p>
   `;

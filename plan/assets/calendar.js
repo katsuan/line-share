@@ -5,6 +5,7 @@ import {
   formatPlaceLocation,
   isGoogleMapsUrl,
   isHttpUrl,
+  jumpAttrs,
   mapSearchUrl,
   openExternal,
   titleFromMapUrl,
@@ -12,10 +13,10 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610102340";
-import { MAX_URI_LENGTH } from "./config.js?v=202610102340";
-import { createEventFlex } from "./flex.js?v=202610102340";
-import { bindPlaceSearch } from "./place-search.js?v=202610102340";
+} from "./common.js?v=202610110012";
+import { MAX_URI_LENGTH } from "./config.js?v=202610110012";
+import { createEventFlex } from "./flex.js?v=202610110012";
+import { bindPlaceSearch } from "./place-search.js?v=202610110012";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -142,7 +143,7 @@ export function refreshCalendarTab() {
     dom.copyUrlButton.disabled = false;
     dom.shareTargetButton.disabled = !app.liffReady;
 
-    renderPreview_(data, calendarUrl);
+    renderPreview_(data);
 
     if (calendarUrl.length > MAX_URI_LENGTH) {
       setMessage(dom.statusMessage, "リンクが長すぎるためLINEでは送れません。詳細などを短くしてください。", "error");
@@ -299,42 +300,44 @@ function formatStartLabel_(data) {
     : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}`;
 }
 
-function renderPreview_(data, calendarUrl) {
+function renderPreview_(data) {
   const labels = getFlexLabels_(data);
   const spansMultipleDays = !data.allDay && !isSameCalendarDate_(data.start, data.end);
+  // 各行・各ボタンをタップしたときに移る設定
+  const toStart = jumpAttrs("eventPanel", "startDate");
   const rows = [
-    [labels.startKey, labels.start],
-    ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration],
-    data.location ? ["場所", data.location] : null,
-    data.details ? ["メモ", data.details] : null,
-    data.customParams.length ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n")] : null
+    [labels.startKey, labels.start, toStart],
+    ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration, toStart],
+    data.location ? ["場所", data.location, jumpAttrs("locationAccordion", "location")] : null,
+    data.details ? ["メモ", data.details, jumpAttrs("detailsFold", "details")] : null,
+    data.customParams.length
+      ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"), jumpAttrs("optionalAccordion")]
+      : null
   ].filter(Boolean);
   const secondaryLinks = [
-    data.mapUrl ? ["地図を開く", data.mapUrl] : null,
-    data.url ? ["関連URLを開く", data.url] : null
+    data.mapUrl ? ["地図を開く", jumpAttrs("locationAccordion", "locationMapUrl")] : null,
+    data.url ? ["関連URLを開く", jumpAttrs("urlFold", "url")] : null
   ]
     .filter(Boolean)
-    .map(
-      ([label, href]) =>
-        `<a class="preview-link secondary" href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${label}</a>`
-    )
+    .map(([label, attrs]) => `<span class="preview-link secondary" ${attrs}>${label}</span>`)
     .join("");
+  const toTitle = jumpAttrs("eventPanel", "title");
 
   dom.previewCard.innerHTML = `
-    ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" />` : ""}
+    ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" ${toTitle} />` : ""}
     <div class="talk-card-body">
-      <h3 class="preview-title">${escapeHtml(data.title)}</h3>
+      <h3 class="preview-title" ${toTitle}>${escapeHtml(data.title)}</h3>
       <div class="preview-grid">
         ${rows
           .map(
-            ([key, value]) =>
-              `<div class="preview-item"><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
+            ([key, value, attrs]) =>
+              `<div class="preview-item" ${attrs}><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
           )
           .join("")}
       </div>
     </div>
     <div class="preview-actions">
-      <a class="preview-link primary" href="${escapeHtml(calendarUrl)}" target="_blank" rel="noreferrer">Googleカレンダーに予定を追加</a>
+      <span class="preview-link primary" ${jumpAttrs("calendarLinkFold")}>Googleカレンダーに予定を追加</span>
       ${secondaryLinks}
     </div>
     <p class="ls-credit">Created by おくるカード ›</p>
@@ -342,7 +345,7 @@ function renderPreview_(data, calendarUrl) {
 }
 
 function renderPreviewEmpty_() {
-  dom.previewCard.innerHTML = `<p class="preview-empty">件名と開始・終了日時を入れると<br />送る内容をここで確認できます。</p>`;
+  dom.previewCard.innerHTML = `<p class="preview-empty" ${jumpAttrs("eventPanel", "title")}>件名と開始・終了日時を入れると<br />送る内容をここで確認できます。</p>`;
 }
 
 function updateOptionalCount_() {

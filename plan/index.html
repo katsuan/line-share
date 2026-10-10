@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるカード</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610102340" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610102340" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610110012" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610110012" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610102340"></script>
-    <script src="../shared/credit.js?v=202610102340"></script>
-    <script src="../shared/liff.js?v=202610102340"></script>
-    <script src="../shared/ui.js?v=202610102340" defer></script>
-    <script type="module" src="./assets/main.js?v=202610102340"></script>
+    <script src="../config.js?v=202610110012"></script>
+    <script src="../shared/credit.js?v=202610110012"></script>
+    <script src="../shared/liff.js?v=202610110012"></script>
+    <script src="../shared/ui.js?v=202610110012" defer></script>
+    <script type="module" src="./assets/main.js?v=202610110012"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -36,9 +36,10 @@
         <section class="ls-preview">
           <span class="ls-preview-label">送信プレビュー</span>
           <div id="mapPreview" class="talk-card"></div>
+          <p class="ls-preview-note">カードの中をタップすると、その設定に移ります。</p>
         </section>
 
-        <section class="ls-panel">
+        <section id="mapPlacePanel" class="ls-panel">
           <div class="ls-panel-head">
             <h2 class="ls-panel-title">📍 場所</h2>
             <p id="mapIntro" class="ls-panel-note">検索して選ぶと、場所名・住所・写真が入ります。</p>
@@ -88,7 +89,7 @@
             </div>
           </details>
 
-          <details class="ls-fold">
+          <details id="mapBadgeFold" class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ <span id="badgeMeta" class="ls-fold-meta">なし</span></summary>
             <div class="ls-fold-body">
               <div id="badgeList" class="ls-chips"></div>
@@ -100,7 +101,7 @@
             </div>
           </details>
 
-          <details class="ls-fold">
+          <details id="mapCommentFold" class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>コメント <span id="commentMeta" class="ls-fold-meta">未入力</span></summary>
             <div class="ls-fold-body">
               <textarea id="mapComment" class="ls-input" rows="3" aria-label="コメント" placeholder="例：ここ行ってみたい！"></textarea>
@@ -118,9 +119,10 @@
           <section class="ls-preview">
             <span class="ls-preview-label">送信プレビュー</span>
             <div id="previewCard" class="talk-card"></div>
+            <p class="ls-preview-note">カードの中をタップすると、その設定に移ります。</p>
           </section>
 
-          <section class="ls-panel">
+          <section id="eventPanel" class="ls-panel">
             <div class="ls-panel-head">
               <h2 class="ls-panel-title">📅 予定</h2>
               <p class="ls-panel-note">件名と日時だけで作れます。相手はそのままGoogleカレンダーに追加できます。</p>
@@ -185,14 +187,14 @@
               </div>
             </details>
 
-            <details class="ls-fold">
+            <details id="urlFold" class="ls-fold">
               <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>関連URL <span id="urlState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <input id="url" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="関連URL" placeholder="https://example.com" />
               </div>
             </details>
 
-            <details class="ls-fold">
+            <details id="detailsFold" class="ls-fold">
               <summary><span class="ls-fold-icon" aria-hidden="true">📝</span>メモ <span id="detailsState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <textarea id="details" class="ls-input" rows="4" aria-label="予定の詳細" placeholder="補足情報やメモ"></textarea>
@@ -228,7 +230,7 @@
               </div>
             </details>
 
-            <details class="ls-fold">
+            <details id="calendarLinkFold" class="ls-fold">
               <summary><span class="ls-fold-icon" aria-hidden="true">📋</span>登録用リンク <span class="ls-fold-meta">開く・コピー</span></summary>
               <div class="ls-fold-body">
                 <textarea id="generatedUrl" class="ls-input url-output" rows="3" readonly aria-label="カレンダー登録用のリンク"></textarea>

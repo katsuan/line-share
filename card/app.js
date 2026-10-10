@@ -675,16 +675,7 @@ async function initLiff() {
 }
 
 function jumpToSection(id, focusTarget) {
-  const section = document.getElementById(id);
-  section.open = true;
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
-  // スクロールが終わってから入力欄に移る（先にフォーカスするとスマホでは位置がずれる）
-  setTimeout(() => {
-    // なめらかなスクロールが効かない環境では、すぐにその位置へ移す
-    const top = section.getBoundingClientRect().top;
-    if (top < 0 || top > window.innerHeight * 0.5) section.scrollIntoView({ block: "start" });
-    focusTarget?.focus({ preventScroll: true });
-  }, 400);
+  window.LineShareUI.jumpTo(id, focusTarget);
 }
 
 // ---- 写真の形 ----

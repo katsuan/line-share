@@ -596,6 +596,21 @@ input[type="time"].ls-input {
   text-align: center;
 }
 
+/* プレビューで、タップすると該当の設定へ移る部分 */
+.ls-preview [data-jump] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ls-preview [data-jump]:active {
+  opacity: 0.7;
+}
+
+.ls-preview [data-jump]:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
 /* ---- 下から出るシート ---- */
 
 .ls-sheet {
