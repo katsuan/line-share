@@ -151,3 +151,36 @@
 .send-mode-chips .ls-chip:not(.is-active) {
   background: rgba(255, 255, 255, 0.92);
 }
+
+/* ペンの太さ：スライダーと、実際に描ける太さの見本 */
+.pen-size-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pen-size-range {
+  flex: 1;
+  min-width: 0;
+  height: var(--ls-tap);
+  margin: 0;
+  accent-color: var(--ls-accent);
+}
+
+.pen-size-dot-box {
+  display: grid;
+  flex: 0 0 48px;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface-sub);
+}
+
+.pen-size-dot {
+  max-width: 44px;
+  max-height: 44px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px var(--ls-line);
+}
