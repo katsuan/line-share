@@ -107,10 +107,6 @@
 }
 
 
-.motion-toggle {
-  justify-self: center;
-  background: rgba(255, 255, 255, 0.92);
-}
 
 
 /* 送り方ごとの見え方。画像：トークの背景の上に画像だけ／カード：白いカードの中に画像 */

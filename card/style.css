@@ -187,3 +187,20 @@
   gap: 8px;
   padding-top: 4px;
 }
+
+/* プレビューで、タップすると該当の設定へ移動できる要素 */
+.bubble-hero,
+.is-jump,
+.bubble-badges {
+  cursor: pointer;
+}
+
+.bubble-hero:active,
+.bubble-action.is-jump:active {
+  opacity: 0.85;
+}
+
+.bubble-action.is-jump:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
