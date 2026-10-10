@@ -625,10 +625,6 @@ function buildMessage_(mode, imageUrl, item) {
   }
   const sourceText = item.text?.trim().replace(/\s+/g, " ") || "";
   const credit = window.LineShareCredit;
-  const notes = [
-    `${sourceText ? `「${sourceText}」` : "画像"}を${item.animated ? "動く画像で" : ""}送信しました。`,
-    ...(item.animated ? ["※ご利用端末によっては、動く画像が取得されない場合があります。"] : [])
-  ];
   return {
     type: "flex",
     altText: (sourceText || "画像").slice(0, 100),
@@ -646,11 +642,12 @@ function buildMessage_(mode, imageUrl, item) {
         // 透過を保つためフッターは付けず、画像のタップで「おくるカード」を開く（元の文字アイコンも常に付けていた）
         action: { type: "uri", label: "おくるカード", uri: credit.topUrl() }
       },
+      // 下に文字を入れると透過しなくなるため、元の文字アイコンの「文字なし」と同じく空の本文にする
       body: {
         type: "box",
         layout: "vertical",
-        contents: notes.map((text) => ({ type: "text", text, size: "xxs", color: "#999999", wrap: true })),
-        paddingAll: "12px",
+        contents: [],
+        paddingAll: "0px",
         spacing: "none",
         backgroundColor: "#00000000"
       },
