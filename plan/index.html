@@ -30,7 +30,7 @@
         <section class="ls-panel">
           <div class="ls-panel-head">
             <h2 class="ls-panel-title">場所</h2>
-            <p id="mapIntro" class="ls-panel-note">場所を検索して選ぶと、場所名・住所・写真が入ります。Google MapsのURLを貼って場所名を入力することもできます。</p>
+            <p id="mapIntro" class="ls-panel-note">検索して選ぶと、場所名・住所・写真が入ります。</p>
           </div>
 
           <div class="ls-field" data-place-search>
@@ -42,16 +42,21 @@
             <div id="mapSearchResults" class="ls-list"></div>
           </div>
 
-          <label class="ls-field">
-            <span class="ls-label">Google Maps のURL</span>
-            <input id="mapUrl" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://maps.app.goo.gl/..." />
-          </label>
+          <div class="ls-field">
+            <label class="ls-label" for="mapTitle">場所名</label>
+            <input id="mapTitle" class="ls-input" type="text" maxlength="80" placeholder="例：東京タワー" />
+            <p id="mapAddress" class="ls-hint" hidden></p>
+            <button id="mapFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
+          </div>
 
-          <label class="ls-field">
-            <span class="ls-label">場所名</span>
-            <input id="mapTitle" class="ls-input" type="text" maxlength="80" placeholder="場所名を入力" />
-          </label>
-          <p id="mapAddress" class="ls-hint" hidden></p>
+          <div class="ls-field">
+            <label class="ls-label" for="mapUrl">Google Maps のURL（任意）</label>
+            <div class="ls-row">
+              <input id="mapUrl" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://maps.app.goo.gl/..." />
+              <button id="mapPasteButton" class="ls-button" type="button">貼り付け</button>
+            </div>
+            <p class="ls-hint">Google Mapsで場所を開き「共有」→「リンクをコピー」して貼り付けます。空のままなら、場所名で検索する地図リンクを付けます。</p>
+          </div>
 
           <div class="ls-actions">
             <button id="mapOpenButton" class="ls-button" type="button">地図で確認</button>
@@ -132,6 +137,7 @@
               <summary>📍 場所 <span id="locationState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <input id="location" class="ls-input" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
+                <button id="locationFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
                 <div class="ls-field" data-place-search>
                   <div class="ls-row">
                     <input id="locationSearchInput" class="ls-input" type="search" enterkeyhint="search" aria-label="地図で場所を検索" placeholder="地図で場所を検索" />
@@ -140,7 +146,7 @@
                   <div id="locationSearchResults" class="ls-list"></div>
                 </div>
                 <input id="locationMapUrl" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="場所のGoogle Maps URL" placeholder="Google Maps のURL（任意）" />
-                <p class="ls-hint">地図の場所を付けると、送るカードに写真と「地図を開く」ボタンが付きます。</p>
+                <p class="ls-hint">送るカードに「地図を開く」ボタンが付きます。URLが空なら場所名で検索する地図リンクを付けます。</p>
               </div>
             </details>
 
