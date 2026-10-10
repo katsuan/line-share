@@ -1,5 +1,12 @@
 /* 場所と予定 固有の見た目。共通部品は shared/ui.css */
 
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 /* 日付を広め、時刻を狭めに並べる */
 .datetime-row > :last-child {
   flex: 0 0 40%;

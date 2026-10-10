@@ -90,7 +90,7 @@ export function createEventFlex(data, calendarUrl, labels) {
       weight: "bold",
       color: COLOR.text
     },
-    createInfoRow_("開始", labels.start),
+    createInfoRow_(labels.startKey, labels.start),
     createInfoRow_("所要時間", labels.duration)
   ];
 
