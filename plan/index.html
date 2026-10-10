@@ -27,6 +27,11 @@
 
       <!-- ===== 場所 ===== -->
       <div id="panel-map" class="ls-stack" role="tabpanel" aria-labelledby="tab-map">
+        <section class="ls-preview">
+          <span class="ls-preview-label">送信プレビュー</span>
+          <div id="mapPreview" class="talk-card"></div>
+        </section>
+
         <section class="ls-panel">
           <div class="ls-panel-head">
             <h2 class="ls-panel-title">場所</h2>
@@ -81,11 +86,6 @@
           </label>
         </section>
 
-        <section class="ls-preview">
-          <span class="ls-preview-label">送信プレビュー</span>
-          <div id="mapPreview" class="talk-card"></div>
-        </section>
-
         <button id="mapShareButton" type="button" hidden>LINEで送る</button>
         <p id="mapMessage" class="message" hidden></p>
       </div>
@@ -93,6 +93,11 @@
       <!-- ===== 予定 ===== -->
       <div id="panel-calendar" role="tabpanel" aria-labelledby="tab-calendar" hidden>
         <form id="eventForm" class="ls-stack" novalidate>
+          <section class="ls-preview">
+            <span class="ls-preview-label">送信プレビュー</span>
+            <div id="previewCard" class="talk-card"></div>
+          </section>
+
           <section class="ls-panel">
             <div class="ls-panel-head">
               <h2 class="ls-panel-title">予定</h2>
@@ -211,11 +216,6 @@
               <button id="openUrlButton" class="ls-button" type="button">カレンダーで開く</button>
               <button id="copyUrlButton" class="ls-button" type="button">リンクをコピー</button>
             </div>
-          </section>
-
-          <section class="ls-preview">
-            <span class="ls-preview-label">送信プレビュー</span>
-            <div id="previewCard" class="talk-card"></div>
           </section>
 
           <button id="shareTargetButton" type="button" hidden>LINEで送る</button>
