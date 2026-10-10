@@ -204,3 +204,39 @@
   outline: 2px solid var(--ls-text);
   outline-offset: 2px;
 }
+
+/* 用意済みのテンプレート（横に3つ） */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.preset-tile {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 4px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.preset-tile:active {
+  background: var(--ls-surface-sub);
+}
+
+.preset-tile:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+.preset-tile-icon {
+  font-size: 24px;
+  line-height: 1;
+}

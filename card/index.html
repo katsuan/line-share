@@ -9,13 +9,13 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるカード</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610102001" />
-    <link rel="stylesheet" href="./style.css?v=202610102001" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610102002" />
+    <link rel="stylesheet" href="./style.css?v=202610102002" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610102001"></script>
-    <script src="../shared/credit.js?v=202610102001"></script>
-    <script src="../shared/ui.js?v=202610102001" defer></script>
-    <script src="./app.js?v=202610102001" defer></script>
+    <script src="../config.js?v=202610102002"></script>
+    <script src="../shared/credit.js?v=202610102002"></script>
+    <script src="../shared/ui.js?v=202610102002" defer></script>
+    <script src="./app.js?v=202610102002" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -48,10 +48,11 @@
         </section>
 
         <div class="ls-folds">
-          <details class="ls-fold" open>
+          <details class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
             <div class="ls-fold-body">
               <p class="ls-hint">選ぶとカードの中身が入れ替わります。今のカードも名前を付けて保存できます。</p>
+              <div id="presetGrid" class="preset-grid"></div>
               <div id="templateList" class="ls-list"></div>
               <div class="ls-row">
                 <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
