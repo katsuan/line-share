@@ -571,11 +571,64 @@ input[type="time"].ls-input {
 /* ---- 送信プレビュー（全ツールで同じトーク風の枠） ---- */
 
 .ls-preview {
+  position: relative;
   display: grid;
   gap: 10px;
   padding: 16px 14px;
   border-radius: var(--ls-radius-lg);
   background: var(--ls-talk-bg);
+}
+
+/* プレビューモード切替（📝 編集／👀 完成イメージ。shared/ui.js が付ける）。選んでいるモードだけ名前を出す */
+.ls-preview-mode {
+  position: absolute;
+  top: 13px;
+  right: 12px;
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.ls-preview-mode button {
+  padding: 2px 9px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ls-preview-mode button[aria-pressed="true"] {
+  background: #fff;
+  color: var(--ls-accent-ink);
+}
+
+.ls-preview-mode button[aria-pressed="true"] .ls-preview-mode-name {
+  margin-left: 3px;
+}
+
+.ls-preview-mode button[aria-pressed="false"] .ls-preview-mode-name {
+  display: none;
+}
+
+/* 切り替えがあるときは「送信プレビュー」を左に寄せ、右の切り替えと重ならないようにする（狭い画面でも） */
+.ls-preview:has(> .ls-preview-mode) > .ls-preview-label {
+  justify-self: start;
+}
+
+/* 完成イメージ：編集のための表示を隠す。各ツールの枠や入力欄は各ツールの style.css で隠す */
+.ls-preview.is-viewing .ls-optional-add,
+.ls-preview.is-viewing .ls-optional-remove,
+.ls-preview.is-viewing .ls-preview-note {
+  display: none;
+}
+
+.ls-preview.is-viewing [data-jump] {
+  cursor: default;
 }
 
 .ls-preview-label {
