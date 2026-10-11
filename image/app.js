@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610110925";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610110925";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111153";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610111153";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -485,6 +485,15 @@ function applyState_() {
   els.textPanel.hidden = isDraw;
   els.drawPanel.hidden = !isDraw;
   els.canvasFrame.classList.toggle("is-drawing", isDraw);
+  // 文字タブではプレビューをタップすると文字の入力へ移る（ほかのツールと同じ。手書きタブでは描く場所なので付けない）
+  if (isDraw) {
+    for (const name of ["data-jump", "data-jump-focus", "role", "tabindex", "aria-label"]) els.canvasFrame.removeAttribute(name);
+  } else {
+    Object.assign(els.canvasFrame.dataset, { jump: "textPanel", jumpFocus: "textInput" });
+    els.canvasFrame.setAttribute("role", "button");
+    els.canvasFrame.tabIndex = 0;
+    els.canvasFrame.setAttribute("aria-label", "文字を編集");
+  }
   // 送り方でプレビューの見え方（トークの上に画像だけ／白いカードの中）と使える設定を切り替える
   const isCard = state.sendMode === "card";
   els.previewStage.dataset.sendMode = state.sendMode;

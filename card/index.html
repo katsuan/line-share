@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるカード</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610110925" />
-    <link rel="stylesheet" href="./style.css?v=202610110925" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111153" />
+    <link rel="stylesheet" href="./style.css?v=202610111153" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610110925"></script>
-    <script src="../shared/credit.js?v=202610110925"></script>
-    <script src="../shared/liff.js?v=202610110925"></script>
-    <script src="../shared/ui.js?v=202610110925" defer></script>
-    <script src="./app.js?v=202610110925" defer></script>
+    <script src="../config.js?v=202610111153"></script>
+    <script src="../shared/credit.js?v=202610111153"></script>
+    <script src="../shared/liff.js?v=202610111153"></script>
+    <script src="../shared/ui.js?v=202610111153" defer></script>
+    <script src="./app.js?v=202610111153" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -64,7 +64,7 @@
 
           <!-- 色や大きさはカード全体の印象を決めるので、テンプレートの次に置く -->
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="lookMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div class="ls-field">
                 <span class="ls-label">カラー</span>
@@ -105,7 +105,7 @@
           </details>
 
           <details id="photoSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🖼️</span>写真</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🖼️</span>写真 <span id="photoMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div class="ls-actions">
                 <label class="ls-button is-primary photo-pick">
@@ -145,7 +145,7 @@
           </details>
 
           <details id="badgeSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ <span id="badgeMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="badgeList" class="ls-chips"></div>
               <div class="ls-row">
@@ -157,7 +157,7 @@
           </details>
 
           <details id="linkSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン</summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン <span id="linkMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="buttonList" class="button-list"></div>
               <button id="addButtonButton" class="ls-button is-block" type="button">＋ ボタンを追加</button>
@@ -177,7 +177,7 @@
     <div class="ls-sendbar">
       <div class="ls-sendbar-inner">
         <p id="status" class="ls-status" aria-live="polite"></p>
-        <button id="shareButton" class="ls-send" type="button" disabled>トークに送る</button>
+        <button id="shareButton" class="ls-send" type="button" disabled>🪧 カードで送る</button>
       </div>
     </div>
 

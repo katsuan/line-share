@@ -124,6 +124,7 @@ async function init() {
     "badgeList", "badgeInput", "addBadgeButton",
     "buttonList", "addButtonButton", "buttonWarning",
     "presetGrid", "templateList", "templateNameInput", "saveTemplateButton",
+    "lookMeta", "photoMeta", "badgeMeta", "linkMeta",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
@@ -300,9 +301,19 @@ function render() {
   els.buttonWarning.hidden = !state.buttons.some((button) => isBlockedQueryUrl(button.url));
   els.addButtonButton.disabled = state.buttons.length >= MAX_BUTTONS;
   els.addBadgeButton.disabled = state.badges.length >= MAX_BADGES;
+  updateFoldMeta();
 
   updateShareButtonState();
   autoGrowAll();
+}
+
+// アコーディオンの見出しの右に、今の設定を短く出す（ほかのツールとそろえる）
+function updateFoldMeta() {
+  const count = (n) => (n ? `${n}個` : "なし");
+  els.lookMeta.textContent = `${THEMES[state.theme]?.label || "カスタム"}・${state.bubbleSize}`;
+  els.photoMeta.textContent = state.imageUrl.trim() || photo.uploading ? "あり" : "なし";
+  els.badgeMeta.textContent = count(state.badges.length);
+  els.linkMeta.textContent = count(state.buttons.length);
 }
 
 function renderBadgeList() {
