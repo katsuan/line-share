@@ -20,10 +20,10 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610111153" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610111203" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610111153"></script>
-    <script src="./shared/credit.js?v=202610111153"></script>
+    <script src="./config.js?v=202610111203"></script>
+    <script src="./shared/credit.js?v=202610111203"></script>
     <style>
       .hub-title {
         display: flex;
@@ -102,8 +102,9 @@
         grid-column: 1 / -1;
       }
 
-      .hub-tool.is-featured .hub-icon {
-        font-size: 40px;
+      .hub-tool.is-featured .hub-mini {
+        width: 60px;
+        height: 70px;
       }
 
       .hub-tool-body {
@@ -140,11 +141,77 @@
         line-height: 1.4;
       }
 
-      .hub-icon {
-        font-size: 30px;
-        line-height: 1;
-        letter-spacing: -2px;
+      /* 完成イメージの小さな見本。アイコンの代わりなので大きさはアイコンと同じくらいに抑える */
+      .hub-mini {
+        display: grid;
+        flex: none;
+        width: 52px;
+        height: 60px;
       }
+
+      .mini-card {
+        align-content: start;
+        gap: 4px;
+        overflow: hidden;
+        padding-bottom: 6px;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.16);
+        transform: rotate(-4deg);
+      }
+
+      .mini-card i {
+        display: block;
+        margin: 0 6px;
+        border-radius: 3px;
+      }
+
+      .mini-card .mini-head {
+        height: 16px;
+        margin: 0;
+        border-radius: 0;
+        background: linear-gradient(135deg, #f59e0b, #fb7185);
+      }
+
+      .mini-card .mini-photo {
+        display: grid;
+        place-items: center;
+        height: 24px;
+        margin: 0;
+        border-radius: 0;
+        background: linear-gradient(135deg, #bfe7d4, #9fd3f5);
+        font-size: 12px;
+        font-style: normal;
+      }
+
+      .mini-card .mini-line {
+        height: 4px;
+        background: #e4e2ea;
+      }
+
+      .mini-card .mini-line.is-short {
+        width: 55%;
+      }
+
+      .mini-card .mini-button {
+        height: 9px;
+        margin-top: auto;
+        background: var(--ls-accent);
+      }
+
+      /* 文字入り画像（白と黒で縁取りした文字）の見本 */
+      .mini-sticker {
+        place-items: center;
+      }
+
+      .mini-sticker svg {
+        width: 100%;
+      }
+
+      .hub-nowrap {
+        white-space: nowrap;
+      }
+
 
       /* メイン機能とは別の、ほかのページへのリンク */
       .hub-more {
@@ -229,12 +296,25 @@
       <ul class="hub-tools">
         <li>
           <a class="hub-tool is-featured" href="./card/">
-            <span class="hub-icon" aria-hidden="true">🪧</span>
-            <span class="hub-tool-body">お知らせカード<span class="hub-tool-desc">写真・ボタン付きのお知らせを作って送る</span></span>
+            <!-- 完成イメージの小さな見本（お知らせカード） -->
+            <span class="hub-mini mini-card" aria-hidden="true"><i class="mini-head"></i><i class="mini-line"></i><i class="mini-line is-short"></i><i class="mini-button"></i></span>
+            <span class="hub-tool-body">お知らせを送る<span class="hub-tool-desc">連絡・案内・イベントを、写真やボタン付きのカードで</span></span>
           </a>
         </li>
-        <li><a class="hub-tool" href="./plan/"><span class="hub-icon" aria-hidden="true">📍📅</span>場所・予定<span class="hub-tool-desc">地図や予定を<wbr />カードで</span></a></li>
-        <li><a class="hub-tool" href="./image/"><span class="hub-icon" aria-hidden="true">🔤👆</span>文字・手書き<span class="hub-tool-desc">スタンプ風の<wbr />画像に</span></a></li>
+        <li>
+          <a class="hub-tool" href="./plan/">
+            <!-- 地図の写真と日時が入ったカードの見本 -->
+            <span class="hub-mini mini-card" aria-hidden="true"><i class="mini-photo">📍</i><i class="mini-line"></i><i class="mini-button"></i></span>
+            場所・予定を送る<span class="hub-tool-desc">待ち合わせや予定を、<wbr /><span class="hub-nowrap">地図・日時つきで</span></span>
+          </a>
+        </li>
+        <li>
+          <a class="hub-tool" href="./image/">
+            <!-- 文字入り画像の見本 -->
+            <span class="hub-mini mini-sticker" aria-hidden="true"><svg viewBox="0 0 64 44"><g font-family="Arial Black, Hiragino Sans, sans-serif" font-size="30" font-weight="900" text-anchor="middle"><text x="32" y="33" fill="#fff" stroke="#fff" stroke-width="9" stroke-linejoin="round">OK</text><text x="32" y="33" fill="#38ba91" stroke="#18222f" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke">OK</text></g></svg></span>
+            文字・手書きを送る<span class="hub-tool-desc">ひとことや手書きを、<wbr /><span class="hub-nowrap">スタンプ風の画像で</span></span>
+          </a>
+        </li>
       </ul>
 
       <section class="hub-more" aria-labelledby="hubMoreTitle">
