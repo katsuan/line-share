@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610111234";
-import { MAX_URI_LENGTH } from "./config.js?v=202610111234";
-import { bindHeader } from "./header.js?v=202610111234";
-import { createEventFlex } from "./flex.js?v=202610111234";
-import { bindPlaceSearch } from "./place-search.js?v=202610111234";
+} from "./common.js?v=202610111258";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111258";
+import { bindHeader } from "./header.js?v=202610111258";
+import { createEventFlex } from "./flex.js?v=202610111258";
+import { bindPlaceSearch } from "./place-search.js?v=202610111258";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -224,6 +224,10 @@ export function refreshCalendarTab() {
     dom.shareTargetButton.disabled = !app.liffReady;
 
     renderPreview_(data);
+    window.LineShareUI.setPreviewError(
+      dom.previewCard,
+      calendarUrl.length > MAX_URI_LENGTH ? "リンクが長すぎるためLINEでは送れません。メモなどを短くしてください。" : ""
+    );
 
     if (calendarUrl.length > MAX_URI_LENGTH) {
       setMessage(dom.statusMessage, "リンクが長すぎるためLINEでは送れません。詳細などを短くしてください。", "error");
@@ -238,6 +242,7 @@ export function refreshCalendarTab() {
     dom.copyUrlButton.disabled = true;
     dom.shareTargetButton.disabled = true;
     renderPreviewEmpty_();
+    window.LineShareUI.setPreviewError(dom.previewCard, toUserMessage(error));
     if (hasAnyRequiredInput_()) {
       setMessage(dom.statusMessage, toUserMessage(error), "error");
     } else {
@@ -364,31 +369,28 @@ function createGoogleCalendarUrl_(data) {
 }
 
 function getFlexLabels_(data) {
-  return {
-    startKey: data.allDay ? "日付" : "開始",
-    start: formatStartLabel_(data),
-    duration: formatDurationLabel_(data.start, data.end).replace("所要時間 ", "")
-  };
+  const duration = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
+  // 開始〜終了を1行で（例：2026年10月18日(日) 10:00〜11:30（1時間30分））
+  return { when: formatWhenLabel_(data, duration) };
 }
 
-function formatStartLabel_(data) {
-  if (!data.allDay) {
-    return formatDateTimeLabel_(data.start);
+function formatWhenLabel_(data, duration) {
+  if (data.allDay) {
+    const lastDay = new Date(data.end.getTime() - DAY_MS);
+    return isSameCalendarDate_(data.start, lastDay)
+      ? `${formatDateLabel_(data.start)}（終日）`
+      : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}（${duration}）`;
   }
-  const lastDay = new Date(data.end.getTime() - DAY_MS);
-  return isSameCalendarDate_(data.start, lastDay)
-    ? `${formatDateLabel_(data.start)}（終日）`
-    : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}`;
+  const end = isSameCalendarDate_(data.start, data.end) ? formatTimeLabel_(data.end) : ` ${formatDateTimeLabel_(data.end)}`;
+  return `${formatDateTimeLabel_(data.start)}〜${end}（${duration}）`;
 }
 
 // プレビューは最初に組み立てたものを使い回し、件名・メモなど入力中の欄は書き換えない
 function renderPreview_(data) {
   const labels = getFlexLabels_(data);
-  const spansMultipleDays = !data.allDay && !isSameCalendarDate_(data.start, data.end);
   renderPreviewParts_({
     rows: [
-      [labels.startKey, labels.start],
-      ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration],
+      ["日時", labels.when, "date", true],
       data.location ? ["場所", data.location, "location"] : null,
       data.customParams.length
         ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"), "optional"]
@@ -403,7 +405,7 @@ function renderPreview_(data) {
 // 日時がまだ正しくないとき（件名・メモの入力欄はそのまま使える）
 function renderPreviewEmpty_() {
   renderPreviewParts_({
-    rows: [["開始", "日時を選んでください"]],
+    rows: [["日時", "日時を選んでください", "date", true]],
     photoUrl: "",
     mapUrl: dom.location.value.trim() ? "pending" : "",
     url: dom.url.value.trim()
@@ -421,8 +423,9 @@ function renderPreviewParts_({ rows, photoUrl, mapUrl, url }) {
   dom.previewRows.innerHTML = rows
     .filter(Boolean)
     .map(
-      ([key, value, jump = "date"]) =>
-        `<div class="preview-item" ${jumps[jump]}><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
+      // block は見出しの下に全幅で書く1列（日時）
+      ([key, value, jump = "date", block = false]) =>
+        `<div class="preview-item${block ? " preview-block" : ""}" ${jumps[jump]}><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
     )
     .join("");
   dom.previewPhoto.hidden = !photoUrl;

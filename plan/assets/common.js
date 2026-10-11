@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610111234";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111258";
 
 export const app = {
   liffReady: false
@@ -123,6 +123,8 @@ export function jumpAttrs(id, focusIds = "") {
 
 /** 入力に合わせて textarea の高さを伸ばす（プレビューで直接編集する欄） */
 export function autoGrow(element) {
+  // 隠れているあいだは高さを測れない（0 になって潰れる）ので、表示されてから測る
+  if (!element.getClientRects().length) return;
   element.style.height = "auto";
   element.style.height = `${element.scrollHeight}px`;
 }

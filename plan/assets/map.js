@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111234";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111234";
-import { bindHeader } from "./header.js?v=202610111234";
-import { createPlaceFlex } from "./flex.js?v=202610111234";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111258";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111258";
+import { bindHeader } from "./header.js?v=202610111258";
+import { createPlaceFlex } from "./flex.js?v=202610111258";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -162,6 +162,9 @@ export function refreshMapTab() {
 
   renderPreview_(place);
   window.LineShareUI.syncOptionals();
+  // テンプレートなどでコメントが入ると行が表示されるので、表示してから高さを合わせる
+  autoGrow(dom.comment);
+  window.LineShareUI.setPreviewError(dom.preview, hasUrl ? "" : "場所を検索して選ぶか、場所名を入れてください。");
 }
 
 function getPlace_() {
