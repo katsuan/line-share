@@ -1,7 +1,7 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111213";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111213";
-import { bindHeader, headerPreviewHtml } from "./header.js?v=202610111213";
-import { createPlaceFlex } from "./flex.js?v=202610111213";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111222";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111222";
+import { bindHeader } from "./header.js?v=202610111222";
+import { createPlaceFlex } from "./flex.js?v=202610111222";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -43,12 +43,21 @@ export function initMapTab({ onCreateEvent }) {
   dom.shareButton = document.getElementById("mapShareButton");
   dom.message = document.getElementById("mapMessage");
   dom.preview = document.getElementById("mapPreview");
+  dom.titleInline = document.getElementById("mapTitleInline");
+  dom.previewPhoto = document.getElementById("mapPreviewPhoto");
+  dom.previewAddress = document.getElementById("mapPreviewAddress");
+  dom.previewBadges = document.getElementById("mapPreviewBadges");
   dom.templateList = document.getElementById("mapTemplateList");
   dom.templateName = document.getElementById("mapTemplateName");
   dom.templateSave = document.getElementById("mapTemplateSave");
 
   dom.mapUrl.addEventListener("input", handleMapUrlInput_);
   dom.title.addEventListener("input", refreshMapTab);
+  // プレビューの場所名と「場所」の場所名は同じもの（どちらで入力してもよい）
+  dom.titleInline.addEventListener("input", () => {
+    dom.title.value = dom.titleInline.value;
+    refreshMapTab();
+  });
   dom.comment.addEventListener("input", refreshMapTab);
   if (!hasPlaceSearch()) {
     document.getElementById("mapIntro").textContent =
@@ -82,6 +91,9 @@ export function initMapTab({ onCreateEvent }) {
   });
 
   state.header = bindHeader({ prefix: "mapHeader", defaultTitle: "場所のお知らせ", onChange: refreshMapTab });
+  // サブタイトル・コメントはプレビュー上の ＋ で足し、− で消す
+  window.LineShareUI.optional(document.getElementById("mapHeaderSubRow"), { label: "サブタイトル" });
+  window.LineShareUI.optional(document.getElementById("mapCommentRow"), { label: "コメント" });
   renderBadges_();
   renderTemplates_();
   refreshMapTab();
@@ -99,13 +111,47 @@ export function loadPlace({ mapUrl, title, address, photoUrl }) {
   refreshMapTab();
 }
 
+/**
+ * クエリパラメータから場所のカードを作る（main.js から呼ぶ）。渡されたものだけ入れる。
+ *   mapUrl / title / address / photoUrl … 場所
+ *   header / sub / color               … ヘッダーの見出し・サブタイトル・色（purple・sky・leaf・sunset・berry か 16進）
+ *   comment / badges                   … コメント、バッジ（カンマ区切り）
+ */
+export function applyMapQuery(params) {
+  const mapUrl = params.get("mapUrl") || "";
+  const photoUrl = params.get("photoUrl") || "";
+  if (mapUrl || params.has("title")) {
+    loadPlace({
+      mapUrl: isGoogleMapsUrl(mapUrl) ? mapUrl : "",
+      title: params.get("title") || "",
+      address: params.get("address") || "",
+      photoUrl: isHttpsUrl(photoUrl) ? photoUrl : ""
+    });
+  }
+  state.header.apply({
+    title: params.get("header") ?? undefined,
+    subtitle: params.get("sub") ?? undefined,
+    color: params.get("color") || ""
+  });
+  if (params.has("comment")) dom.comment.value = params.get("comment");
+  if (params.has("badges")) {
+    state.selectedBadges = params
+      .get("badges")
+      .split(",")
+      .map((label) => label.trim().slice(0, MAX_BADGE_LENGTH))
+      .filter(Boolean)
+      .slice(0, MAX_BADGES);
+    renderBadges_();
+  }
+  refreshMapTab();
+}
+
 export function refreshMapTab() {
   const place = getPlace_();
   const hasUrl = isGoogleMapsUrl(place.mapUrl);
 
   // 任意項目のアコーディオンの見出しに、今の状態を出す
   document.getElementById("badgeMeta").textContent = place.badges.length ? `${place.badges.length}個` : "なし";
-  document.getElementById("commentMeta").textContent = place.comment ? "入力済み" : "未入力";
 
   dom.address.textContent = place.address;
   dom.address.hidden = !place.address;
@@ -113,7 +159,8 @@ export function refreshMapTab() {
   dom.createEventButton.disabled = !hasUrl;
   dom.shareButton.disabled = !hasUrl || !app.liffReady;
 
-  renderPreview_(place, hasUrl);
+  renderPreview_(place);
+  window.LineShareUI.syncOptionals();
 }
 
 function getPlace_() {
@@ -277,33 +324,16 @@ function addCustomBadge_() {
   refreshMapTab();
 }
 
-function renderPreview_(place, hasUrl) {
-  if (!hasUrl) {
-    dom.preview.innerHTML = `<p class="preview-empty" ${jumpAttrs("mapPlacePanel", "mapSearchInput mapTitle")}>場所を選ぶか、Google MapsのURLを入れると<br />送る内容をここで確認できます。</p>`;
-    return;
-  }
-
-  const badges = place.badges.map((label) => `<span class="preview-badge">${escapeHtml(label)}</span>`).join("");
-  const placeJump = jumpAttrs("mapPlacePanel", "mapTitle");
-
-  dom.preview.innerHTML = `
-    ${headerPreviewHtml(place.header, "mapHeaderFold", "mapHeaderTitle")}
-    ${place.photoUrl ? `<img class="preview-photo" src="${escapeHtml(place.photoUrl)}" alt="" ${placeJump} />` : ""}
-    <div class="talk-card-body">
-      <h3 class="preview-title" ${placeJump}>📍 ${escapeHtml(place.title || "Google Maps")}</h3>
-      ${place.address ? `<p class="preview-sub" ${placeJump}>${escapeHtml(place.address)}</p>` : ""}
-      ${badges ? `<div class="preview-badges" ${jumpAttrs("mapBadgeFold", "customBadge")}>${badges}</div>` : ""}
-      ${
-        place.comment
-          ? `<div class="preview-grid"><div class="preview-item" ${jumpAttrs("mapCommentFold", "mapComment")}><div class="preview-key">コメント</div><div class="preview-value">${escapeHtml(place.comment)}</div></div></div>`
-          : ""
-      }
-    </div>
-    <div class="preview-actions">
-      <span class="preview-link primary" ${jumpAttrs("mapPlacePanel", "mapUrl")}>地図を開く</span>
-    </div>
-    <p class="ls-credit">Created by おくるん ›</p>
-  `;
+// プレビューは最初に組み立てたものを使い回し、入力中の欄は書き換えない（文字の入力が途切れないように）
+function renderPreview_(place) {
+  if (document.activeElement !== dom.titleInline) dom.titleInline.value = dom.title.value;
+  dom.previewPhoto.hidden = !place.photoUrl;
+  if (place.photoUrl && dom.previewPhoto.getAttribute("src") !== place.photoUrl) dom.previewPhoto.src = place.photoUrl;
+  dom.previewAddress.hidden = !place.address;
+  dom.previewAddress.textContent = place.address;
+  dom.previewBadges.hidden = place.badges.length === 0;
+  dom.previewBadges.innerHTML = place.badges.map((label) => `<span class="preview-badge">${escapeHtml(label)}</span>`).join("");
+  autoGrow(dom.comment);
 }
 
 // ---- テンプレート ----

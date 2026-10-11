@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610111213";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111222";
 
 export const app = {
   liffReady: false
@@ -119,4 +119,10 @@ export function formatPlaceLocation(place) {
  */
 export function jumpAttrs(id, focusIds = "") {
   return `data-jump="${id}"${focusIds ? ` data-jump-focus="${focusIds}"` : ""} role="button" tabindex="0"`;
+}
+
+/** 入力に合わせて textarea の高さを伸ばす（プレビューで直接編集する欄） */
+export function autoGrow(element) {
+  element.style.height = "auto";
+  element.style.height = `${element.scrollHeight}px`;
 }
