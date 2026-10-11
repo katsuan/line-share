@@ -52,18 +52,20 @@ const PRESETS = {
       buttons: [{ label: "資料を見る", url: "" }]
     }
   },
-  link: {
-    label: "リンク誘導",
-    icon: "🔗",
-    description: "予約・商品詳細・記事など",
+  intro: {
+    label: "紹介",
+    icon: "🪧",
+    description: "おくるカードを友だちに紹介",
+    // リンク先が入っているので、当てはめたあとの案内を変える
+    status: "「紹介」を当てはめました。このまま送れます。",
     state: {
-      theme: "leaf",
-      headerTitle: "こちらからご確認ください",
-      date: "詳細ページへご案内",
-      title: "詳しい内容はリンク先にまとめています",
-      detail: "気になる方は下のボタンからご確認ください。",
-      badges: ["LINK"],
-      buttons: [{ label: "詳細ページへ", url: "" }, { label: "予約する", url: "" }]
+      theme: "sunset",
+      headerTitle: "おくるカード",
+      date: "LINEで送れるカードづくり",
+      title: "このカードも、おくるカードで作りました",
+      detail: "場所・予定・お知らせ・文字や手書きを、写真やボタン付きのカードにしてLINEのトークに送れます。",
+      badges: ["場所", "お知らせ", "手書き"],
+      buttons: [{ label: "おくるカードを開く", url: config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/" }]
     }
   }
 };
@@ -805,7 +807,7 @@ function getTemplates() {
 
 // 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる
 function renderTemplates() {
-  // 用意済みのテンプレートは横に3つ並べ、保存したものはその下に一覧で出す
+  // 用意済みのテンプレートは横に並べ、保存したものはその下に一覧で出す
   const builtIn = Object.values(PRESETS).map((preset) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -820,7 +822,7 @@ function renderTemplates() {
     button.append(icon, name);
     button.addEventListener("click", () => {
       applyTemplateState({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...preset.state });
-      setStatus(`「${preset.label}」を当てはめました。リンク先を入力してください。`);
+      setStatus(preset.status || `「${preset.label}」を当てはめました。リンク先を入力してください。`);
     });
     return button;
   });
