@@ -74,5 +74,63 @@
     return { key: "custom", label: "カスタム", start: base, end: mix(0.35), solid: base, soft: mix(0.88), ink: base };
   }
 
-  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor };
+  /**
+   * プレビュー上の任意の項目（サブタイトル・コメントなど）を「＋」で足し、「−」で消せるようにする。
+   * wrapper の中の入力欄が対象。出ているかどうかは isOn で決める（既定：文字が入っているか、＋を押した直後か）。
+   * 消すときの既定は「文字を空にする」。お知らせカードのように表示の切り替えで消すときは onAdd / onRemove を渡す。
+   */
+  const optionals = [];
+
+  function optional(wrapper, { label, isOn, onAdd, onRemove } = {}) {
+    const field = wrapper.querySelector("input, textarea");
+    const on = isOn || (() => wrapper.dataset.open === "1" || field.value.trim() !== "");
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ls-optional-remove";
+    remove.textContent = "−";
+    remove.setAttribute("aria-label", `${label}を消す`);
+    wrapper.classList.add("ls-optional");
+    wrapper.append(remove);
+
+    const add = document.createElement("button");
+    add.type = "button";
+    add.className = "ls-optional-add";
+    add.textContent = `＋ ${label}`;
+    wrapper.after(add);
+
+    function sync() {
+      const shown = on();
+      wrapper.hidden = !shown;
+      add.hidden = shown;
+    }
+
+    add.addEventListener("click", () => {
+      if (onAdd) onAdd();
+      else wrapper.dataset.open = "1";
+      sync();
+      field.focus();
+    });
+    remove.addEventListener("click", () => {
+      if (onRemove) onRemove();
+      else {
+        delete wrapper.dataset.open;
+        field.value = "";
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      sync();
+      add.focus();
+    });
+
+    optionals.push(sync);
+    sync();
+    return sync;
+  }
+
+  // テンプレートなどで中身が入れ替わったあとに、＋／−の表示をそろえる
+  function syncOptionals() {
+    for (const sync of optionals) sync();
+  }
+
+  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals };
 })();

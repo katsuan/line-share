@@ -234,3 +234,32 @@
   font-size: 24px;
   line-height: 1;
 }
+
+/* カードの大きさ（nano〜giga のスライダー） */
+.size-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.size-range {
+  flex: 1;
+  accent-color: var(--ls-accent);
+}
+
+.size-label {
+  min-width: 3.5em;
+  color: var(--ls-accent-ink);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.size-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+  color: var(--ls-faint);
+  font-size: 12px;
+  font-weight: 700;
+}

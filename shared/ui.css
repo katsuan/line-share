@@ -611,6 +611,49 @@ input[type="time"].ls-input {
   outline-offset: 2px;
 }
 
+/* プレビュー上の任意の項目：＋で足し、−で消す */
+.ls-optional {
+  position: relative;
+}
+
+.ls-optional-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-subtext);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.ls-optional-add {
+  justify-self: start;
+  padding: 4px 12px;
+  border: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.ls-optional-add[hidden],
+.ls-optional[hidden] {
+  display: none;
+}
+
 /* ---- 下から出るシート ---- */
 
 .ls-sheet {

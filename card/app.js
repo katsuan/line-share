@@ -148,6 +148,7 @@ async function init() {
     "buttonList", "addButtonButton", "buttonWarning",
     "presetGrid", "templateList", "templateNameInput", "saveTemplateButton",
     "lookMeta", "photoMeta", "badgeMeta", "linkMeta",
+    "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
@@ -257,7 +258,8 @@ function applyStateToEditor() {
   checkRadio("theme", state.theme);
   checkRadio("imageShape", state.imageShape);
   checkRadio("imageFit", state.imageFit);
-  checkRadio("bubbleSize", state.bubbleSize);
+  els.bubbleSizeRange.value = String(BUBBLE_SIZES.indexOf(state.bubbleSize));
+  els.bubbleSizeLabel.textContent = state.bubbleSize;
   renderBadgeList();
   renderButtonList();
 }
@@ -325,6 +327,7 @@ function render() {
   els.addButtonButton.disabled = state.buttons.length >= MAX_BUTTONS;
   els.addBadgeButton.disabled = state.badges.length >= MAX_BADGES;
   updateFoldMeta();
+  window.LineShareUI.syncOptionals();
 
   updateShareButtonState();
   autoGrowAll();
@@ -982,11 +985,28 @@ function bindEvents() {
     checkRadio("theme", "custom");
     render();
   });
-  document.querySelectorAll('input[name="bubbleSize"]').forEach((input) => {
-    input.addEventListener("change", () => {
-      state.bubbleSize = input.value;
-      render();
-    });
+  els.bubbleSizeRange.addEventListener("input", () => {
+    state.bubbleSize = BUBBLE_SIZES[Number(els.bubbleSizeRange.value)] || "mega";
+    els.bubbleSizeLabel.textContent = state.bubbleSize;
+    render();
+  });
+
+  // サブタイトル・詳細はプレビュー上の ＋ で出し、− で隠す（中身は残るので ＋ で戻せる）
+  const toggle = (checkbox, on) => {
+    checkbox.checked = on;
+    checkbox.dispatchEvent(new Event("change"));
+  };
+  window.LineShareUI.optional(els.dateRow, {
+    label: "サブタイトル",
+    isOn: () => state.showDate,
+    onAdd: () => toggle(els.showDateToggle, true),
+    onRemove: () => toggle(els.showDateToggle, false)
+  });
+  window.LineShareUI.optional(els.detailRow, {
+    label: "詳細",
+    isOn: () => state.showDetail,
+    onAdd: () => toggle(els.showDetailToggle, true),
+    onRemove: () => toggle(els.showDetailToggle, false)
   });
 
   document.querySelectorAll('input[name="imageShape"]').forEach((input) => {
