@@ -123,8 +123,10 @@ def q_draw(d, cx, cy, r, w, fill, dot_fill, scale=1.0):
         d.ellipse([(x - rr) * scale, (y - rr) * scale, (x + rr) * scale, (y + rr) * scale], fill=dot_fill)
 
 
-# ---- アイコン（100 x 100）。しっぽまで含めて真ん中に見えるよう、少し左上に置く ----
-ICON_Q = dict(cx=46, cy=45, r=26, w=11)
+# ---- アイコン（100 x 100）----
+# 「…」の真ん中のドット（輪の中心）を左右の真ん中に置き、上下は少し上（しっぽと矢じりで下が重くなる分と、
+# 目で見た中央が実際より少し上にあることを合わせる）
+ICON_Q = dict(cx=50, cy=48.5, r=26, w=11)
 
 
 def icon_svg():
@@ -148,12 +150,17 @@ def gradient(width, height, start=ACCENT, end=ACCENT_LIGHT):
     return Image.composite(Image.new("RGB", (width, height), end), base, mask)
 
 
-def icon_png(size, rounded=False):
-    """rounded=False は角を丸めない（iPhone や maskable は OS 側で丸める）"""
+# Android の maskable アイコンは中心から半径 40 の円の中しか必ずは見えないので、しっぽの先が入るよう縮める
+MASKABLE_SCALE = 0.88
+
+
+def icon_png(size, rounded=False, shrink=1.0):
+    """rounded=False は角を丸めない（iPhone や maskable は OS 側で丸める）。shrink で Q を中央を基準に縮める"""
     big = size * 4
     img = gradient(big, big).convert("RGBA")
     layer = Image.new("RGBA", (big, big), (0, 0, 0, 0))
-    q_draw(ImageDraw.Draw(layer), **ICON_Q, fill=WHITE + (255,), dot_fill=WHITE + (255,), scale=big / 100)
+    q = dict(cx=50 + (ICON_Q["cx"] - 50) * shrink, cy=50 + (ICON_Q["cy"] - 50) * shrink, r=ICON_Q["r"] * shrink, w=ICON_Q["w"] * shrink)
+    q_draw(ImageDraw.Draw(layer), **q, fill=WHITE + (255,), dot_fill=WHITE + (255,), scale=big / 100)
     img.alpha_composite(layer)
     if rounded:
         mask = Image.new("L", (big, big), 0)
@@ -263,7 +270,7 @@ def wordmark_image(cap_height, letter_fill, q_fill, dot_fill):
 def main():
     (ROOT / "shared" / "icon.svg").write_text(icon_svg(), encoding="utf-8")
     (ROOT / "shared" / "logo.svg").write_text(logo_svg(), encoding="utf-8")
-    icon_png(512).convert("RGB").save(ROOT / "shared" / "icon-512.png", optimize=True)
+    icon_png(512, shrink=MASKABLE_SCALE).convert("RGB").save(ROOT / "shared" / "icon-512.png", optimize=True)
     icon_png(180).convert("RGB").save(ROOT / "shared" / "apple-touch-icon.png", optimize=True)
     print("wrote shared/icon.svg, shared/logo.svg, shared/icon-512.png, shared/apple-touch-icon.png")
 
