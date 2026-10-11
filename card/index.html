@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610111222" />
-    <link rel="stylesheet" href="./style.css?v=202610111222" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111234" />
+    <link rel="stylesheet" href="./style.css?v=202610111234" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610111222"></script>
-    <script src="../shared/credit.js?v=202610111222"></script>
-    <script src="../shared/liff.js?v=202610111222"></script>
-    <script src="../shared/ui.js?v=202610111222" defer></script>
-    <script src="./app.js?v=202610111222" defer></script>
+    <script src="../config.js?v=202610111234"></script>
+    <script src="../shared/credit.js?v=202610111234"></script>
+    <script src="../shared/liff.js?v=202610111234"></script>
+    <script src="../shared/ui.js?v=202610111234" defer></script>
+    <script src="./app.js?v=202610111234" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -40,12 +40,13 @@
             <div class="bubble-body">
               <textarea id="titleInput" class="bubble-input bubble-title" rows="1" maxlength="120" placeholder="本文タイトル" aria-label="本文タイトル"></textarea>
               <div id="badgeRow" class="bubble-badges" hidden></div>
+              <button id="badgeAddButton" class="ls-optional-add" type="button">＋ バッジ</button>
               <div id="detailRow"><textarea id="detailInput" class="bubble-input bubble-detail" rows="1" maxlength="1000" placeholder="詳細" aria-label="詳細"></textarea></div>
               <div id="buttonStack" class="bubble-actions" hidden></div>
             </div>
             <p class="ls-credit">Created by おくるん ›</p>
           </div>
-          <p class="ls-preview-note">文字はタップしてそのまま編集できます。サブタイトル・詳細は ＋ で足し − で消せます。写真・バッジ・ボタンはタップすると設定に移ります。</p>
+          <p class="ls-preview-note">文字・バッジはタップしてそのまま編集できます。サブタイトル・詳細・バッジは ＋ で足せます。写真・ボタンはタップすると設定に移ります。</p>
         </section>
 
         <div class="ls-folds">
@@ -137,18 +138,6 @@
                 <span class="ls-label">写真をタップしたときのリンク（任意）</span>
                 <input id="imageActionUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com" />
               </label>
-            </div>
-          </details>
-
-          <details id="badgeSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ <span id="badgeMeta" class="ls-fold-meta"></span></summary>
-            <div class="ls-fold-body">
-              <div id="badgeList" class="ls-chips"></div>
-              <div class="ls-row">
-                <input id="badgeInput" class="ls-input" type="text" maxlength="12" placeholder="例：NEW / 限定 / おすすめ" aria-label="追加するバッジ" />
-                <button id="addBadgeButton" class="ls-button" type="button">追加</button>
-              </div>
-              <p class="ls-hint">最大5つまで。カードのカラーで表示されます。タップで外せます。</p>
             </div>
           </details>
 

@@ -101,11 +101,53 @@
 }
 
 .bubble-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   padding: 4px 12px;
   border-radius: 999px;
   color: #fff;
   font-size: 12px;
   font-weight: 800;
+}
+
+/* バッジはプレビューでそのまま編集する。編集中は点線で囲み、右上に × を出す */
+.bubble-badge-text {
+  min-width: 2em;
+  outline: none;
+  cursor: text;
+}
+
+.bubble-badge-text:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.6;
+}
+
+.bubble-badge:focus-within {
+  outline: 2px dashed var(--ls-text);
+  outline-offset: 2px;
+}
+
+.bubble-badge-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-subtext);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bubble-badge:focus-within .bubble-badge-remove {
+  display: grid;
 }
 
 .bubble-actions {
@@ -184,8 +226,7 @@
 
 /* プレビューで、タップすると該当の設定へ移動できる要素 */
 .bubble-hero,
-.is-jump,
-.bubble-badges {
+.is-jump {
   cursor: pointer;
 }
 
