@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610111258";
-import { MAX_URI_LENGTH } from "./config.js?v=202610111258";
-import { bindHeader } from "./header.js?v=202610111258";
-import { createEventFlex } from "./flex.js?v=202610111258";
-import { bindPlaceSearch } from "./place-search.js?v=202610111258";
+} from "./common.js?v=202610111312";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111312";
+import { bindHeader } from "./header.js?v=202610111312";
+import { createEventFlex } from "./flex.js?v=202610111312";
+import { bindPlaceSearch } from "./place-search.js?v=202610111312";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -370,7 +370,7 @@ function createGoogleCalendarUrl_(data) {
 
 function getFlexLabels_(data) {
   const duration = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
-  // 開始〜終了を1行で（例：2026年10月18日(日) 10:00〜11:30（1時間30分））
+  // 開始〜終了を1行目に、長さを2行目に（例：2026年10月18日(日) 10:00〜11:30 ⏎（1時間30分））
   return { when: formatWhenLabel_(data, duration) };
 }
 
@@ -378,11 +378,11 @@ function formatWhenLabel_(data, duration) {
   if (data.allDay) {
     const lastDay = new Date(data.end.getTime() - DAY_MS);
     return isSameCalendarDate_(data.start, lastDay)
-      ? `${formatDateLabel_(data.start)}（終日）`
-      : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}（${duration}）`;
+      ? `${formatDateLabel_(data.start)}\n（終日）`
+      : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}\n（${duration}）`;
   }
   const end = isSameCalendarDate_(data.start, data.end) ? formatTimeLabel_(data.end) : ` ${formatDateTimeLabel_(data.end)}`;
-  return `${formatDateTimeLabel_(data.start)}〜${end}（${duration}）`;
+  return `${formatDateTimeLabel_(data.start)}〜${end}\n（${duration}）`;
 }
 
 // プレビューは最初に組み立てたものを使い回し、件名・メモなど入力中の欄は書き換えない
