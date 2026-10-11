@@ -13,10 +13,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610111153";
-import { MAX_URI_LENGTH } from "./config.js?v=202610111153";
-import { createEventFlex } from "./flex.js?v=202610111153";
-import { bindPlaceSearch } from "./place-search.js?v=202610111153";
+} from "./common.js?v=202610111213";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111213";
+import { bindHeader, headerPreviewHtml } from "./header.js?v=202610111213";
+import { createEventFlex } from "./flex.js?v=202610111213";
+import { bindPlaceSearch } from "./place-search.js?v=202610111213";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -27,7 +28,8 @@ const state = {
   allDay: false,
   followStartDuration: true,
   // Google Maps から取り込んだ場所の情報
-  place: { mapUrl: "", photoUrl: "" }
+  place: { mapUrl: "", photoUrl: "" },
+  header: null
 };
 
 export function initCalendarTab() {
@@ -35,6 +37,7 @@ export function initCalendarTab() {
   setDefaultDateTime_();
   dom.timezone.value = state.timezone;
   addCustomParamRow_();
+  state.header = bindHeader({ prefix: "eventHeader", defaultTitle: "予定のお知らせ", onChange: refreshCalendarTab });
   bindEvents_();
   refreshCalendarTab();
 }
@@ -222,7 +225,8 @@ function getFormData_() {
     recur,
     sourceName,
     sourceUrl,
-    customParams
+    customParams,
+    header: state.header?.get() ?? null
   };
 }
 
@@ -324,6 +328,7 @@ function renderPreview_(data) {
   const toTitle = jumpAttrs("eventPanel", "title");
 
   dom.previewCard.innerHTML = `
+    ${headerPreviewHtml(data.header, "eventHeaderFold", "eventHeaderTitle")}
     ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" ${toTitle} />` : ""}
     <div class="talk-card-body">
       <h3 class="preview-title" ${toTitle}>${escapeHtml(data.title)}</h3>

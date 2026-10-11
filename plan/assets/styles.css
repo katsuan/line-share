@@ -35,6 +35,29 @@
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
 }
 
+/* カード上部の色付きヘッダー（お知らせカードと同じ見た目） */
+.preview-header {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  color: #fff;
+}
+
+.preview-header-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.preview-header-sub {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: 0.95;
+}
+
 .talk-card-body {
   display: grid;
   gap: 10px;
