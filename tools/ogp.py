@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "shared" / "ogp.png"
 
 S = 2  # 2倍で描いてから縮め、線や文字のふちをなめらかにする
+CARD_SCALE = 0.84  # 右側のカードの見本の大きさ
+CARD_MARGIN = 84  # 見本と画像の右端のあいだ（px）
 W, H = 1200, 630
 
 INK = (31, 31, 28)
@@ -84,7 +86,9 @@ def main():
         x = pill(img, x, 444, label, font(6, 24), (255, 255, 255, 56), WHITE) + 12
 
     # 右：カードの見本（少し傾けて影を付ける）
+    # 小さく表示されても端からはみ出して見えないよう、上下左右に余白を取って置く
     card = sample_card().rotate(5, expand=True, resample=Image.BICUBIC)
+    card = card.resize((round(card.width * CARD_SCALE), round(card.height * CARD_SCALE)), Image.LANCZOS)
     # ぼかしが層の端で切れないよう、影は余白を付けた層に描く
     pad = 60 * S
     shadow = Image.new("RGBA", (card.width + pad * 2, card.height + pad * 2), (31, 15, 90, 0))
@@ -92,7 +96,8 @@ def main():
     alpha = Image.new("L", shadow.size, 0)
     alpha.paste(card.getchannel("A").point(lambda a: a * 0.32), (pad, pad))
     shadow.putalpha(alpha.filter(ImageFilter.GaussianBlur(18 * S)))
-    cx, cy = 728, 64
+    cx = W - CARD_MARGIN - card.width // S
+    cy = (H - card.height // S) // 2
     img.alpha_composite(shadow, ((cx + 6) * S - pad, (cy + 16) * S - pad))
     img.alpha_composite(card, (cx * S, cy * S))
 
