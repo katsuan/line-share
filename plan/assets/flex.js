@@ -1,5 +1,5 @@
 // LINE に送る Flex Message の組み立て。色は styles.css のトークンと揃える。
-import { headerFlex } from "./header.js?v=202610111234";
+import { headerFlex } from "./header.js?v=202610111258";
 const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",
@@ -92,8 +92,7 @@ export function createEventFlex(data, calendarUrl, labels) {
       weight: "bold",
       color: COLOR.text
     },
-    createInfoRow_(labels.startKey, labels.start),
-    createInfoRow_("所要時間", labels.duration)
+    createInfoBlock_("日時", labels.when)
   ];
 
   if (data.location) {
@@ -156,6 +155,22 @@ function createButton_(label, uri, style) {
     style,
     ...(style === "primary" ? { color: COLOR.accent } : {}),
     action: { type: "uri", label, uri }
+  };
+}
+
+// 見出しの下に全幅で書く1列（日時など、長くなる項目）
+function createInfoBlock_(label, value) {
+  return {
+    type: "box",
+    layout: "vertical",
+    spacing: "xs",
+    paddingAll: "12px",
+    backgroundColor: COLOR.surface,
+    cornerRadius: "12px",
+    contents: [
+      { type: "text", text: label, size: "xs", color: COLOR.subtext, weight: "bold" },
+      { type: "text", text: value, size: "sm", color: COLOR.text, wrap: true }
+    ]
   };
 }
 

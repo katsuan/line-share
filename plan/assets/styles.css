@@ -159,6 +159,12 @@
   font-size: 14px;
 }
 
+/* コメントは見出しの下に全幅で書く1列のブロック（送るカードと同じ形） */
+.preview-item.preview-block {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+
 .preview-key {
   color: var(--ls-subtext);
   font-size: 12px;
