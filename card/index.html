@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610111213" />
-    <link rel="stylesheet" href="./style.css?v=202610111213" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111222" />
+    <link rel="stylesheet" href="./style.css?v=202610111222" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610111213"></script>
-    <script src="../shared/credit.js?v=202610111213"></script>
-    <script src="../shared/liff.js?v=202610111213"></script>
-    <script src="../shared/ui.js?v=202610111213" defer></script>
-    <script src="./app.js?v=202610111213" defer></script>
+    <script src="../config.js?v=202610111222"></script>
+    <script src="../shared/credit.js?v=202610111222"></script>
+    <script src="../shared/liff.js?v=202610111222"></script>
+    <script src="../shared/ui.js?v=202610111222" defer></script>
+    <script src="./app.js?v=202610111222" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -32,7 +32,7 @@
           <div id="bubble" class="bubble">
             <div id="bubbleHeader" class="bubble-header">
               <input id="headerInput" class="bubble-input bubble-header-title" type="text" maxlength="60" placeholder="タイトル" aria-label="タイトル" />
-              <input id="dateInput" class="bubble-input bubble-header-date" type="text" maxlength="80" placeholder="サブタイトル（表示設定でOFF可）" aria-label="サブタイトル" />
+              <div id="dateRow"><input id="dateInput" class="bubble-input bubble-header-date" type="text" maxlength="80" placeholder="サブタイトル" aria-label="サブタイトル" /></div>
             </div>
             <div id="heroArea" class="bubble-hero" hidden>
               <img id="heroImage" alt="" />
@@ -40,12 +40,12 @@
             <div class="bubble-body">
               <textarea id="titleInput" class="bubble-input bubble-title" rows="1" maxlength="120" placeholder="本文タイトル" aria-label="本文タイトル"></textarea>
               <div id="badgeRow" class="bubble-badges" hidden></div>
-              <textarea id="detailInput" class="bubble-input bubble-detail" rows="1" maxlength="1000" placeholder="詳細（表示設定でOFF可）" aria-label="詳細"></textarea>
+              <div id="detailRow"><textarea id="detailInput" class="bubble-input bubble-detail" rows="1" maxlength="1000" placeholder="詳細" aria-label="詳細"></textarea></div>
               <div id="buttonStack" class="bubble-actions" hidden></div>
             </div>
             <p class="ls-credit">Created by おくるん ›</p>
           </div>
-          <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真・バッジ・ボタンはタップすると設定に移ります。</p>
+          <p class="ls-preview-note">文字はタップしてそのまま編集できます。サブタイトル・詳細は ＋ で足し − で消せます。写真・バッジ・ボタンはタップすると設定に移ります。</p>
         </section>
 
         <div class="ls-folds">
@@ -80,19 +80,17 @@
 
               <div class="ls-field">
                 <span class="ls-label">カードの大きさ</span>
-                <div class="ls-chips" role="radiogroup" aria-label="カードの大きさ">
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="nano" />nano</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="micro" />micro</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="deca" />deca</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="hecto" />hecto</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="kilo" />kilo</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="mega" />mega</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="giga" />giga</label>
+                <!-- nano（小）〜 giga（大）の7段階。LINE の bubble.size と同じ -->
+                <div class="size-row">
+                  <input id="bubbleSizeRange" class="size-range" type="range" min="0" max="6" step="1" aria-label="カードの大きさ" />
+                  <output id="bubbleSizeLabel" class="size-label" for="bubbleSizeRange">mega</output>
                 </div>
-                <p class="ls-hint">LINEのカードの大きさです（nano が一番小さく、giga が一番大きい）。迷ったら mega（LINEの標準）。</p>
+                <div class="size-scale" aria-hidden="true"><span>nano</span><span>giga</span></div>
+                <p class="ls-hint">LINEのカードの大きさです（左の nano が一番小さく、右の giga が一番大きい）。迷ったら mega（LINEの標準）。</p>
               </div>
 
-              <div class="ls-field">
+              <!-- サブタイトル・詳細の表示はプレビューの ＋／− で切り替える（ここは状態を持つだけ） -->
+              <div class="ls-field" hidden>
                 <span class="ls-label">表示する項目</span>
                 <div class="ls-chips">
                   <label class="ls-chip"><input id="showDateToggle" type="checkbox" />サブタイトル</label>
