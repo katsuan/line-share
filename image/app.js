@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111153";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610111153";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111213";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610111213";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -26,8 +26,12 @@ const FONTS = [
   { label: "英字太め", value: "'Arial Black', 'Hiragino Sans', sans-serif" }
 ];
 const TEXT_PRESETS = ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"];
-const TEXT_COLORS = ["#38ba91", "#18222f", "#ffffff", "#e5484d", "#f5a524", "#3e7bfa", "#ff6fa8"];
-const PEN_COLORS = ["#18222f", "#ffffff", "#e5484d", "#f5a524", "#30a46c", "#3e7bfa"];
+// 色の並びは全ツール共通（shared/ui.js の PALETTE：紫・青・緑・橙・赤）。そのあとに黒・白、最後に「ほかの色」
+const BLACK = "#18222f";
+const WHITE = "#ffffff";
+const HUES = window.LineShareUI.PALETTE.map((color) => color.solid.toLowerCase());
+const TEXT_COLORS = [...HUES, BLACK, WHITE];
+const PEN_COLORS = [...HUES, BLACK, WHITE];
 // スライダーで選べる太さの範囲（3段階のボタンはこの中のよく使う値）
 const PEN_SIZE_MIN = 2;
 const PEN_SIZE_MAX = 40;
@@ -43,20 +47,21 @@ const OUTLINES = [
   { label: "白黒", value: "double" }
 ];
 // 「ほかの色」で選べる縁の色（一重の縁取りになる）
-const OUTLINE_COLORS = ["#e5484d", "#f5a524", "#30a46c", "#3e7bfa", "#ff6fa8"];
+const OUTLINE_COLORS = HUES;
 const OUTLINE_WIDTHS = [
   { label: "細い", value: 4 },
   { label: "ふつう", value: 7 },
   { label: "太い", value: 11 }
 ];
-const BACKGROUNDS = [null, "#ffffff", "#fff4d6", "#ffe1ea", "#dff1ff", "#e0f5e9", "#18222f"];
+// 背景は 透明・白・薄い色（同じ並び）・黒
+const BACKGROUNDS = [null, WHITE, ...window.LineShareUI.PALETTE.map((color) => color.soft.toLowerCase()), BLACK];
 
 const DEFAULT_PREFS = {
   mode: "text",
   text: "OK",
   font: FONTS[0].value,
   textColor: TEXT_COLORS[0],
-  penColor: PEN_COLORS[0],
+  penColor: BLACK,
   penSize: PEN_SIZES[1].value,
   outline: "double",
   // outline が "custom" のときの縁の色
@@ -131,8 +136,8 @@ function buildLayer(width, height) {
 
   const ring = state.outline === "none" ? 0 : Math.max(1, Math.round(state.outlineWidth * scale));
   if (state.outline === "double") {
-    drawOutline_(layerCtx, content, ring * 2, "#ffffff");
-    drawOutline_(layerCtx, content, ring, "#18222f");
+    drawOutline_(layerCtx, content, ring * 2, WHITE);
+    drawOutline_(layerCtx, content, ring, BLACK);
   } else if (ring > 0) {
     drawOutline_(layerCtx, content, ring, outlineColor_());
   }
@@ -142,7 +147,7 @@ function buildLayer(width, height) {
 
 function outlineColor_() {
   if (state.outline === "custom") return state.outlineColor;
-  return state.outline === "white" ? "#ffffff" : "#18222f";
+  return state.outline === "white" ? WHITE : BLACK;
 }
 
 /**

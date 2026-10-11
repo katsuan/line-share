@@ -15,11 +15,14 @@ const MAX_BADGES = 5;
 const MAX_BUTTONS = 3;
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
 
+// 色の並びは全ツール共通（shared/ui.js の PALETTE。先頭はおくるんの紫）。最後に「ほかの色」
 const THEMES = {
-  sunset: { label: "サンセット", start: "#F59E0B", end: "#FB7185", detailBg: "#FFF7ED", detailText: "#9A3412" },
-  sky: { label: "スカイ", start: "#2563EB", end: "#06B6D4", detailBg: "#EFF6FF", detailText: "#1D4ED8" },
-  leaf: { label: "リーフ", start: "#16A34A", end: "#10B981", detailBg: "#ECFDF5", detailText: "#047857" },
-  berry: { label: "ベリー", start: "#E11D48", end: "#FB7185", detailBg: "#FFF1F2", detailText: "#BE123C" },
+  ...Object.fromEntries(
+    window.LineShareUI.PALETTE.map((color) => [
+      color.key,
+      { label: color.label, start: color.start, end: color.end, detailBg: color.soft, detailText: color.ink }
+    ])
+  ),
   custom: { label: "カスタム" }
 };
 
@@ -62,9 +65,7 @@ const PRESETS = {
     // リンク先が入っているので、当てはめたあとの案内を変える
     status: "「紹介」を当てはめました。このまま送れます。",
     state: {
-      // おくるんのテーマカラー（shared/ui.css の --ls-accent）
-      theme: "custom",
-      customColor: "#6c47ff",
+      theme: "purple",
       headerTitle: "おくるん",
       date: "つくって、おくるん。",
       // 写真の見本も兼ねて、OGP 画像（tools/ogp.py）を入れる。タップでもおくるんを開く
@@ -84,7 +85,7 @@ const IMAGE_SHAPES = { auto: "", wide: "20:13", square: "1:1", tall: "3:4" };
 const MAX_TALL_RATIO = 3;
 
 const BLANK_STATE = {
-  theme: "sunset",
+  theme: "purple",
   customColor: DEFAULT_CUSTOM_COLOR,
   bubbleSize: "mega",
   headerTitle: "",
@@ -113,7 +114,29 @@ let shareReady = false;
 
 document.addEventListener("DOMContentLoaded", init);
 
+// 「カラー」の丸を共通の並びで作る（最後の「ほかの色」は HTML にある）
+function renderThemeSwatches() {
+  const placeholder = document.getElementById("themeSwatches");
+  placeholder.replaceWith(
+    ...window.LineShareUI.PALETTE.map((color) => {
+      const label = document.createElement("label");
+      label.className = "ls-swatch";
+      label.style.setProperty("--swatch", `linear-gradient(135deg, ${color.start}, ${color.end})`);
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "theme";
+      input.value = color.key;
+      const name = document.createElement("span");
+      name.className = "ls-sr-only";
+      name.textContent = color.label;
+      label.append(input, name);
+      return label;
+    })
+  );
+}
+
 async function init() {
+  renderThemeSwatches();
   [
     "bubble", "bubbleHeader", "headerInput", "dateInput", "titleInput", "detailInput",
     "heroArea", "heroImage", "badgeRow", "buttonStack",
@@ -155,7 +178,7 @@ function hydrate(source = {}) {
   return {
     ...structuredClone(BLANK_STATE),
     ...pick(source, ["headerTitle", "date", "title", "detail", "imageUrl", "imageActionUrl"], String),
-    theme: Object.hasOwn(THEMES, source.theme) ? source.theme : "sunset",
+    theme: Object.hasOwn(THEMES, source.theme) ? source.theme : "purple",
     customColor: normalizeHexColor(source.customColor),
     bubbleSize: BUBBLE_SIZES.includes(source.bubbleSize) ? source.bubbleSize : "mega",
     imageShape: Object.hasOwn(IMAGE_SHAPES, source.imageShape) ? source.imageShape : "auto",
