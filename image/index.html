@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>文字・手書き｜おくるカード</title>
     <meta name="description" content="文字入りアイコンや手書きの絵を作って、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610110012" />
-    <link rel="stylesheet" href="./style.css?v=202610110012" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610110925" />
+    <link rel="stylesheet" href="./style.css?v=202610110925" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610110012"></script>
-    <script src="../shared/credit.js?v=202610110012"></script>
-    <script src="../shared/liff.js?v=202610110012"></script>
-    <script src="../shared/ui.js?v=202610110012" defer></script>
-    <script type="module" src="./app.js?v=202610110012"></script>
+    <script src="../config.js?v=202610110925"></script>
+    <script src="../shared/credit.js?v=202610110925"></script>
+    <script src="../shared/liff.js?v=202610110925"></script>
+    <script src="../shared/ui.js?v=202610110925" defer></script>
+    <script type="module" src="./app.js?v=202610110925"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -27,7 +27,7 @@
       </header>
 
       <div class="ls-tabs" role="tablist" aria-label="作り方">
-        <button id="modeText" class="ls-tab" type="button" role="tab" aria-controls="textPanel">💬 文字</button>
+        <button id="modeText" class="ls-tab" type="button" role="tab" aria-controls="textPanel">🔤 文字</button>
         <button id="modeDraw" class="ls-tab" type="button" role="tab" aria-controls="drawPanel">👆 手書き</button>
       </div>
 
@@ -52,10 +52,11 @@
 
         <div class="ls-folds">
           <details id="textPanel" class="ls-fold" role="tabpanel" aria-labelledby="modeText" open>
-            <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>文字 <span id="textMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🔤</span>文字 <span id="textMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <textarea id="textInput" class="ls-input text-input" rows="2" maxlength="40" aria-label="文字" placeholder="例：OK / ありがとう"></textarea>
               <div id="textPresets" class="ls-chips" aria-label="よく使う文字"></div>
+              <button id="clearTextButton" class="ls-button is-danger" type="button">文字を消す</button>
               <div class="ls-field">
                 <span class="ls-label">文字の色</span>
                 <div id="textColors" class="ls-swatches"></div>
@@ -64,7 +65,7 @@
                 <span class="ls-label">書体</span>
                 <div id="fontList" class="ls-chips"></div>
               </div>
-              <p class="ls-hint">手書きタブに切り替えると、文字の上から描き足せます。</p>
+              <p class="ls-hint">手書きタブに切り替えると、文字の上から描き足せます。文字を消すと手書きだけになります。</p>
             </div>
           </details>
 
@@ -88,13 +89,11 @@
                 <button id="undoButton" class="ls-button" type="button" disabled>↶ 元に戻す</button>
                 <button id="clearButton" class="ls-button is-danger" type="button" disabled>手書きを全部消す</button>
               </div>
-            </div>
-          </details>
-
-          <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">📐</span>形 <span id="shapeMeta" class="ls-fold-meta"></span></summary>
-            <div class="ls-fold-body">
-              <div id="shapeList" class="ls-chips"></div>
+              <!-- 文字が入っているときだけ。消すと白紙に手書きだけで描ける -->
+              <div id="drawTextRow" class="draw-text-row" hidden>
+                <p class="ls-hint">文字「<span id="drawTextLabel"></span>」の上に描いています。</p>
+                <button id="drawClearTextButton" class="ls-button is-danger" type="button">文字を消す</button>
+              </div>
             </div>
           </details>
 
@@ -102,6 +101,10 @@
             <summary><span class="ls-fold-icon" aria-hidden="true">🖍️</span>縁取り <span id="outlineMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="outlineList" class="ls-chips"></div>
+              <div class="ls-field">
+                <span class="ls-label">ほかの色</span>
+                <div id="outlineColors" class="ls-swatches"></div>
+              </div>
               <div class="ls-field">
                 <span class="ls-label">太さ</span>
                 <div id="outlineWidthList" class="ls-chips"></div>
@@ -118,10 +121,17 @@
           </details>
 
           <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">📐</span>形 <span id="shapeMeta" class="ls-fold-meta"></span></summary>
+            <div class="ls-fold-body">
+              <div id="shapeList" class="ls-chips"></div>
+            </div>
+          </details>
+
+          <details id="motionPanel" class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🎞️</span>動き <span id="motionMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="motionList" class="ls-chips"></div>
-              <p id="motionHint" class="ls-hint">動きはカードで送ったときに再生されます。画像で送るときは選べません。</p>
+              <p id="motionHint" class="ls-hint">動きはカードで送ったときに再生されます。</p>
             </div>
           </details>
         </div>

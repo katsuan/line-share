@@ -115,13 +115,37 @@
   width: min(100%, 320px);
 }
 
+/* LINE のカード（giga）と同じく、画像は余白なしでカードの上と左右の端まで入り、下に Created by が付く */
 .image-stage[data-send-mode="card"] .card-frame {
   display: grid;
-  gap: 4px;
-  padding: 10px 10px 0;
+  overflow: hidden;
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+
+/* 描く範囲の角をカードの上の角と同じ丸みにする（四角い枠だと角がカードで切れてずれて見える） */
+.image-stage[data-send-mode="card"] .canvas-frame {
+  border-radius: 18px 18px 0 0;
+  outline: none;
+}
+
+/* 手書き中の枠はカードの内側に、角の丸みに沿って重ねる（キャンバスの上に描くので隠れない） */
+.image-stage[data-send-mode="card"] .canvas-frame.is-drawing {
+  box-shadow: none;
+}
+
+.image-stage[data-send-mode="card"] .canvas-frame.is-drawing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 3px solid rgba(108, 71, 255, 0.55);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.image-stage[data-send-mode="card"] .ls-credit {
+  padding: 8px;
 }
 
 .image-stage[data-send-mode="image"] .card-only {
@@ -183,4 +207,21 @@
   max-height: 44px;
   border-radius: 999px;
   box-shadow: 0 0 0 1px var(--ls-line);
+}
+
+/* 手書きタブで、下に文字が入っていることと「文字を消す」を出す */
+.draw-text-row {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ls-line);
+}
+
+/* 画像で送るときの「動き」。選べないことがわかるよう見出しも薄くする */
+.ls-fold.is-unavailable > summary {
+  color: var(--ls-faint);
+}
+
+.ls-fold.is-unavailable .ls-fold-icon {
+  opacity: 0.45;
 }
