@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111213";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610111213";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111228";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610111228";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -23,7 +23,10 @@ const FONTS = [
   { label: "ゴシック", value: "'Hiragino Sans', 'Noto Sans JP', sans-serif" },
   { label: "丸ゴシック", value: "'Hiragino Maru Gothic ProN', 'M PLUS Rounded 1c', 'Hiragino Sans', sans-serif" },
   { label: "明朝", value: "'Hiragino Mincho ProN', 'Yu Mincho', serif" },
-  { label: "英字太め", value: "'Arial Black', 'Hiragino Sans', sans-serif" }
+  { label: "英字太め", value: "'Arial Black', 'Hiragino Sans', sans-serif" },
+  // 手書き風（Google Fonts、SIL OFL）。太さが1種類なので weight を合わせる（太字にすると字がつぶれる）
+  { label: "手書き風", value: "'Yomogi', 'Hiragino Maru Gothic ProN', sans-serif", weight: 400, webFont: "Yomogi" },
+  { label: "ペン字風", value: "'Klee One', 'Hiragino Mincho ProN', serif", weight: 600, webFont: "Klee One" }
 ];
 const TEXT_PRESETS = ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"];
 // 色の並びは全ツール共通（shared/ui.js の PALETTE：紫・青・緑・橙・赤）。そのあとに黒・白、最後に「ほかの色」
@@ -220,7 +223,32 @@ function renderContent_(width, height, scale) {
 }
 
 function font_(px) {
-  return `800 ${px}px ${state.font}`;
+  const weight = FONTS.find((option) => option.value === state.font)?.weight ?? 800;
+  return `${weight} ${px}px ${state.font}`;
+}
+
+// 手書き風の書体は読み込みに時間がかかるので、使う文字の分を読み込んでから描き直す
+// （canvas は読み込み前だと代わりの書体で描いてしまう）
+async function loadWebFont_() {
+  if (!FONTS.find((option) => option.value === state.font)?.webFont || !document.fonts) return;
+  try {
+    await document.fonts.load(font_(48), state.text || "あ");
+  } catch {
+    // 読み込めなくても代わりの書体で描ける
+  }
+}
+
+// 描く前に呼ぶ。まだ読み込まれていなければ読み込み、終わったら描き直す（読み込み済みなら何もしない）
+let fontLoading = "";
+function ensureWebFont_() {
+  if (!FONTS.find((option) => option.value === state.font)?.webFont || !document.fonts) return;
+  const key = `${font_(48)}|${state.text}`;
+  if (fontLoading === key || document.fonts.check(font_(48), state.text || "あ")) return;
+  fontLoading = key;
+  loadWebFont_().then(() => {
+    if (fontLoading === key) fontLoading = "";
+    restartPreview_();
+  });
 }
 
 function fitFontSize_(ctx, lines, maxWidth, maxHeight) {
@@ -269,6 +297,7 @@ let previewLayer = null;
 function requestRender() {
   if (renderQueued) return;
   renderQueued = true;
+  ensureWebFont_();
   requestAnimationFrame(() => {
     renderQueued = false;
     const { width, height } = dims_(LONG_SIDE);
@@ -285,6 +314,7 @@ function isPreviewMoving_() {
 }
 
 function restartPreview_() {
+  ensureWebFont_();
   cancelAnimationFrame(animationFrame);
   animationFrame = null;
   const { width, height } = dims_(LONG_SIDE);
@@ -643,6 +673,7 @@ function setStatus_(message, tone = "") {
 // ---- 書き出し ----
 
 async function buildImage_() {
+  await loadWebFont_();
   if (state.motion === "none" || state.sendMode !== "card") {
     const { width, height } = dims_(LONG_SIDE);
     const canvas = document.createElement("canvas");
