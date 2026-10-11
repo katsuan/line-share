@@ -297,7 +297,7 @@ function renderPreview_(place, hasUrl) {
     <div class="preview-actions">
       <span class="preview-link primary" ${jumpAttrs("mapPlacePanel", "mapUrl")}>地図を開く</span>
     </div>
-    <p class="ls-credit">Created by おくるカード ›</p>
+    <p class="ls-credit">Created by おくるん ›</p>
   `;
 }
 

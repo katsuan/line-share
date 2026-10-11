@@ -8,7 +8,7 @@
 //   消せる人の画面には送信バーに「Created by を付ける」スイッチが出て、送るごとに選べる（初期は付けない）
 // どちらもページ側の判定なので、有償プランで消すときはサーバーで購入状態を確かめてから setEnabled(false) を呼ぶ。
 (function () {
-  const LABEL = "Created by おくるカード ›";
+  const LABEL = "Created by おくるん ›";
   const STORAGE_KEY = "line-share:credit";
   // クレジットを消せる人が「付ける / 付けない」を選んだ結果
   const CHOICE_KEY = "line-share:credit-choice";
@@ -136,7 +136,7 @@
           size: "xxs",
           color: "#9AA0A6",
           align: "center",
-          action: { type: "uri", label: "おくるカード", uri: topUrl() }
+          action: { type: "uri", label: "おくるん", uri: topUrl() }
         }
       ]
     };

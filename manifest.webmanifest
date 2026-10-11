@@ -1,6 +1,6 @@
 {
-  "name": "おくるカード",
-  "short_name": "おくるカード",
+  "name": "おくるん",
+  "short_name": "おくるん",
   "description": "場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れるツール",
   "lang": "ja",
   "start_url": "./",

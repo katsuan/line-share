@@ -12,7 +12,7 @@ window.LINE_SHARE_CONFIG = {
   // 画像（文字アイコン・お絵描き）のアップロード先。server/ を Render にデプロイしたURL
   imageApiBaseUrl: "https://liff-image.onrender.com",
 
-  // 送るカードに「Created by おくるカード」を付けるか（false で全員から消える）
+  // 送るカードに「Created by おくるん」を付けるか（false で全員から消える）
   showCredit: true,
 
   // Created by を出さない LINE ユーザー（ユーザーIDの SHA-256。?credit=whoami を付けて LINE で開くと表示される）

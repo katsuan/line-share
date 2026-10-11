@@ -730,8 +730,8 @@ function buildMessage_(mode, imageUrl, item) {
         aspectMode: "fit",
         animated: item.animated,
         backgroundColor: "#00000000",
-        // Created by が ON のときは画像のタップでも「おくるカード」を開く
-        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるカード", uri: credit.topUrl() } } : {})
+        // Created by が ON のときは画像のタップでも「おくるん」を開く
+        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるん", uri: credit.topUrl() } } : {})
       },
       // 画像だけを見せるため本文は空にする（Created by はフッターに付く）
       body: {
