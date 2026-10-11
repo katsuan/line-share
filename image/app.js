@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111237";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610111237";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111258";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610111258";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -581,6 +581,7 @@ function updateMeta_() {
       ? "なし"
       : `${labelOf(OUTLINES, state.outline) || "色"}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
   els.backgroundMeta.textContent = state.background ? "色あり" : "透明";
+  updatePreviewError_();
   els.motionMeta.textContent = state.sendMode === "card" ? labelOf(MOTIONS, state.motion) : "なし（画像）";
 }
 
@@ -676,6 +677,11 @@ function bindEvents_() {
 
 function hasContent_() {
   return Boolean(state.text.trim()) || state.strokes.length > 0;
+}
+
+// 完成イメージのときに、送れない理由をプレビューの上に出す
+function updatePreviewError_() {
+  window.LineShareUI.setPreviewError(els.cardFrame, hasContent_() ? "" : "文字を入れるか、手書きで描いてください。");
 }
 
 function setStatus_(message, tone = "") {
