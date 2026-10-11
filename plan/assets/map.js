@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111222";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111222";
-import { bindHeader } from "./header.js?v=202610111222";
-import { createPlaceFlex } from "./flex.js?v=202610111222";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111234";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111234";
+import { bindHeader } from "./header.js?v=202610111234";
+import { createPlaceFlex } from "./flex.js?v=202610111234";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -47,6 +47,7 @@ export function initMapTab({ onCreateEvent }) {
   dom.previewPhoto = document.getElementById("mapPreviewPhoto");
   dom.previewAddress = document.getElementById("mapPreviewAddress");
   dom.previewBadges = document.getElementById("mapPreviewBadges");
+  dom.badgeAdd = document.getElementById("mapBadgeAdd");
   dom.templateList = document.getElementById("mapTemplateList");
   dom.templateName = document.getElementById("mapTemplateName");
   dom.templateSave = document.getElementById("mapTemplateSave");
@@ -333,6 +334,7 @@ function renderPreview_(place) {
   dom.previewAddress.textContent = place.address;
   dom.previewBadges.hidden = place.badges.length === 0;
   dom.previewBadges.innerHTML = place.badges.map((label) => `<span class="preview-badge">${escapeHtml(label)}</span>`).join("");
+  dom.badgeAdd.hidden = place.badges.length >= MAX_BADGES;
   autoGrow(dom.comment);
 }
 

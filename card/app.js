@@ -144,10 +144,10 @@ async function init() {
     "imageUrlInput", "imageActionUrlInput", "imageWarning",
     "photoFileInput", "photoClearButton", "photoStatus",
     "photoShapeField", "photoShapeHint", "photoFitField",
-    "badgeList", "badgeInput", "addBadgeButton",
+    "badgeAddButton",
     "buttonList", "addButtonButton", "buttonWarning",
     "presetGrid", "templateList", "templateNameInput", "saveTemplateButton",
-    "lookMeta", "photoMeta", "badgeMeta", "linkMeta",
+    "lookMeta", "photoMeta", "linkMeta",
     "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
@@ -260,7 +260,6 @@ function applyStateToEditor() {
   checkRadio("imageFit", state.imageFit);
   els.bubbleSizeRange.value = String(BUBBLE_SIZES.indexOf(state.bubbleSize));
   els.bubbleSizeLabel.textContent = state.bubbleSize;
-  renderBadgeList();
   renderButtonList();
 }
 
@@ -297,16 +296,7 @@ function render() {
   els.imageWarning.hidden = photo.uploading || !imageUrl || isHttpsUrl(imageUrl);
   els.photoClearButton.hidden = !imageUrl;
 
-  els.badgeRow.replaceChildren(
-    ...state.badges.map((text) => {
-      const badge = document.createElement("span");
-      badge.className = "bubble-badge is-jump";
-      badge.style.background = palette.start;
-      badge.textContent = text;
-      return badge;
-    })
-  );
-  els.badgeRow.hidden = state.badges.length === 0;
+  renderBadgePreview(palette);
 
   els.buttonStack.replaceChildren(
     ...state.buttons.map((button) => {
@@ -325,7 +315,6 @@ function render() {
   els.buttonStack.hidden = state.buttons.length === 0;
   els.buttonWarning.hidden = !state.buttons.some((button) => isBlockedQueryUrl(button.url));
   els.addButtonButton.disabled = state.buttons.length >= MAX_BUTTONS;
-  els.addBadgeButton.disabled = state.badges.length >= MAX_BADGES;
   updateFoldMeta();
   window.LineShareUI.syncOptionals();
 
@@ -338,26 +327,70 @@ function updateFoldMeta() {
   const count = (n) => (n ? `${n}個` : "なし");
   els.lookMeta.textContent = `${THEMES[state.theme]?.label || "カスタム"}・${state.bubbleSize}`;
   els.photoMeta.textContent = state.imageUrl.trim() || photo.uploading ? "あり" : "なし";
-  els.badgeMeta.textContent = count(state.badges.length);
   els.linkMeta.textContent = count(state.buttons.length);
 }
 
-function renderBadgeList() {
-  els.badgeList.replaceChildren(
-    ...state.badges.map((text, index) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "ls-chip";
-      chip.textContent = `${text} ×`;
-      chip.setAttribute("aria-label", `バッジ「${text}」を削除`);
-      chip.addEventListener("click", () => {
-        state.badges.splice(index, 1);
-        renderBadgeList();
-        render();
-      });
-      return chip;
-    })
-  );
+// バッジはプレビューで直接編集する。タップで文字を直し、編集中のバッジにだけ × が出る。「＋ バッジ」で増やす（最大5つ）
+function renderBadgePreview(palette) {
+  const editing = els.badgeRow.contains(document.activeElement);
+  const items = els.badgeRow.querySelectorAll(".bubble-badge");
+  if (editing && items.length === state.badges.length) {
+    // 入力中は作り直さない（文字の入力が途切れないように）。色だけ合わせる
+    items.forEach((item) => (item.style.background = palette.start));
+  } else {
+    els.badgeRow.replaceChildren(...state.badges.map((text, index) => createBadge(text, index, palette)));
+  }
+  els.badgeRow.hidden = state.badges.length === 0;
+  els.badgeAddButton.hidden = state.badges.length >= MAX_BADGES;
+}
+
+function createBadge(text, index, palette) {
+  const badge = document.createElement("span");
+  badge.className = "bubble-badge";
+  badge.style.background = palette.start;
+
+  const field = document.createElement("span");
+  field.className = "bubble-badge-text";
+  field.contentEditable = "true";
+  field.setAttribute("role", "textbox");
+  field.setAttribute("aria-label", `バッジ${index + 1}`);
+  field.dataset.placeholder = "バッジ";
+  field.textContent = text;
+  field.addEventListener("input", () => {
+    // 1行・12文字まで（改行や貼り付けた書式は消す）
+    const value = field.textContent.replace(/\s+/g, " ").slice(0, 12);
+    if (field.textContent !== value) field.textContent = value;
+    state.badges[index] = value.trim();
+    render();
+  });
+  field.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      field.blur();
+    }
+  });
+  // 空のまま離れたら消す
+  field.addEventListener("blur", () => {
+    if (state.badges[index] === "") {
+      state.badges.splice(index, 1);
+      render();
+    }
+  });
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "bubble-badge-remove";
+  remove.textContent = "×";
+  remove.setAttribute("aria-label", `バッジ「${text}」を消す`);
+  // 先に文字欄からフォーカスが外れると × が消えるので、押した瞬間は外さない
+  remove.addEventListener("pointerdown", (event) => event.preventDefault());
+  remove.addEventListener("click", () => {
+    state.badges.splice(index, 1);
+    render();
+  });
+
+  badge.append(field, remove);
+  return badge;
 }
 
 function renderButtonList() {
@@ -535,12 +568,12 @@ function buildFlexMessage() {
     { type: "text", text: state.title, size: "xl", weight: "bold", color: "#111827", wrap: true }
   ];
 
-  if (state.badges.length > 0) {
+  if (state.badges.some(Boolean)) {
     bodyContents.push({
       type: "box",
       layout: "horizontal",
       spacing: "sm",
-      contents: state.badges.map((text) => ({
+      contents: state.badges.filter(Boolean).map((text) => ({
         type: "box",
         layout: "vertical",
         backgroundColor: palette.start,
@@ -1037,7 +1070,12 @@ function bindEvents() {
 
   // プレビューの写真・バッジ・ボタンをタップしたら、その設定を開いてそこへ移動する
   els.heroArea.addEventListener("click", () => jumpToSection("photoSettings", els.imageUrlInput));
-  els.badgeRow.addEventListener("click", () => jumpToSection("badgeSettings", els.badgeInput));
+  els.badgeAddButton.addEventListener("click", () => {
+    if (state.badges.length >= MAX_BADGES) return;
+    state.badges.push("");
+    render();
+    els.badgeRow.querySelector(".bubble-badge:last-child .bubble-badge-text")?.focus();
+  });
   const jumpToButton = (event) => {
     const item = event.target.closest(".bubble-action");
     if (!item) return;
@@ -1064,21 +1102,6 @@ function bindEvents() {
     els.imageWarning.hidden = isHttpsUrl(state.imageUrl);
   });
 
-  const addBadge = () => {
-    const text = els.badgeInput.value.trim();
-    if (!text || state.badges.length >= MAX_BADGES) return;
-    if (!state.badges.includes(text)) state.badges.push(text);
-    els.badgeInput.value = "";
-    renderBadgeList();
-    render();
-  };
-  els.addBadgeButton.addEventListener("click", addBadge);
-  els.badgeInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && !event.isComposing) {
-      event.preventDefault();
-      addBadge();
-    }
-  });
 
   els.addButtonButton.addEventListener("click", () => {
     if (state.buttons.length >= MAX_BUTTONS) return;
