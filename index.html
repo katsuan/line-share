@@ -20,11 +20,19 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610111258" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610111642" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610111258"></script>
-    <script src="./shared/credit.js?v=202610111258"></script>
+    <script src="./config.js?v=202610111642"></script>
+    <script src="./shared/credit.js?v=202610111642"></script>
+    <script src="./shared/liff.js?v=202610111642"></script>
     <style>
+      .hub-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
       .hub-title {
         display: flex;
         align-items: center;
@@ -33,6 +41,47 @@
         padding: 28px 4px 20px;
         font-size: 24px;
         font-weight: 800;
+      }
+
+      /* 右上のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
+      .hub-share {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 36px;
+        padding: 0 14px;
+        border: 1px solid var(--ls-line-strong);
+        border-radius: 999px;
+        background: var(--ls-surface);
+        color: var(--ls-text);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .share-options {
+        display: grid;
+        gap: 8px;
+      }
+
+      .share-option {
+        display: grid;
+        gap: 2px;
+        padding: 12px 14px;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-md);
+        background: var(--ls-surface);
+        color: var(--ls-text);
+        font-size: 15px;
+        font-weight: 800;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .share-option small {
+        color: var(--ls-subtext);
+        font-size: 13px;
+        font-weight: 500;
       }
 
       /* ロゴ（OQRN）の横に読み方を添える。初めての人にも「おくるん」と読めるように */
@@ -291,7 +340,10 @@
   </head>
   <body>
     <main id="hub" class="ls-page">
-      <h1 class="hub-title"><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="113" height="34" /><span class="hub-reading">おくるん</span></h1>
+      <div class="hub-head">
+        <h1 class="hub-title"><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="113" height="34" /><span class="hub-reading">おくるん</span></h1>
+        <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
+      </div>
       <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
       <ul class="hub-tools">
         <li>
@@ -352,6 +404,18 @@
       </section>
     </main>
 
+    <div id="shareSheet" class="ls-sheet" hidden>
+      <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+        <p id="shareTitle" class="ls-sheet-title">おくるんをシェア</p>
+        <div class="share-options">
+          <button id="shareCard" class="share-option" type="button">🪧 LINEにカードで送る<small>紹介カードを、選んだ友だち・グループに送ります</small></button>
+          <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
+        </div>
+        <p id="shareStatus" class="ls-hint" role="status"></p>
+        <button id="shareClose" class="ls-sheet-cancel" type="button">閉じる</button>
+      </div>
+    </div>
+
     <script>
       // https://liff.line.me/<LIFF ID>/plan/ のようなリンクは、まずこのトップに liff.state 付きで届く。
       // liff.init() が該当ツールのページへ転送する。
@@ -364,6 +428,124 @@
         liff.init({ liffId }).catch((error) => {
           console.error(error);
           location.replace(location.pathname);
+        });
+      })();
+    </script>
+    <script>
+      // トップのシェア：紹介カードを LINE で送るか、リンクを共有する
+      (function () {
+        const config = window.LINE_SHARE_CONFIG || {};
+        const PAGE_URL = "https://katsuan.github.io/line-share/";
+        const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : PAGE_URL;
+        const $ = (id) => document.getElementById(id);
+        const sheet = $("shareSheet");
+        const status = $("shareStatus");
+        if (!sheet || !$("shareOpen")) return;
+
+        const setStatus = (text) => (status.textContent = text);
+        const open = () => {
+          setStatus("");
+          sheet.hidden = false;
+          $("shareCard").focus();
+        };
+        const close = () => {
+          sheet.hidden = true;
+          $("shareOpen").focus();
+        };
+
+        // 紹介カード（お知らせカードの「紹介」テンプレートと同じ中身）
+        function introCard() {
+          const message = {
+            type: "flex",
+            altText: "おくるん｜つくって、おくるん💬",
+            contents: {
+              type: "bubble",
+              header: {
+                type: "box",
+                layout: "vertical",
+                background: { type: "linearGradient", angle: "135deg", startColor: "#6C47FF", endColor: "#A48BFF" },
+                paddingAll: "16px",
+                contents: [
+                  { type: "text", text: "おくるん", color: "#FFFFFF", weight: "bold", size: "lg" },
+                  { type: "text", text: "つくって、おくるん💬", color: "#FFFFFF", size: "xs", margin: "sm" }
+                ]
+              },
+              hero: {
+                type: "image",
+                url: `${PAGE_URL}shared/ogp.png`,
+                size: "full",
+                aspectRatio: "40:21",
+                aspectMode: "cover",
+                action: { type: "uri", uri: TOP_URL }
+              },
+              body: {
+                type: "box",
+                layout: "vertical",
+                spacing: "md",
+                contents: [
+                  { type: "text", text: "写真やボタン付きのカードを、LINEで送れます。", weight: "bold", size: "md", wrap: true },
+                  { type: "text", text: "場所・予定・お知らせ・文字や手書きを、カードや画像にしてトークに送れます。", size: "sm", color: "#6B6860", wrap: true }
+                ]
+              },
+              footer: {
+                type: "box",
+                layout: "vertical",
+                contents: [{ type: "button", style: "primary", color: "#6C47FF", action: { type: "uri", label: "おくるんを開く", uri: TOP_URL } }]
+              }
+            }
+          };
+          return window.LineShareCredit?.withCredit(message) ?? message;
+        }
+
+        async function shareCard() {
+          setStatus(window.LineShareLiff.MESSAGES.connecting);
+          // LINE の外ではログインしてからこのページに戻る（戻ったらもう一度押す）
+          const { ready, reason } = await window.LineShareLiff.init({ login: "redirect" });
+          if (!ready) {
+            if (reason !== "redirecting") setStatus(window.LineShareLiff.MESSAGES.failed);
+            return;
+          }
+          if (!window.LineShareLiff.canShare()) {
+            setStatus(window.LineShareLiff.MESSAGES.notInLine);
+            return;
+          }
+          try {
+            const result = await liff.shareTargetPicker([introCard()], { isMultiple: true });
+            setStatus(result ? "送りました。" : "送るのをやめました。");
+          } catch (error) {
+            console.error(error);
+            setStatus("送れませんでした。時間をおいてもう一度お試しください。");
+          }
+        }
+
+        async function shareLink() {
+          const data = { title: "おくるん", text: "つくって、おくるん💬 写真やボタン付きのカードを、LINEで送れます。", url: PAGE_URL };
+          if (navigator.share) {
+            try {
+              await navigator.share(data);
+              close();
+              return;
+            } catch (error) {
+              if (error?.name === "AbortError") return;
+            }
+          }
+          try {
+            await navigator.clipboard.writeText(PAGE_URL);
+            setStatus("リンクをコピーしました。");
+          } catch {
+            setStatus(`リンク：${PAGE_URL}`);
+          }
+        }
+
+        $("shareOpen").addEventListener("click", open);
+        $("shareClose").addEventListener("click", close);
+        $("shareCard").addEventListener("click", shareCard);
+        $("shareLink").addEventListener("click", shareLink);
+        sheet.addEventListener("click", (event) => {
+          if (event.target === sheet) close();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !sheet.hidden) close();
         });
       })();
     </script>
