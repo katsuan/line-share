@@ -304,3 +304,17 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* 完成イメージ（送信プレビューの切り替え）：点線の枠と入力の案内を隠し、カードの中は操作しない */
+.ls-preview.is-viewing .bubble {
+  pointer-events: none;
+}
+
+.ls-preview.is-viewing .bubble-input {
+  border-color: transparent;
+}
+
+.ls-preview.is-viewing .bubble-input::placeholder,
+.ls-preview.is-viewing .bubble-badge-text:empty::before {
+  color: transparent;
+}

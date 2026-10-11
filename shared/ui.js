@@ -132,5 +132,75 @@
     for (const sync of optionals) sync();
   }
 
+  /**
+   * 送信プレビューの右上に「プレビューモード切替：📝 編集／👀 完成イメージ」を付ける。選んでいるモードだけ名前を出し、
+   * もう一方はアイコンだけにする（読み上げは両方とも名前）。
+   * 完成イメージのときは .ls-preview に is-viewing を付け、点線の枠・＋／−・案内を隠して、送ったときの見た目にする。
+   * 選んだモードは端末に残し、どのツールでも同じにする。
+   */
+  const VIEW_KEY = "line-share:preview-viewing";
+  const MODES = [
+    { viewing: false, icon: "📝", name: "編集" },
+    { viewing: true, icon: "👀", name: "完成イメージ" }
+  ];
+
+  function loadViewing() {
+    try {
+      return localStorage.getItem(VIEW_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function setupPreviewToggles() {
+    const previews = [...document.querySelectorAll(".ls-preview")];
+    let viewing = loadViewing();
+    const groups = previews.map((preview) => {
+      const group = document.createElement("div");
+      group.className = "ls-preview-mode";
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", "プレビューモード切替");
+      const buttons = MODES.map((mode) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("aria-label", mode.name);
+        const icon = document.createElement("span");
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = mode.icon;
+        const name = document.createElement("span");
+        name.className = "ls-preview-mode-name";
+        name.setAttribute("aria-hidden", "true");
+        name.textContent = mode.name;
+        button.append(icon, name);
+        button.addEventListener("click", () => {
+          viewing = mode.viewing;
+          try {
+            localStorage.setItem(VIEW_KEY, viewing ? "1" : "0");
+          } catch {
+            // 残せなくても切り替えはできる
+          }
+          apply();
+        });
+        return button;
+      });
+      group.append(...buttons);
+      preview.prepend(group);
+      return buttons;
+    });
+
+    function apply() {
+      previews.forEach((preview, index) => {
+        preview.classList.toggle("is-viewing", viewing);
+        groups[index].forEach((button, i) => button.setAttribute("aria-pressed", String(MODES[i].viewing === viewing)));
+        // 完成イメージのときは、カードの中の入力やタップを止める（📝 で編集に戻る）
+        if (viewing && preview.contains(document.activeElement)) document.activeElement.blur();
+      });
+    }
+    apply();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupPreviewToggles);
+  else setupPreviewToggles();
+
   window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals };
 })();

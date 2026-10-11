@@ -207,3 +207,20 @@
   line-height: 1.7;
   text-align: center;
 }
+
+/* 完成イメージ（送信プレビューの切り替え）：点線の枠と入力の案内を隠し、送らないヘッダーも出さない */
+.ls-preview.is-viewing .talk-card {
+  pointer-events: none;
+}
+
+.ls-preview.is-viewing .preview-input {
+  border-color: transparent;
+}
+
+.ls-preview.is-viewing .preview-input::placeholder {
+  color: transparent;
+}
+
+.ls-preview.is-viewing .preview-header.is-off {
+  display: none;
+}
