@@ -131,12 +131,6 @@
   color: #64748b;
 }
 
-/* カラー見本（グラデーション） */
-.theme-sunset { --swatch: linear-gradient(135deg, #f59e0b, #fb7185); }
-.theme-sky { --swatch: linear-gradient(135deg, #2563eb, #06b6d4); }
-.theme-leaf { --swatch: linear-gradient(135deg, #16a34a, #10b981); }
-.theme-berry { --swatch: linear-gradient(135deg, #e11d48, #fb7185); }
-
 /* リンクボタンの編集行 */
 .button-list {
   display: grid;

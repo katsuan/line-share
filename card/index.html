@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610111153" />
-    <link rel="stylesheet" href="./style.css?v=202610111153" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111213" />
+    <link rel="stylesheet" href="./style.css?v=202610111213" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610111153"></script>
-    <script src="../shared/credit.js?v=202610111153"></script>
-    <script src="../shared/liff.js?v=202610111153"></script>
-    <script src="../shared/ui.js?v=202610111153" defer></script>
-    <script src="./app.js?v=202610111153" defer></script>
+    <script src="../config.js?v=202610111213"></script>
+    <script src="../shared/credit.js?v=202610111213"></script>
+    <script src="../shared/liff.js?v=202610111213"></script>
+    <script src="../shared/ui.js?v=202610111213" defer></script>
+    <script src="./app.js?v=202610111213" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -69,10 +69,8 @@
               <div class="ls-field">
                 <span class="ls-label">カラー</span>
                 <div class="ls-swatches" role="radiogroup" aria-label="カラー">
-                  <label class="ls-swatch theme-sunset"><input type="radio" name="theme" value="sunset" /><span class="ls-sr-only">サンセット</span></label>
-                  <label class="ls-swatch theme-sky"><input type="radio" name="theme" value="sky" /><span class="ls-sr-only">スカイ</span></label>
-                  <label class="ls-swatch theme-leaf"><input type="radio" name="theme" value="leaf" /><span class="ls-sr-only">リーフ</span></label>
-                  <label class="ls-swatch theme-berry"><input type="radio" name="theme" value="berry" /><span class="ls-sr-only">ベリー</span></label>
+                  <!-- 色の並びは shared/ui.js の PALETTE（app.js がここに並べる）。最後が「ほかの色」 -->
+                  <span id="themeSwatches"></span>
                   <label class="ls-swatch is-custom">
                     <input type="radio" name="theme" value="custom" tabindex="-1" />
                     <input id="customColorInput" type="color" value="#f59e0b" aria-label="ほかの色を選ぶ" />
