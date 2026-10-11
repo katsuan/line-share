@@ -23,7 +23,7 @@ const THEMES = {
   custom: { label: "カスタム" }
 };
 
-// おくるカードのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
+// おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
 const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
 
 const PRESETS = {
@@ -58,22 +58,22 @@ const PRESETS = {
   intro: {
     label: "紹介",
     icon: "🪧",
-    description: "おくるカードを友だちに紹介",
+    description: "おくるんを友だちに紹介",
     // リンク先が入っているので、当てはめたあとの案内を変える
     status: "「紹介」を当てはめました。このまま送れます。",
     state: {
-      // おくるカードのテーマカラー（shared/ui.css の --ls-accent）
+      // おくるんのテーマカラー（shared/ui.css の --ls-accent）
       theme: "custom",
       customColor: "#6c47ff",
-      headerTitle: "おくるカード",
-      date: "LINEで送れるカードづくり",
-      // 写真の見本も兼ねて、OGP 画像（tools/ogp.py）を入れる。タップでもおくるカードを開く
+      headerTitle: "おくるん",
+      date: "つくって、おくるん。",
+      // 写真の見本も兼ねて、OGP 画像（tools/ogp.py）を入れる。タップでもおくるんを開く
       imageUrl: "https://katsuan.github.io/line-share/shared/ogp.png",
       imageActionUrl: TOP_URL,
-      title: "このカードも、おくるカードで作りました",
+      title: "このカードも、おくるんで作りました",
       detail: "場所・予定・お知らせ・文字や手書きを、写真やボタン付きのカードにしてLINEのトークに送れます。",
       badges: ["場所", "お知らせ", "手書き"],
-      buttons: [{ label: "おくるカードを開く", url: TOP_URL }]
+      buttons: [{ label: "おくるんを開く", url: TOP_URL }]
     }
   }
 };

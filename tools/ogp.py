@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""おくるカードの OGP 画像（shared/ogp.png、1200x630）を作る。
+"""おくるん（OQRN）の OGP 画像（shared/ogp.png、1200x630）を作る。
 
 リンクを共有したときの画像と、お知らせカードの「紹介」テンプレートの写真に使う。
-macOS のヒラギノ角ゴシックと Pillow が必要。
+ロゴの形は tools/brand.py から取る。macOS のヒラギノ角ゴシック・Jua・fontTools・Pillow が必要。
 
 使い方: python3 tools/ogp.py
 """
@@ -10,15 +10,14 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from brand import WHITE, gradient, wordmark_image
+
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "shared" / "ogp.png"
 
 S = 2  # 2倍で描いてから縮め、線や文字のふちをなめらかにする
 W, H = 1200, 630
 
-ACCENT = (108, 71, 255)  # shared/ui.css の --ls-accent
-ACCENT_LIGHT = (164, 139, 255)
-WHITE = (255, 255, 255)
 INK = (31, 31, 28)
 
 
@@ -28,39 +27,6 @@ def font(weight, size):
 
 def box(x0, y0, x1, y1):
     return [x0 * S, y0 * S, x1 * S, y1 * S]
-
-
-def gradient(width, height, start, end):
-    """左上から右下へのグラデーション"""
-    base = Image.new("RGB", (width, height), start)
-    vertical = Image.linear_gradient("L").resize((width, height))
-    horizontal = Image.linear_gradient("L").rotate(90).resize((width, height))
-    mask = Image.blend(horizontal, vertical, 0.5)
-    return Image.composite(Image.new("RGB", (width, height), end), base, mask)
-
-
-def draw_icon(img, x, y, size):
-    """shared/icon.svg と同じ形（64 を size に合わせる）"""
-    k = size / 64
-    layer = Image.new("RGBA", (64 * 8, 64 * 8), (0, 0, 0, 0))
-    d = ImageDraw.Draw(layer)
-    u = 8  # 64 の座標を 8 倍で描く
-    d.rounded_rectangle([0, 0, 64 * u, 64 * u], radius=15 * u, fill=WHITE)
-    card = Image.new("RGBA", (64 * u, 64 * u), (0, 0, 0, 0))
-    c = ImageDraw.Draw(card)
-    c.rounded_rectangle([9 * u, 11 * u, 43 * u, 39 * u], radius=6 * u, fill=ACCENT)
-    c.rounded_rectangle([9 * u, 11 * u, 43 * u, 20 * u], radius=6 * u, fill=(221, 211, 255))
-    c.rectangle([9 * u, 16 * u, 43 * u, 20 * u], fill=(221, 211, 255))
-    c.rounded_rectangle([14 * u, 25 * u, 33 * u, 28.5 * u], radius=1.75 * u, fill=WHITE)
-    c.rounded_rectangle([14 * u, 31.5 * u, 26 * u, 35 * u], radius=1.75 * u, fill=(255, 255, 255, 150))
-    card = card.rotate(8, center=(26 * u, 26 * u), resample=Image.BICUBIC)
-    layer.alpha_composite(card)
-    d = ImageDraw.Draw(layer)
-    d.polygon([(33 * u, 45 * u), (55 * u, 36 * u), (48 * u, 58 * u), (43 * u, 50 * u)], fill=ACCENT)
-    d.line([(43 * u, 50 * u), (55 * u, 36 * u)], fill=WHITE, width=2 * u)
-    layer = layer.resize((round(size * S), round(size * S)), Image.LANCZOS)
-    img.alpha_composite(layer, (x * S, y * S))
-    del k
 
 
 def pill(img, x, y, text, fnt, fill, color, pad_x=18, height=46):
@@ -97,24 +63,25 @@ def sample_card():
         d.rounded_rectangle(box(48, 260 + i * 26, 48 + width, 272 + i * 26), radius=6 * S, fill=(253, 205, 160))
     d.rounded_rectangle(box(28, 360, cw - 28, 418), radius=14 * S, fill=(245, 158, 11))
     d.text((cw / 2 * S, 389 * S), "地図を開く", font=font(7, 22), fill=WHITE, anchor="mm")
-    d.text((cw / 2 * S, 446 * S), "Created by おくるカード ›", font=font(4, 15), fill=(150, 150, 145), anchor="mm")
+    d.text((cw / 2 * S, 446 * S), "Created by おくるん ›", font=font(4, 15), fill=(150, 150, 145), anchor="mm")
 
     card.paste(body, (0, 0), mask)
     return card
 
 
 def main():
-    img = gradient(W * S, H * S, ACCENT, ACCENT_LIGHT).convert("RGBA")
+    img = gradient(W * S, H * S).convert("RGBA")
     d = ImageDraw.Draw(img)
 
-    # 左：アイコン・名前・説明・できること
-    draw_icon(img, 80, 104, 104)
-    d.text((80 * S, 290 * S), "おくるカード", font=font(8, 88), fill=WHITE, anchor="ls")
-    d.text((82 * S, 362 * S), "写真やボタン付きのカードを、", font=font(6, 36), fill=WHITE, anchor="ls")
-    d.text((82 * S, 412 * S), "LINEで送れます。", font=font(6, 36), fill=WHITE, anchor="ls")
+    # 左：ロゴ・読み方・キャッチコピー・説明・できること
+    logo = wordmark_image(96 * S, WHITE + (255,), WHITE + (255,), WHITE + (255,))
+    img.alpha_composite(logo, (78 * S, 112 * S))
+    d.text((84 * S, 268 * S), "おくるん", font=font(6, 26), fill=(255, 255, 255, 220), anchor="ls")
+    d.text((82 * S, 342 * S), "つくって、おくるん。", font=font(8, 50), fill=WHITE, anchor="ls")
+    d.text((84 * S, 396 * S), "写真やボタン付きのカードを、LINEで送れます。", font=font(5, 24), fill=WHITE, anchor="ls")
     x = 82
     for label in ("場所・予定", "お知らせ", "文字・手書き"):
-        x = pill(img, x, 466, label, font(6, 24), (255, 255, 255, 56), WHITE) + 12
+        x = pill(img, x, 444, label, font(6, 24), (255, 255, 255, 56), WHITE) + 12
 
     # 右：カードの見本（少し傾けて影を付ける）
     card = sample_card().rotate(5, expand=True, resample=Image.BICUBIC)

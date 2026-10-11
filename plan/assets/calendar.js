@@ -13,10 +13,10 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610110012";
-import { MAX_URI_LENGTH } from "./config.js?v=202610110012";
-import { createEventFlex } from "./flex.js?v=202610110012";
-import { bindPlaceSearch } from "./place-search.js?v=202610110012";
+} from "./common.js?v=202610111153";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111153";
+import { createEventFlex } from "./flex.js?v=202610111153";
+import { bindPlaceSearch } from "./place-search.js?v=202610111153";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -340,7 +340,7 @@ function renderPreview_(data) {
       <span class="preview-link primary" ${jumpAttrs("calendarLinkFold")}>Googleカレンダーに予定を追加</span>
       ${secondaryLinks}
     </div>
-    <p class="ls-credit">Created by おくるカード ›</p>
+    <p class="ls-credit">Created by おくるん ›</p>
   `;
 }
 

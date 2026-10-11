@@ -1,4 +1,4 @@
-# おくるカード
+# おくるん（OQRN）
 
 場所・予定・お知らせ・文字・手書きを、LINE のトークにカードや画像で送れる LIFF ツール集です。
 GitHub Pages で配信する静的サイトで、GAS は使いません。
@@ -9,13 +9,13 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 
 | パス | 内容 |
 |---|---|
-| `/` | ツール一覧（おくるカード） |
+| `/` | ツール一覧（おくるん） |
 | `/plan/` | 📍📅 場所・予定。Google Maps の場所を写真・バッジ・コメント付きで送る。場所から「この場所で予定を作る」で Google カレンダー登録リンク付きの予定カードにできる |
 | `/card/` | 🪧 お知らせカード。見出し・写真・バッジ・リンクボタン付きのお知らせカード。カード上で直接編集でき、ひな形・テンプレート保存・JSONコピーあり |
 | `/image/` | 💬👆 文字・手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
 | `server/` | 画像アップロード用 API（Render で動かす Node.js） |
 
-全ページ共通のデザイン（`shared/ui.css`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるカード」（`shared/credit.js`）、アイコンは `shared/` にあります。
+全ページ共通のデザイン（`shared/ui.css`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
 
 ## 設定
 
@@ -24,7 +24,7 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 - `liffId`: LIFF アプリの ID（1つだけ作る）
 - `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
 - `imageApiBaseUrl`: `server/` をデプロイした URL
-- `showCredit`: 送るカードに「Created by おくるカード」を付けるか（`false` で全員から消える）
+- `showCredit`: 送るカードに「Created by おくるん」を付けるか（`false` で全員から消える）
 - `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
 
 ### Created by を自分だけ消す
@@ -64,6 +64,17 @@ python3 tools/stamp.py
 ```
 
 `?v=<日時>` が HTML の `<script>`・`<link>` と JS の import 先にまとめて付きます（同じモジュールは全ファイルで同じ版にそろえる必要があるため、必ずこのスクリプトで一括で付けます）。
+
+## ロゴ・アイコン・OGP 画像
+
+サービス名は「おくるん」、ロゴは「OQRN」（Q はふきだし。一筆でくるんと回り、書き始めが矢じり、終わりがしっぽ）。色は紫（`--ls-accent: #6c47ff`）。
+
+```bash
+python3 tools/brand.py   # shared/icon.svg・logo.svg・icon-512.png・apple-touch-icon.png
+python3 tools/ogp.py     # shared/ogp.png（リンク共有時の画像・お知らせカードの「紹介」の写真）
+```
+
+macOS のヒラギノ角ゴシック、ロゴの字形に Jua（SIL Open Font License 1.1。`~/Library/Fonts/Jua.ttf`）、Pillow・fontTools を使います。
 
 ## ローカルでの確認
 
