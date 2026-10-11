@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610110012";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610110012";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610110925";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610110925";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -42,6 +42,8 @@ const OUTLINES = [
   { label: "黒", value: "black" },
   { label: "白黒", value: "double" }
 ];
+// 「ほかの色」で選べる縁の色（一重の縁取りになる）
+const OUTLINE_COLORS = ["#e5484d", "#f5a524", "#30a46c", "#3e7bfa", "#ff6fa8"];
 const OUTLINE_WIDTHS = [
   { label: "細い", value: 4 },
   { label: "ふつう", value: 7 },
@@ -57,6 +59,8 @@ const DEFAULT_PREFS = {
   penColor: PEN_COLORS[0],
   penSize: PEN_SIZES[1].value,
   outline: "double",
+  // outline が "custom" のときの縁の色
+  outlineColor: OUTLINE_COLORS[0],
   outlineWidth: OUTLINE_WIDTHS[1].value,
   background: null,
   motion: "none",
@@ -83,7 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
     "penColors", "penSizes", "penSizeRange", "penSizeDot", "undoButton", "clearButton",
-    "outlineList", "outlineWidthList", "backgroundList", "motionList", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
+    "outlineList", "outlineColors", "outlineWidthList", "backgroundList", "motionList", "motionPanel",
+    "clearTextButton", "drawTextRow", "drawTextLabel", "drawClearTextButton", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
     "shapeList", "historyPanel", "historyList",
@@ -129,10 +134,15 @@ function buildLayer(width, height) {
     drawOutline_(layerCtx, content, ring * 2, "#ffffff");
     drawOutline_(layerCtx, content, ring, "#18222f");
   } else if (ring > 0) {
-    drawOutline_(layerCtx, content, ring, state.outline === "white" ? "#ffffff" : "#18222f");
+    drawOutline_(layerCtx, content, ring, outlineColor_());
   }
   layerCtx.drawImage(content, 0, 0);
   return layer;
+}
+
+function outlineColor_() {
+  if (state.outline === "custom") return state.outlineColor;
+  return state.outline === "white" ? "#ffffff" : "#18222f";
 }
 
 /**
@@ -377,15 +387,19 @@ function buildControls_() {
   buildSwatches_(els.penColors, PEN_COLORS, () => state.penColor, (color) => (state.penColor = color));
   buildChoices_(els.penSizes, PEN_SIZES, () => state.penSize, (value) => (state.penSize = value));
   buildChoices_(els.outlineList, OUTLINES, () => state.outline, (value) => (state.outline = value));
+  // ほかの色を選ぶと、その色の一重の縁取りにする（白・黒・白黒を選んでいる間はどれも選ばれていない表示）
+  buildSwatches_(
+    els.outlineColors,
+    OUTLINE_COLORS,
+    () => (state.outline === "custom" ? state.outlineColor : null),
+    (color) => {
+      state.outline = "custom";
+      state.outlineColor = color;
+    }
+  );
   buildChoices_(els.outlineWidthList, OUTLINE_WIDTHS, () => state.outlineWidth, (value) => (state.outlineWidth = value));
   buildSwatches_(els.backgroundList, BACKGROUNDS, () => state.background, (color) => (state.background = color), "透明");
-  buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => {
-    state.motion = value;
-    if (value !== "none" && state.sendMode === "image") {
-      state.sendMode = "card";
-      setStatus_("動きを付けたので「カード」で送ります（カードは背景が白くなります）。");
-    }
-  });
+  buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => (state.motion = value));
   buildChoices_(els.shapeList, SHAPES, () => state.shape, (value) => (state.shape = value));
 }
 
@@ -484,6 +498,13 @@ function applyState_() {
   if (!state.busy) els.sendButton.textContent = sendLabel_();
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
+  // 画像では動かないので、動きは選べない（グレー表示）
+  els.motionPanel.classList.toggle("is-unavailable", !isCard);
+  for (const button of els.motionList.querySelectorAll("button")) button.disabled = !isCard;
+  els.motionHint.textContent = isCard
+    ? "動きはカードで送ったときに再生されます。"
+    : "画像では動きません。動かしたいときは、送り方を「カード」にしてください。";
+  syncTextClear_();
   updateMeta_();
   syncChoices_();
   updateUndo_();
@@ -499,13 +520,15 @@ function updateMeta_() {
   syncPenSize_();
   els.shapeMeta.textContent = labelOf(SHAPES, state.shape);
   els.outlineMeta.textContent =
-    state.outline === "none" ? "なし" : `${labelOf(OUTLINES, state.outline)}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
+    state.outline === "none"
+      ? "なし"
+      : `${labelOf(OUTLINES, state.outline) || "色"}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
   els.backgroundMeta.textContent = state.background ? "色あり" : "透明";
   els.motionMeta.textContent = state.sendMode === "card" ? labelOf(MOTIONS, state.motion) : "なし（画像）";
 }
 
 function sendLabel_() {
-  return state.sendMode === "card" ? "カードで送る" : "画像で送る";
+  return state.sendMode === "card" ? "🪧 カードで送る" : "🖼️ 画像で送る";
 }
 
 // スライダーと見本の丸を今の太さに合わせる。丸はプレビュー上で実際に描かれる太さ
@@ -515,6 +538,21 @@ function syncPenSize_() {
   const px = Math.max(2, (state.penSize * Math.min(rect.width, rect.height)) / BASE);
   els.penSizeDot.style.width = els.penSizeDot.style.height = `${px}px`;
   els.penSizeDot.style.background = state.penColor;
+}
+
+// 文字を消すボタンは文字があるときだけ使える。手書きタブでは文字があるときだけ出す
+function syncTextClear_() {
+  const text = state.text.trim().replace(/\s+/g, " ");
+  els.clearTextButton.disabled = !text;
+  els.drawTextRow.hidden = !text;
+  els.drawTextLabel.textContent = text.length > 10 ? `${text.slice(0, 10)}…` : text;
+}
+
+function clearText_() {
+  if (!state.text) return;
+  state.text = "";
+  onChange_();
+  setStatus_(state.mode === "draw" ? "文字を消しました。手書きだけになります。" : "文字を消しました。");
 }
 
 function onChange_() {
@@ -540,7 +578,7 @@ function bindEvents_() {
     state.sendMode = "image";
     if (state.motion !== "none") {
       state.motion = "none";
-      setStatus_("画像では動きが止まるため、動きを「なし」にしました。");
+      setStatus_("画像では動かないため、動きを「なし」にしました。");
     }
     onChange_();
   });
@@ -554,8 +592,11 @@ function bindEvents_() {
     savePrefs_();
     syncChoices_();
     updateMeta_();
+    syncTextClear_();
     requestRender();
   });
+  els.clearTextButton.addEventListener("click", clearText_);
+  els.drawClearTextButton.addEventListener("click", clearText_);
   els.undoButton.addEventListener("click", () => {
     if (!state.undoStack.length) return;
     state.strokes = state.undoStack.pop();
