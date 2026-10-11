@@ -620,6 +620,23 @@ input[type="time"].ls-input {
   justify-self: start;
 }
 
+/* 完成イメージのときだけ、送れない理由をカードの上に出す（shared/ui.js の setPreviewError） */
+.ls-preview-error {
+  display: none;
+}
+
+.ls-preview.is-viewing .ls-preview-error:not([hidden]) {
+  display: block;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  color: var(--ls-danger);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 /* 完成イメージ：編集のための表示を隠す。各ツールの枠や入力欄は各ツールの style.css で隠す */
 .ls-preview.is-viewing .ls-optional-add,
 .ls-preview.is-viewing .ls-optional-remove,

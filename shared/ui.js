@@ -202,5 +202,26 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupPreviewToggles);
   else setupPreviewToggles();
 
-  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals };
+  /**
+   * 今の内容では送れない理由を、「送信プレビュー」とカードのあいだに出す（空の文字で消す）。
+   * target はプレビューの中の要素か id。表示は完成イメージのときだけ（編集中は送信バーの案内で足りる）。
+   */
+  function setPreviewError(target, message) {
+    const element = typeof target === "string" ? document.getElementById(target) : target;
+    const preview = element?.closest(".ls-preview");
+    if (!preview) return;
+    let slot = preview.querySelector(":scope > .ls-preview-error");
+    if (!slot) {
+      slot = document.createElement("p");
+      slot.className = "ls-preview-error";
+      slot.setAttribute("role", "status");
+      const label = preview.querySelector(":scope > .ls-preview-label");
+      if (label) label.after(slot);
+      else preview.prepend(slot);
+    }
+    slot.textContent = message ? `⚠️ ${message}` : "";
+    slot.hidden = !message;
+  }
+
+  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError };
 })();

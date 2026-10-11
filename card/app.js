@@ -517,10 +517,10 @@ function getValidation() {
   if (!state.headerTitle) return { message: "タイトルを入力してください。", fieldId: "headerInput" };
   if (!state.title) return { message: "本文タイトルを入力してください。", fieldId: "titleInput" };
   if (state.showDate && !state.date) {
-    return { message: "サブタイトルを入力するか、表示設定でOFFにしてください。", fieldId: "dateInput" };
+    return { message: "サブタイトルを入力するか、− で消してください。", fieldId: "dateInput" };
   }
   if (state.showDetail && !state.detail) {
-    return { message: "詳細を入力するか、表示設定でOFFにしてください。", fieldId: "detailInput" };
+    return { message: "詳細を入力するか、− で消してください。", fieldId: "detailInput" };
   }
   if (state.imageUrl && !isHttpsUrl(state.imageUrl)) {
     return { message: "写真のURLは https:// から始まる公開URLを入力してください。", fieldId: "imageUrlInput" };
@@ -543,6 +543,7 @@ function getValidation() {
 
 function updateShareButtonState() {
   const { message } = getValidation();
+  window.LineShareUI.setPreviewError(els.bubble, message);
   els.shareButton.disabled = !shareReady;
   els.shareButton.classList.toggle("is-incomplete", Boolean(message));
 
