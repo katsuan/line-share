@@ -1,18 +1,19 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111153";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111153";
-import { createPlaceFlex } from "./flex.js?v=202610111153";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111213";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111213";
+import { bindHeader, headerPreviewHtml } from "./header.js?v=202610111213";
+import { createPlaceFlex } from "./flex.js?v=202610111213";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
 const MAX_BADGE_LENGTH = 12;
 const TEMPLATE_KEY = "line-share:place-templates";
 
-// 用意済みのテンプレートはバッジとコメントだけを入れ替え、選んだ場所はそのまま残す
+// 用意済みのテンプレートはヘッダーの見出し・バッジ・コメントだけを入れ替え、選んだ場所はそのまま残す
 const PLACE_PRESETS = [
-  { name: "🍽️ ランチ候補", badges: ["おすすめ", "近い", "コスパ○"], comment: "ランチここどう？" },
-  { name: "📍 集合場所", badges: ["集合場所"], comment: "ここに集合で！" },
-  { name: "✨ 行きたい", badges: ["行きたい", "雰囲気◎"], comment: "今度ここ行ってみたい！" },
-  { name: "👶 子連れOK", badges: ["子連れOK", "駅近"], comment: "子どもと一緒でも行けそう！" }
+  { name: "🍽️ ランチ候補", headerTitle: "ランチ候補", badges: ["おすすめ", "近い", "コスパ○"], comment: "ランチここどう？" },
+  { name: "📍 集合場所", headerTitle: "ここに集合！", badges: ["集合場所"], comment: "ここに集合で！" },
+  { name: "✨ 行きたい", headerTitle: "行ってみたい場所", badges: ["行きたい", "雰囲気◎"], comment: "今度ここ行ってみたい！" },
+  { name: "👶 子連れOK", headerTitle: "子連れでも行ける場所", badges: ["子連れOK", "駅近"], comment: "子どもと一緒でも行けそう！" }
 ];
 
 const dom = {};
@@ -21,6 +22,7 @@ const state = {
   address: "",
   photoUrl: "",
   lastResolvedUrl: "",
+  header: null,
   onCreateEvent: () => {}
 };
 
@@ -79,6 +81,7 @@ export function initMapTab({ onCreateEvent }) {
     }
   });
 
+  state.header = bindHeader({ prefix: "mapHeader", defaultTitle: "場所のお知らせ", onChange: refreshMapTab });
   renderBadges_();
   renderTemplates_();
   refreshMapTab();
@@ -120,7 +123,8 @@ function getPlace_() {
     address: state.address.trim(),
     photoUrl: state.photoUrl,
     comment: dom.comment.value.trim(),
-    badges: [...state.selectedBadges]
+    badges: [...state.selectedBadges],
+    header: state.header?.get() ?? null
   };
 }
 
@@ -283,6 +287,7 @@ function renderPreview_(place, hasUrl) {
   const placeJump = jumpAttrs("mapPlacePanel", "mapTitle");
 
   dom.preview.innerHTML = `
+    ${headerPreviewHtml(place.header, "mapHeaderFold", "mapHeaderTitle")}
     ${place.photoUrl ? `<img class="preview-photo" src="${escapeHtml(place.photoUrl)}" alt="" ${placeJump} />` : ""}
     <div class="talk-card-body">
       <h3 class="preview-title" ${placeJump}>📍 ${escapeHtml(place.title || "Google Maps")}</h3>
@@ -326,6 +331,7 @@ function renderTemplates_() {
 
 function describeTemplate_(template) {
   const parts = [];
+  if (template.headerTitle) parts.push(`🪧${template.headerTitle}`);
   if (template.place?.title) parts.push(`📍${template.place.title}`);
   if (template.badges?.length) parts.push(template.badges.join("・"));
   if (template.comment) parts.push(`「${template.comment}」`);
@@ -354,6 +360,7 @@ function applyTemplate_(template) {
       photoUrl: template.place.photoUrl || ""
     });
   }
+  if (typeof template.headerTitle === "string") state.header.setTitle(template.headerTitle);
   state.selectedBadges = (template.badges || []).slice(0, MAX_BADGES);
   dom.comment.value = template.comment || "";
   renderBadges_();
@@ -377,6 +384,7 @@ function saveTemplate_() {
       address: place.address,
       photoUrl: place.photoUrl
     },
+    headerTitle: place.header?.title || "",
     badges: place.badges,
     comment: place.comment
   };

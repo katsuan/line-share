@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるん</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610111153" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610111153" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111213" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610111213" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610111153"></script>
-    <script src="../shared/credit.js?v=202610111153"></script>
-    <script src="../shared/liff.js?v=202610111153"></script>
-    <script src="../shared/ui.js?v=202610111153" defer></script>
-    <script type="module" src="./assets/main.js?v=202610111153"></script>
+    <script src="../config.js?v=202610111213"></script>
+    <script src="../shared/credit.js?v=202610111213"></script>
+    <script src="../shared/liff.js?v=202610111213"></script>
+    <script src="../shared/ui.js?v=202610111213" defer></script>
+    <script type="module" src="./assets/main.js?v=202610111213"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -86,6 +86,25 @@
                 <input id="mapTemplateName" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
                 <button id="mapTemplateSave" class="ls-button" type="button">保存</button>
               </div>
+            </div>
+          </details>
+
+          <details id="mapHeaderFold" class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>ヘッダー <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
+            <div class="ls-fold-body">
+              <label class="ls-field">
+                <span class="ls-label">見出し</span>
+                <input id="mapHeaderTitle" class="ls-input" type="text" maxlength="40" placeholder="例：ここに集合！" />
+              </label>
+              <label class="ls-field">
+                <span class="ls-label">サブタイトル（任意）</span>
+                <input id="mapHeaderSub" class="ls-input" type="text" maxlength="60" placeholder="例：10/18（土）10:00 集合" />
+              </label>
+              <div class="ls-field">
+                <span class="ls-label">色</span>
+                <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
+              </div>
+              <p class="ls-hint">カードの上に色付きの帯で出ます。見出しを空にするとヘッダーなしで送ります。</p>
             </div>
           </details>
 
@@ -170,6 +189,25 @@
           </section>
 
           <div class="ls-folds">
+            <details id="eventHeaderFold" class="ls-fold">
+              <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>ヘッダー <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
+              <div class="ls-fold-body">
+                <label class="ls-field">
+                  <span class="ls-label">見出し</span>
+                  <input id="eventHeaderTitle" class="ls-input" type="text" maxlength="40" placeholder="例：打ち合わせのお知らせ" />
+                </label>
+                <label class="ls-field">
+                  <span class="ls-label">サブタイトル（任意）</span>
+                  <input id="eventHeaderSub" class="ls-input" type="text" maxlength="60" placeholder="例：持ち物は筆記用具" />
+                </label>
+                <div class="ls-field">
+                  <span class="ls-label">色</span>
+                  <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
+                </div>
+                <p class="ls-hint">カードの上に色付きの帯で出ます。見出しを空にするとヘッダーなしで送ります。</p>
+              </div>
+            </details>
+
             <details id="locationAccordion" class="ls-fold">
               <summary><span class="ls-fold-icon" aria-hidden="true">📍</span>場所 <span id="locationState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">

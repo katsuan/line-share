@@ -1,4 +1,5 @@
 // LINE に送る Flex Message の組み立て。色は styles.css のトークンと揃える。
+import { headerFlex } from "./header.js?v=202610111213";
 const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",
@@ -7,7 +8,7 @@ const COLOR = {
   badgeBg: "#EFEBFF"
 };
 
-export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, badges }) {
+export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, badges, header }) {
   const name = title || "Google Maps";
   const bodyContents = [
     {
@@ -62,6 +63,7 @@ export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, bad
     contents: {
       type: "bubble",
       size: "giga",
+      header: headerFlex(header),
       hero: createHero_(photoUrl, mapUrl),
       body: {
         type: "box",
@@ -116,6 +118,7 @@ export function createEventFlex(data, calendarUrl, labels) {
     contents: {
       type: "bubble",
       size: "mega",
+      header: headerFlex(data.header),
       hero: createHero_(data.photoUrl, data.mapUrl || calendarUrl),
       body: {
         type: "box",
