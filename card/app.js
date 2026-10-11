@@ -67,7 +67,7 @@ const PRESETS = {
     state: {
       theme: "purple",
       headerTitle: "おくるん",
-      date: "つくって、おくるん。",
+      date: "つくって、おくるん💬",
       // 写真の見本も兼ねて、OGP 画像（tools/ogp.py）を入れる。タップでもおくるんを開く
       imageUrl: "https://katsuan.github.io/line-share/shared/ogp.png",
       imageActionUrl: TOP_URL,
