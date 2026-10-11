@@ -225,3 +225,10 @@
 .ls-fold.is-unavailable .ls-fold-icon {
   opacity: 0.45;
 }
+
+/* 色の丸の行替え（1行目：基本の色、2行目：共通の並び＋ほかの色） */
+.ls-swatch-break {
+  flex-basis: 100%;
+  height: 0;
+  margin-top: -4px;
+}

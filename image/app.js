@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111228";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610111228";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111237";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610111237";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -29,12 +29,12 @@ const FONTS = [
   { label: "ペン字風", value: "'Klee One', 'Hiragino Mincho ProN', serif", weight: 600, webFont: "Klee One" }
 ];
 const TEXT_PRESETS = ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"];
-// 色の並びは全ツール共通（shared/ui.js の PALETTE：紫・青・緑・橙・赤）。そのあとに黒・白、最後に「ほかの色」
+// 色は2行に分ける。1行目は基本の色（黒・白など）、2行目は全ツール共通の並び
+// （shared/ui.js の PALETTE：紫・青・緑・橙・赤）で、最後に「ほかの色」
 const BLACK = "#18222f";
 const WHITE = "#ffffff";
 const HUES = window.LineShareUI.PALETTE.map((color) => color.solid.toLowerCase());
-const TEXT_COLORS = [...HUES, BLACK, WHITE];
-const PEN_COLORS = [...HUES, BLACK, WHITE];
+const BASIC_COLORS = [BLACK, WHITE];
 // スライダーで選べる太さの範囲（3段階のボタンはこの中のよく使う値）
 const PEN_SIZE_MIN = 2;
 const PEN_SIZE_MAX = 40;
@@ -56,14 +56,15 @@ const OUTLINE_WIDTHS = [
   { label: "ふつう", value: 7 },
   { label: "太い", value: 11 }
 ];
-// 背景は 透明・白・薄い色（同じ並び）・黒
-const BACKGROUNDS = [null, WHITE, ...window.LineShareUI.PALETTE.map((color) => color.soft.toLowerCase()), BLACK];
+// 背景は 1行目が 透明・白・黒、2行目が薄い色（同じ並び）
+const BASIC_BACKGROUNDS = [null, WHITE, BLACK];
+const BACKGROUNDS = window.LineShareUI.PALETTE.map((color) => color.soft.toLowerCase());
 
 const DEFAULT_PREFS = {
   mode: "text",
   text: "OK",
   font: FONTS[0].value,
-  textColor: TEXT_COLORS[0],
+  textColor: HUES[0],
   penColor: BLACK,
   penSize: PEN_SIZES[1].value,
   outline: "double",
@@ -418,8 +419,8 @@ function buildControls_() {
   buildChoices_(els.fontList, FONTS, () => state.font, (value) => (state.font = value), (button, option) => {
     button.style.fontFamily = option.value;
   });
-  buildSwatches_(els.textColors, TEXT_COLORS, () => state.textColor, (color) => (state.textColor = color));
-  buildSwatches_(els.penColors, PEN_COLORS, () => state.penColor, (color) => (state.penColor = color));
+  buildSwatches_(els.textColors, HUES, () => state.textColor, (color) => (state.textColor = color), { basics: BASIC_COLORS });
+  buildSwatches_(els.penColors, HUES, () => state.penColor, (color) => (state.penColor = color), { basics: BASIC_COLORS });
   buildChoices_(els.penSizes, PEN_SIZES, () => state.penSize, (value) => (state.penSize = value));
   buildChoices_(els.outlineList, OUTLINES, () => state.outline, (value) => (state.outline = value));
   // ほかの色を選ぶと、その色の一重の縁取りにする（白・黒・白黒を選んでいる間はどれも選ばれていない表示）
@@ -433,7 +434,10 @@ function buildControls_() {
     }
   );
   buildChoices_(els.outlineWidthList, OUTLINE_WIDTHS, () => state.outlineWidth, (value) => (state.outlineWidth = value));
-  buildSwatches_(els.backgroundList, BACKGROUNDS, () => state.background, (color) => (state.background = color), "透明");
+  buildSwatches_(els.backgroundList, BACKGROUNDS, () => state.background, (color) => (state.background = color), {
+    basics: BASIC_BACKGROUNDS,
+    noneLabel: "透明"
+  });
   buildChoices_(els.motionList, MOTIONS, () => state.motion, (value) => (state.motion = value));
   buildChoices_(els.shapeList, SHAPES, () => state.shape, (value) => (state.shape = value));
 }
@@ -458,8 +462,9 @@ function buildChoices_(container, options, get, set, decorate) {
   choiceGroups.push({ buttons, get });
 }
 
-function buildSwatches_(container, colors, get, set, noneLabel) {
-  const buttons = colors.map((color) => {
+// basics を渡すと、それを1行目に並べ、colors と「ほかの色」を2行目にする
+function buildSwatches_(container, colors, get, set, { basics = [], noneLabel = "" } = {}) {
+  const buttons = [...basics, ...colors].map((color) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ls-swatch";
@@ -489,7 +494,15 @@ function buildSwatches_(container, colors, get, set, noneLabel) {
   });
   custom.append(input);
 
-  container.replaceChildren(...buttons, custom);
+  const rowBreak = document.createElement("span");
+  rowBreak.className = "ls-swatch-break";
+  rowBreak.setAttribute("aria-hidden", "true");
+  container.replaceChildren(
+    ...buttons.slice(0, basics.length),
+    ...(basics.length ? [rowBreak] : []),
+    ...buttons.slice(basics.length),
+    custom
+  );
   choiceGroups.push({ buttons, get, custom, input });
 }
 
