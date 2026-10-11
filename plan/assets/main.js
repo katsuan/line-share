@@ -1,6 +1,6 @@
-import { app, isGoogleMapsUrl, isHttpsUrl } from "./common.js?v=202610111213";
-import { initMapTab, loadPlace, refreshMapTab } from "./map.js?v=202610111213";
-import { applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610111213";
+import { app } from "./common.js?v=202610111222";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610111222";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610111222";
 
 const TABS = ["map", "calendar"];
 
@@ -33,30 +33,15 @@ async function initializeLiff_() {
   }
 }
 
+// クエリパラメータからカードを作る。tab=calendar か start があれば予定、mapUrl・title などがあれば場所
+// （使えるパラメータは map.js の applyMapQuery・calendar.js の applyEventQuery と README）
 function applyQuery_(params) {
-  const mapUrl = params.get("mapUrl") || "";
-  const photoUrl = params.get("photoUrl") || "";
-  const place = {
-    mapUrl: isGoogleMapsUrl(mapUrl) ? mapUrl : "",
-    title: params.get("title") || "",
-    address: params.get("address") || "",
-    photoUrl: isHttpsUrl(photoUrl) ? photoUrl : ""
-  };
-  const tab = TABS.includes(params.get("tab")) ? params.get("tab") : place.mapUrl ? "map" : null;
-
-  if (tab) {
-    selectTab(tab);
-  }
-
-  if (!place.mapUrl) {
-    return;
-  }
-
-  if (tab === "calendar") {
-    applyPlace(place);
-  } else {
-    loadPlace(place);
-  }
+  const keys = [...params.keys()].filter((key) => key !== "tab" && !key.startsWith("liff"));
+  const tab = TABS.includes(params.get("tab")) ? params.get("tab") : params.has("start") ? "calendar" : keys.length ? "map" : null;
+  if (!tab) return;
+  selectTab(tab);
+  if (tab === "calendar") applyEventQuery(params);
+  else applyMapQuery(params);
 }
 
 function bindTabs_() {

@@ -1,10 +1,12 @@
 import {
   app,
   assertUriLength,
+  autoGrow,
   escapeHtml,
   formatPlaceLocation,
   isGoogleMapsUrl,
   isHttpUrl,
+  isHttpsUrl,
   jumpAttrs,
   mapSearchUrl,
   openExternal,
@@ -13,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610111213";
-import { MAX_URI_LENGTH } from "./config.js?v=202610111213";
-import { bindHeader, headerPreviewHtml } from "./header.js?v=202610111213";
-import { createEventFlex } from "./flex.js?v=202610111213";
-import { bindPlaceSearch } from "./place-search.js?v=202610111213";
+} from "./common.js?v=202610111222";
+import { MAX_URI_LENGTH } from "./config.js?v=202610111222";
+import { bindHeader } from "./header.js?v=202610111222";
+import { createEventFlex } from "./flex.js?v=202610111222";
+import { bindPlaceSearch } from "./place-search.js?v=202610111222";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -38,6 +40,9 @@ export function initCalendarTab() {
   dom.timezone.value = state.timezone;
   addCustomParamRow_();
   state.header = bindHeader({ prefix: "eventHeader", defaultTitle: "予定のお知らせ", onChange: refreshCalendarTab });
+  // サブタイトル・メモはプレビュー上の ＋ で足し、− で消す
+  window.LineShareUI.optional(document.getElementById("eventHeaderSubRow"), { label: "サブタイトル" });
+  window.LineShareUI.optional(document.getElementById("detailsRow"), { label: "メモ" });
   bindEvents_();
   refreshCalendarTab();
 }
@@ -51,6 +56,70 @@ export function applyPlace({ mapUrl, title, address, photoUrl }) {
   dom.location.value = formatPlaceLocation({ title: title || titleFromMapUrl(mapUrl), address });
   dom.locationAccordion.open = true;
   refreshCalendarTab();
+}
+
+/**
+ * クエリパラメータから予定のカードを作る（main.js から呼ぶ）。渡されたものだけ入れる。
+ *   title                 … 件名
+ *   start / end           … 開始・終了。「2026-10-18T10:00」のように日時、または「2026-10-18」で終日
+ *   minutes               … 終了の代わりに長さ（分）
+ *   location / mapUrl     … 場所と地図のURL、photoUrl … 写真
+ *   details / url         … メモ、関連URL
+ *   header / sub / color  … ヘッダーの見出し・サブタイトル・色
+ */
+export function applyEventQuery(params) {
+  if (params.has("title")) dom.title.value = params.get("title");
+  if (params.has("details")) dom.details.value = params.get("details");
+  if (params.has("url")) dom.url.value = params.get("url");
+  if (params.has("location") || params.has("mapUrl")) {
+    const mapUrl = params.get("mapUrl") || "";
+    const photoUrl = params.get("photoUrl") || "";
+    dom.location.value = params.get("location") || "";
+    dom.locationMapUrl.value = isGoogleMapsUrl(mapUrl) ? mapUrl : "";
+    state.place = { mapUrl: dom.locationMapUrl.value, photoUrl: isHttpsUrl(photoUrl) ? photoUrl : "" };
+  }
+
+  const start = parseQueryDate_(params.get("start"));
+  if (start) {
+    const allDay = start.dateOnly;
+    if (dom.allDayToggle.checked !== allDay) {
+      dom.allDayToggle.checked = allDay;
+      handleAllDayChange_();
+    }
+    dom.startDate.value = toDateInputValue_(start.date);
+    if (!allDay) dom.startTime.value = toTimeInputValue_(start.date);
+    const end = parseQueryDate_(params.get("end"));
+    const minutes = Number(params.get("minutes"));
+    if (end) {
+      // 終日の終了日は「最終日」で受け取る（入力欄と同じ）
+      dom.endDate.value = toDateInputValue_(end.date);
+      if (!allDay) dom.endTime.value = toTimeInputValue_(end.date);
+      state.endEdited = true;
+      state.followStartDuration = false;
+    } else {
+      state.selectedDurationMinutes = minutes > 0 ? minutes : allDay ? 1440 : 60;
+      setEndFromStart_(getStart_(), state.selectedDurationMinutes);
+    }
+    syncDurationButtons_();
+    updateDurationSummary_();
+  }
+
+  state.header.apply({
+    title: params.get("header") ?? undefined,
+    subtitle: params.get("sub") ?? undefined,
+    color: params.get("color") || ""
+  });
+  refreshCalendarTab();
+}
+
+// 「2026-10-18T10:00」か「2026-10-18」を読む。読めなければ null
+function parseQueryDate_(value) {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?$/);
+  if (!match) return null;
+  const [, y, m, d, hh, mm] = match.map(Number);
+  const date = hh === undefined || Number.isNaN(hh) ? new Date(y, m - 1, d) : new Date(y, m - 1, d, hh, mm);
+  if (Number.isNaN(date.getTime())) return null;
+  return { date, dateOnly: match[4] === undefined };
 }
 
 export function focusCalendarTitle() {
@@ -74,7 +143,6 @@ function cacheDom_() {
   dom.details = document.getElementById("details");
   dom.locationState = document.getElementById("locationState");
   dom.urlState = document.getElementById("urlState");
-  dom.detailsState = document.getElementById("detailsState");
   dom.timezone = document.getElementById("timezone");
   dom.recur = document.getElementById("recur");
   dom.sourceName = document.getElementById("sourceName");
@@ -86,6 +154,10 @@ function cacheDom_() {
   dom.shareTargetButton = document.getElementById("shareTargetButton");
   dom.statusMessage = document.getElementById("statusMessage");
   dom.previewCard = document.getElementById("previewCard");
+  dom.titleInline = document.getElementById("titleInline");
+  dom.previewRows = document.getElementById("eventPreviewRows");
+  dom.previewActions = document.getElementById("eventPreviewActions");
+  dom.previewPhoto = document.getElementById("eventPreviewPhoto");
   dom.customParamsList = document.getElementById("customParamsList");
   dom.addParamButton = document.getElementById("addParamButton");
   dom.durationSummary = document.getElementById("durationSummary");
@@ -95,6 +167,10 @@ function cacheDom_() {
 }
 
 function bindEvents_() {
+  // プレビューの件名と「予定」の件名は同じもの（どちらで入力してもよい）。form の input より先に写す
+  dom.titleInline.addEventListener("input", () => {
+    dom.title.value = dom.titleInline.value;
+  });
   dom.form.addEventListener("input", refreshCalendarTab);
   dom.form.addEventListener("submit", (event) => event.preventDefault());
   dom.allDayToggle.addEventListener("change", handleAllDayChange_);
@@ -134,6 +210,7 @@ function bindEvents_() {
 }
 
 export function refreshCalendarTab() {
+  window.LineShareUI.syncOptionals();
   updateOptionalCount_();
   updateOptionalFieldStates_();
 
@@ -304,53 +381,61 @@ function formatStartLabel_(data) {
     : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}`;
 }
 
+// プレビューは最初に組み立てたものを使い回し、件名・メモなど入力中の欄は書き換えない
 function renderPreview_(data) {
   const labels = getFlexLabels_(data);
   const spansMultipleDays = !data.allDay && !isSameCalendarDate_(data.start, data.end);
+  renderPreviewParts_({
+    rows: [
+      [labels.startKey, labels.start],
+      ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration],
+      data.location ? ["場所", data.location, "location"] : null,
+      data.customParams.length
+        ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"), "optional"]
+        : null
+    ],
+    photoUrl: data.photoUrl,
+    mapUrl: data.mapUrl,
+    url: data.url
+  });
+}
+
+// 日時がまだ正しくないとき（件名・メモの入力欄はそのまま使える）
+function renderPreviewEmpty_() {
+  renderPreviewParts_({
+    rows: [["開始", "日時を選んでください"]],
+    photoUrl: "",
+    mapUrl: dom.location.value.trim() ? "pending" : "",
+    url: dom.url.value.trim()
+  });
+}
+
+function renderPreviewParts_({ rows, photoUrl, mapUrl, url }) {
+  if (document.activeElement !== dom.titleInline) dom.titleInline.value = dom.title.value;
   // 各行・各ボタンをタップしたときに移る設定
-  const toStart = jumpAttrs("eventPanel", "startDate");
-  const rows = [
-    [labels.startKey, labels.start, toStart],
-    ["長さ", spansMultipleDays ? `${labels.duration}（複数日）` : labels.duration, toStart],
-    data.location ? ["場所", data.location, jumpAttrs("locationAccordion", "location")] : null,
-    data.details ? ["メモ", data.details, jumpAttrs("detailsFold", "details")] : null,
-    data.customParams.length
-      ? ["追加設定", data.customParams.map((param) => `${param.key}=${param.value}`).join("\n"), jumpAttrs("optionalAccordion")]
-      : null
-  ].filter(Boolean);
-  const secondaryLinks = [
-    data.mapUrl ? ["地図を開く", jumpAttrs("locationAccordion", "locationMapUrl")] : null,
-    data.url ? ["関連URLを開く", jumpAttrs("urlFold", "url")] : null
+  const jumps = {
+    date: jumpAttrs("eventPanel", "startDate"),
+    location: jumpAttrs("locationAccordion", "location"),
+    optional: jumpAttrs("optionalAccordion")
+  };
+  dom.previewRows.innerHTML = rows
+    .filter(Boolean)
+    .map(
+      ([key, value, jump = "date"]) =>
+        `<div class="preview-item" ${jumps[jump]}><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
+    )
+    .join("");
+  dom.previewPhoto.hidden = !photoUrl;
+  if (photoUrl && dom.previewPhoto.getAttribute("src") !== photoUrl) dom.previewPhoto.src = photoUrl;
+  const secondary = [
+    mapUrl ? ["地図を開く", jumpAttrs("locationAccordion", "locationMapUrl")] : null,
+    url ? ["関連URLを開く", jumpAttrs("urlFold", "url")] : null
   ]
     .filter(Boolean)
     .map(([label, attrs]) => `<span class="preview-link secondary" ${attrs}>${label}</span>`)
     .join("");
-  const toTitle = jumpAttrs("eventPanel", "title");
-
-  dom.previewCard.innerHTML = `
-    ${headerPreviewHtml(data.header, "eventHeaderFold", "eventHeaderTitle")}
-    ${data.photoUrl ? `<img class="preview-photo" src="${escapeHtml(data.photoUrl)}" alt="" ${toTitle} />` : ""}
-    <div class="talk-card-body">
-      <h3 class="preview-title" ${toTitle}>${escapeHtml(data.title)}</h3>
-      <div class="preview-grid">
-        ${rows
-          .map(
-            ([key, value, attrs]) =>
-              `<div class="preview-item" ${attrs}><div class="preview-key">${key}</div><div class="preview-value">${escapeHtml(value)}</div></div>`
-          )
-          .join("")}
-      </div>
-    </div>
-    <div class="preview-actions">
-      <span class="preview-link primary" ${jumpAttrs("calendarLinkFold")}>Googleカレンダーに予定を追加</span>
-      ${secondaryLinks}
-    </div>
-    <p class="ls-credit">Created by おくるん ›</p>
-  `;
-}
-
-function renderPreviewEmpty_() {
-  dom.previewCard.innerHTML = `<p class="preview-empty" ${jumpAttrs("eventPanel", "title")}>件名と開始・終了日時を入れると<br />送る内容をここで確認できます。</p>`;
+  dom.previewActions.innerHTML = `<span class="preview-link primary" ${jumpAttrs("calendarLinkFold")}>Googleカレンダーに予定を追加</span>${secondary}`;
+  autoGrow(dom.details);
 }
 
 function updateOptionalCount_() {
@@ -368,7 +453,6 @@ function updateOptionalCount_() {
 function updateOptionalFieldStates_() {
   updateFieldStateChip_(dom.locationState, dom.location.value.trim() || dom.locationMapUrl.value.trim());
   updateFieldStateChip_(dom.urlState, dom.url.value.trim());
-  updateFieldStateChip_(dom.detailsState, dom.details.value.trim());
 }
 
 function updateFieldStateChip_(element, value) {

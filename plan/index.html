@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるん</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610111213" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610111213" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610111222" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610111222" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610111213"></script>
-    <script src="../shared/credit.js?v=202610111213"></script>
-    <script src="../shared/liff.js?v=202610111213"></script>
-    <script src="../shared/ui.js?v=202610111213" defer></script>
-    <script type="module" src="./assets/main.js?v=202610111213"></script>
+    <script src="../config.js?v=202610111222"></script>
+    <script src="../shared/credit.js?v=202610111222"></script>
+    <script src="../shared/liff.js?v=202610111222"></script>
+    <script src="../shared/ui.js?v=202610111222" defer></script>
+    <script type="module" src="./assets/main.js?v=202610111222"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -35,8 +35,31 @@
       <div id="panel-map" class="ls-stack" role="tabpanel" aria-labelledby="tab-map">
         <section class="ls-preview">
           <span class="ls-preview-label">送信プレビュー</span>
-          <div id="mapPreview" class="talk-card"></div>
-          <p class="ls-preview-note">カードの中をタップすると、その設定に移ります。</p>
+          <!-- 文字はここで直接編集する。写真・住所・バッジ・ボタンはタップで設定へ（map.js が中身を書き換える） -->
+          <div id="mapPreview" class="talk-card">
+            <div id="mapHeaderBand" class="preview-header">
+              <input id="mapHeaderTitle" class="preview-input preview-header-title" type="text" maxlength="40" placeholder="見出し（空ならヘッダーなし）" aria-label="ヘッダーの見出し" />
+              <div id="mapHeaderSubRow"><input id="mapHeaderSub" class="preview-input preview-header-sub" type="text" maxlength="60" placeholder="例：10/18（土）10:00 集合" aria-label="ヘッダーのサブタイトル" /></div>
+            </div>
+            <img id="mapPreviewPhoto" class="preview-photo" alt="" hidden data-jump="mapPlacePanel" data-jump-focus="mapSearchInput mapTitle" role="button" tabindex="0" aria-label="場所を選び直す" />
+            <div class="talk-card-body">
+              <div class="preview-title-row">
+                <span aria-hidden="true">📍</span>
+                <input id="mapTitleInline" class="preview-input preview-title" type="text" maxlength="80" placeholder="場所名" aria-label="場所名" />
+              </div>
+              <p id="mapPreviewAddress" class="preview-sub" hidden data-jump="mapPlacePanel" data-jump-focus="mapSearchInput mapTitle" role="button" tabindex="0"></p>
+              <div id="mapPreviewBadges" class="preview-badges" hidden data-jump="mapBadgeFold" data-jump-focus="customBadge" role="button" tabindex="0" aria-label="バッジを編集"></div>
+              <div id="mapCommentRow" class="preview-item">
+                <span class="preview-key">コメント</span>
+                <textarea id="mapComment" class="preview-input preview-value" rows="1" maxlength="300" placeholder="例：ここ行ってみたい！" aria-label="コメント"></textarea>
+              </div>
+            </div>
+            <div class="preview-actions">
+              <span class="preview-link primary" data-jump="mapPlacePanel" data-jump-focus="mapUrl" role="button" tabindex="0">地図を開く</span>
+            </div>
+            <p class="ls-credit">Created by おくるん ›</p>
+          </div>
+          <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真・バッジ・日時・ボタンはタップすると設定に移ります。</p>
         </section>
 
         <section id="mapPlacePanel" class="ls-panel">
@@ -80,7 +103,7 @@
           <details class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
             <div class="ls-fold-body">
-              <p class="ls-hint">バッジとコメントをまとめて入れます。今の内容を保存すると、場所ごと残せます。</p>
+              <p class="ls-hint">見出し・バッジ・コメントをまとめて入れます。今の内容を保存すると、場所ごと残せます。</p>
               <div id="mapTemplateList" class="ls-list"></div>
               <div class="ls-row">
                 <input id="mapTemplateName" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
@@ -90,21 +113,10 @@
           </details>
 
           <details id="mapHeaderFold" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>ヘッダー <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>ヘッダーの色 <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
-              <label class="ls-field">
-                <span class="ls-label">見出し</span>
-                <input id="mapHeaderTitle" class="ls-input" type="text" maxlength="40" placeholder="例：ここに集合！" />
-              </label>
-              <label class="ls-field">
-                <span class="ls-label">サブタイトル（任意）</span>
-                <input id="mapHeaderSub" class="ls-input" type="text" maxlength="60" placeholder="例：10/18（土）10:00 集合" />
-              </label>
-              <div class="ls-field">
-                <span class="ls-label">色</span>
-                <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
-              </div>
-              <p class="ls-hint">カードの上に色付きの帯で出ます。見出しを空にするとヘッダーなしで送ります。</p>
+              <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
+              <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
             </div>
           </details>
 
@@ -119,13 +131,6 @@
               <p class="ls-hint">最大5つまで選べます。</p>
             </div>
           </details>
-
-          <details id="mapCommentFold" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>コメント <span id="commentMeta" class="ls-fold-meta">未入力</span></summary>
-            <div class="ls-fold-body">
-              <textarea id="mapComment" class="ls-input" rows="3" aria-label="コメント" placeholder="例：ここ行ってみたい！"></textarea>
-            </div>
-          </details>
         </div>
 
         <button id="mapShareButton" type="button" hidden>🪧 カードで送る</button>
@@ -137,8 +142,25 @@
         <form id="eventForm" class="ls-stack" novalidate>
           <section class="ls-preview">
             <span class="ls-preview-label">送信プレビュー</span>
-            <div id="previewCard" class="talk-card"></div>
-            <p class="ls-preview-note">カードの中をタップすると、その設定に移ります。</p>
+            <!-- 文字はここで直接編集する。日時・場所・ボタンはタップで設定へ（calendar.js が中身を書き換える） -->
+            <div id="previewCard" class="talk-card">
+              <div id="eventHeaderBand" class="preview-header">
+                <input id="eventHeaderTitle" class="preview-input preview-header-title" type="text" maxlength="40" placeholder="見出し（空ならヘッダーなし）" aria-label="ヘッダーの見出し" />
+                <div id="eventHeaderSubRow"><input id="eventHeaderSub" class="preview-input preview-header-sub" type="text" maxlength="60" placeholder="例：持ち物は筆記用具" aria-label="ヘッダーのサブタイトル" /></div>
+              </div>
+              <img id="eventPreviewPhoto" class="preview-photo" alt="" hidden data-jump="locationAccordion" data-jump-focus="location" role="button" tabindex="0" aria-label="場所を編集" />
+              <div class="talk-card-body">
+                <input id="titleInline" class="preview-input preview-title" type="text" maxlength="80" placeholder="件名" aria-label="件名" />
+                <div id="eventPreviewRows" class="preview-grid"></div>
+                <div id="detailsRow" class="preview-item">
+                  <span class="preview-key">メモ</span>
+                  <textarea id="details" class="preview-input preview-value" rows="1" placeholder="例：持ち物、集合場所など" aria-label="予定のメモ"></textarea>
+                </div>
+              </div>
+              <div id="eventPreviewActions" class="preview-actions"></div>
+              <p class="ls-credit">Created by おくるん ›</p>
+            </div>
+            <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真・バッジ・日時・ボタンはタップすると設定に移ります。</p>
           </section>
 
           <section id="eventPanel" class="ls-panel">
@@ -190,21 +212,10 @@
 
           <div class="ls-folds">
             <details id="eventHeaderFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>ヘッダー <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>ヘッダーの色 <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
               <div class="ls-fold-body">
-                <label class="ls-field">
-                  <span class="ls-label">見出し</span>
-                  <input id="eventHeaderTitle" class="ls-input" type="text" maxlength="40" placeholder="例：打ち合わせのお知らせ" />
-                </label>
-                <label class="ls-field">
-                  <span class="ls-label">サブタイトル（任意）</span>
-                  <input id="eventHeaderSub" class="ls-input" type="text" maxlength="60" placeholder="例：持ち物は筆記用具" />
-                </label>
-                <div class="ls-field">
-                  <span class="ls-label">色</span>
-                  <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
-                </div>
-                <p class="ls-hint">カードの上に色付きの帯で出ます。見出しを空にするとヘッダーなしで送ります。</p>
+                <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
+                <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
               </div>
             </details>
 
@@ -229,13 +240,6 @@
               <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>関連URL <span id="urlState" class="ls-fold-meta">未入力</span></summary>
               <div class="ls-fold-body">
                 <input id="url" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="関連URL" placeholder="https://example.com" />
-              </div>
-            </details>
-
-            <details id="detailsFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">📝</span>メモ <span id="detailsState" class="ls-fold-meta">未入力</span></summary>
-              <div class="ls-fold-body">
-                <textarea id="details" class="ls-input" rows="4" aria-label="予定の詳細" placeholder="補足情報やメモ"></textarea>
               </div>
             </details>
 

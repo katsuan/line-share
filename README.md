@@ -17,6 +17,21 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 
 全ページ共通のデザイン（`shared/ui.css`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
 
+### 場所・予定をリンクから作る（クエリパラメータ）
+
+`https://liff.line.me/<LIFF ID>/plan/?...` のように渡すと、その内容を入れた状態で開きます。渡したものだけが入ります。
+
+| 対象 | パラメータ | 内容 |
+|---|---|---|
+| 共通 | `tab` | `map`（場所）か `calendar`（予定）。省略時は `start` があれば予定、ほかは場所 |
+| 共通 | `header` / `sub` / `color` | ヘッダーの見出し・サブタイトル・色（`purple`・`sky`・`leaf`・`sunset`・`berry` か `ff6fa8` のような 16 進） |
+| 場所 | `mapUrl` / `title` / `address` / `photoUrl` | Google Maps の URL・場所名・住所・写真（https） |
+| 場所 | `comment` / `badges` | コメント、バッジ（カンマ区切り、5つまで） |
+| 予定 | `title` / `details` / `url` | 件名・メモ・関連URL |
+| 予定 | `start` / `end` / `minutes` | `2026-10-18T10:00` なら日時、`2026-10-18` なら終日。`end` の代わりに `minutes`（長さ・分）も使える |
+| 予定 | `location` / `mapUrl` / `photoUrl` | 場所名・地図の URL・写真 |
+
+例：`/plan/?tab=calendar&title=定例会&start=2026-10-18T10:00&minutes=90&location=渋谷オフィス&header=今週の定例&color=sky`
 ## 設定
 
 `config.js` の1か所にまとめています。

@@ -1,11 +1,10 @@
 // カード上部の色付きヘッダー（お知らせカードと同じ見た目）。場所・予定の両方で使う。
-import { escapeHtml, jumpAttrs } from "./common.js?v=202610111213";
 
 // 色の並びは全ツール共通（shared/ui.js の PALETTE。先頭はおくるんの紫）。最後に「ほかの色」
 export const HEADER_THEMES = Object.fromEntries(window.LineShareUI.PALETTE.map((color) => [color.key, color]));
 
 /**
- * ヘッダーの設定欄（見出し・サブタイトル・色）をつなぐ。
+ * ヘッダーをつなぐ。見出し・サブタイトルはプレビューの帯（${prefix}Band）の中で直接入力し、色は設定欄で選ぶ。
  * prefix は要素 id の頭（mapHeader / eventHeader）。最後に使った見出しと色は端末に残す。
  */
 export function bindHeader({ prefix, defaultTitle, onChange }) {
@@ -14,6 +13,7 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
   const subtitle = el("Sub");
   const themes = el("Themes");
   const meta = el("Meta");
+  const band = el("Band");
   const storageKey = `line-share:${prefix}`;
   let theme = "purple";
   let customColor = "#6c47ff";
@@ -65,8 +65,12 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
     for (const button of buttons) button.setAttribute("aria-pressed", String(button.dataset.theme === theme));
     custom.classList.toggle("is-selected", theme === "custom");
     if (theme === "custom") custom.style.setProperty("--swatch", customColor);
-    const header = get();
-    meta.textContent = header ? (header.title.length > 10 ? `${header.title.slice(0, 10)}…` : header.title) : "なし";
+    const { start, end, label } = colors();
+    meta.textContent = theme === "custom" ? "ほかの色" : label;
+    // 見出しが空のときは送らないので、帯を薄く点線にして「ヘッダーなし」とわかるようにする
+    const on = Boolean(title.value.trim());
+    band.classList.toggle("is-off", !on);
+    band.style.background = on ? `linear-gradient(135deg, ${start}, ${end})` : "";
   }
 
   function changed() {
@@ -81,20 +85,23 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
     changed();
   }
 
+  // クエリパラメータから入れる（渡されたものだけ変える）
+  function apply({ title: newTitle, subtitle: newSubtitle, color }) {
+    if (typeof newTitle === "string") title.value = newTitle;
+    if (typeof newSubtitle === "string") subtitle.value = newSubtitle;
+    if (HEADER_THEMES[color]) theme = color;
+    else if (/^#?[0-9a-f]{6}$/i.test(color || "")) {
+      customColor = `#${color.replace("#", "")}`.toLowerCase();
+      picker.value = customColor;
+      theme = "custom";
+    }
+    changed();
+  }
+
   title.addEventListener("input", changed);
   subtitle.addEventListener("input", changed);
   sync();
-  return { get, setTitle };
-}
-
-/** プレビュー用のヘッダー（タップするとヘッダーの設定へ移る） */
-export function headerPreviewHtml(header, foldId, titleInputId) {
-  if (!header) return "";
-  return `
-    <div class="preview-header" style="background: linear-gradient(135deg, ${header.start}, ${header.end})" ${jumpAttrs(foldId, titleInputId)}>
-      <p class="preview-header-title">${escapeHtml(header.title)}</p>
-      ${header.subtitle ? `<p class="preview-header-sub">${escapeHtml(header.subtitle)}</p>` : ""}
-    </div>`;
+  return { get, setTitle, apply };
 }
 
 /** 送る Flex の bubble.header（お知らせカードと同じ形） */
