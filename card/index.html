@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるカード</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610110907" />
-    <link rel="stylesheet" href="./style.css?v=202610110907" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610110925" />
+    <link rel="stylesheet" href="./style.css?v=202610110925" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610110907"></script>
-    <script src="../shared/credit.js?v=202610110907"></script>
-    <script src="../shared/liff.js?v=202610110907"></script>
-    <script src="../shared/ui.js?v=202610110907" defer></script>
-    <script src="./app.js?v=202610110907" defer></script>
+    <script src="../config.js?v=202610110925"></script>
+    <script src="../shared/credit.js?v=202610110925"></script>
+    <script src="../shared/liff.js?v=202610110925"></script>
+    <script src="../shared/ui.js?v=202610110925" defer></script>
+    <script src="./app.js?v=202610110925" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -58,6 +58,48 @@
               <div class="ls-row">
                 <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
                 <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
+              </div>
+            </div>
+          </details>
+
+          <!-- 色や大きさはカード全体の印象を決めるので、テンプレートの次に置く -->
+          <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目</summary>
+            <div class="ls-fold-body">
+              <div class="ls-field">
+                <span class="ls-label">カラー</span>
+                <div class="ls-swatches" role="radiogroup" aria-label="カラー">
+                  <label class="ls-swatch theme-sunset"><input type="radio" name="theme" value="sunset" /><span class="ls-sr-only">サンセット</span></label>
+                  <label class="ls-swatch theme-sky"><input type="radio" name="theme" value="sky" /><span class="ls-sr-only">スカイ</span></label>
+                  <label class="ls-swatch theme-leaf"><input type="radio" name="theme" value="leaf" /><span class="ls-sr-only">リーフ</span></label>
+                  <label class="ls-swatch theme-berry"><input type="radio" name="theme" value="berry" /><span class="ls-sr-only">ベリー</span></label>
+                  <label class="ls-swatch is-custom">
+                    <input type="radio" name="theme" value="custom" tabindex="-1" />
+                    <input id="customColorInput" type="color" value="#f59e0b" aria-label="ほかの色を選ぶ" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="ls-field">
+                <span class="ls-label">カードの大きさ</span>
+                <div class="ls-chips" role="radiogroup" aria-label="カードの大きさ">
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="nano" />nano</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="micro" />micro</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="deca" />deca</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="hecto" />hecto</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="kilo" />kilo</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="mega" />mega</label>
+                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="giga" />giga</label>
+                </div>
+                <p class="ls-hint">LINEのカードの大きさです（nano が一番小さく、giga が一番大きい）。迷ったら mega（LINEの標準）。</p>
+              </div>
+
+              <div class="ls-field">
+                <span class="ls-label">表示する項目</span>
+                <div class="ls-chips">
+                  <label class="ls-chip"><input id="showDateToggle" type="checkbox" />サブタイトル</label>
+                  <label class="ls-chip"><input id="showDetailToggle" type="checkbox" />詳細</label>
+                </div>
               </div>
             </div>
           </details>
@@ -123,49 +165,6 @@
               <p class="ls-hint">最大3つ。https / tel: / mailto: / line: が使えます。</p>
             </div>
           </details>
-
-          <!-- 色などの見た目は仕上げなので、中身（写真・バッジ・リンク）の後ろに置く -->
-          <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目</summary>
-            <div class="ls-fold-body">
-              <div class="ls-field">
-                <span class="ls-label">カラー</span>
-                <div class="ls-swatches" role="radiogroup" aria-label="カラー">
-                  <label class="ls-swatch theme-sunset"><input type="radio" name="theme" value="sunset" /><span class="ls-sr-only">サンセット</span></label>
-                  <label class="ls-swatch theme-sky"><input type="radio" name="theme" value="sky" /><span class="ls-sr-only">スカイ</span></label>
-                  <label class="ls-swatch theme-leaf"><input type="radio" name="theme" value="leaf" /><span class="ls-sr-only">リーフ</span></label>
-                  <label class="ls-swatch theme-berry"><input type="radio" name="theme" value="berry" /><span class="ls-sr-only">ベリー</span></label>
-                  <label class="ls-swatch is-custom">
-                    <input type="radio" name="theme" value="custom" tabindex="-1" />
-                    <input id="customColorInput" type="color" value="#f59e0b" aria-label="ほかの色を選ぶ" />
-                  </label>
-                </div>
-              </div>
-
-              <div class="ls-field">
-                <span class="ls-label">カードの大きさ</span>
-                <div class="ls-chips" role="radiogroup" aria-label="カードの大きさ">
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="nano" />nano</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="micro" />micro</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="deca" />deca</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="hecto" />hecto</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="kilo" />kilo</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="mega" />mega</label>
-                  <label class="ls-chip"><input type="radio" name="bubbleSize" value="giga" />giga</label>
-                </div>
-                <p class="ls-hint">LINEのカードの大きさです（nano が一番小さく、giga が一番大きい）。迷ったら mega（LINEの標準）。</p>
-              </div>
-
-              <div class="ls-field">
-                <span class="ls-label">表示する項目</span>
-                <div class="ls-chips">
-                  <label class="ls-chip"><input id="showDateToggle" type="checkbox" />サブタイトル</label>
-                  <label class="ls-chip"><input id="showDetailToggle" type="checkbox" />詳細</label>
-                </div>
-              </div>
-            </div>
-          </details>
-
         </div>
 
         <div class="card-tools">
