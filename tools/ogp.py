@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from brand import WHITE, gradient, wordmark_image
+from brand import WHITE, gradient, q_draw, wordmark_image
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "shared" / "ogp.png"
@@ -79,7 +79,11 @@ def main():
     logo = wordmark_image(96 * S, WHITE + (255,), WHITE + (255,), WHITE + (255,))
     img.alpha_composite(logo, (78 * S, 112 * S))
     d.text((84 * S, 268 * S), "おくるん", font=font(6, 26), fill=(255, 255, 255, 220), anchor="ls")
-    d.text((82 * S, 342 * S), "つくって、おくるん。", font=font(8, 50), fill=WHITE, anchor="ls")
+    # キャッチコピー「つくって、おくるん💬」。💬 は絵文字の絵を焼き込まず、ロゴと同じふきだしを白で描く
+    tagline = "つくって、おくるん"
+    d.text((82 * S, 342 * S), tagline, font=font(8, 50), fill=WHITE, anchor="ls")
+    bubble_x = 82 + d.textlength(tagline, font=font(8, 50)) / S + 30
+    q_draw(d, bubble_x, 324, 17, 6.5, WHITE + (255,), WHITE + (255,), scale=S)
     d.text((84 * S, 396 * S), "写真やボタン付きのカードを、LINEで送れます。", font=font(5, 24), fill=WHITE, anchor="ls")
     x = 82
     for label in ("場所・予定", "お知らせ", "文字・手書き"):
