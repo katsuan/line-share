@@ -1,6 +1,6 @@
-import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610110012";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610110012";
-import { createPlaceFlex } from "./flex.js?v=202610110012";
+import { assertUriLength, escapeHtml, isGoogleMapsUrl, jumpAttrs, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111153";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111153";
+import { createPlaceFlex } from "./flex.js?v=202610111153";
 
 const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
 const MAX_BADGES = 5;
@@ -412,5 +412,5 @@ function saveTemplates_(templates) {
 
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
-  dom.shareButton.textContent = isSending ? "送信中..." : "トークに送る";
+  dom.shareButton.textContent = isSending ? "送信中..." : "🪧 カードで送る";
 }
