@@ -6,10 +6,10 @@
     <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
     <meta name="robots" content="noindex" />
     <title>検証｜おくるん</title>
-    <link rel="stylesheet" href="../shared/ui.css?v=202610140152" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140158" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610140152"></script>
-    <script src="../shared/liff.js?v=202610140152"></script>
+    <script src="../config.js?v=202610140158"></script>
+    <script src="../shared/liff.js?v=202610140158"></script>
     <style>
       .lab-log {
         margin: 0;
@@ -47,6 +47,15 @@
           <div class="lab-buttons">
             <button id="clipSend" class="ls-button" type="button">このトークに送る（sendMessages）</button>
             <button id="clipShare" class="ls-button" type="button">送り先を選んで送る（shareTargetPicker）</button>
+          </div>
+        </section>
+
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">①' 入力欄に初期値を入れるボタン（postback）</h2>
+          <p class="ls-hint">FamilyLog と同じ postback の inputOption: openKeyboard ＋ fillInText。Bot のいないトークでも、押すとキーボードが開いて文が入るかを見ます（スマホのみ）。message アクション（押すと文を送る）も並べます。</p>
+          <div class="lab-buttons">
+            <button id="fillSend" class="ls-button" type="button">このトークに送る（sendMessages）</button>
+            <button id="fillShare" class="ls-button" type="button">送り先を選んで送る（shareTargetPicker）</button>
           </div>
         </section>
 
@@ -116,6 +125,17 @@
             { type: "button", style: "primary", height: "sm", action: { type: "clipboard", label: "📋 コピー", clipboardText: text() } }
           ]);
 
+        const fillMessage = () =>
+          bubble("入力欄に初期値", [
+            {
+              type: "button",
+              style: "primary",
+              height: "sm",
+              action: { type: "postback", label: "✏️ postback＋fillInText", data: "lab=fill", inputOption: "openKeyboard", fillInText: text() }
+            },
+            { type: "button", style: "secondary", height: "sm", action: { type: "message", label: "💬 message", text: text() } }
+          ]);
+
         const linkMessage = () =>
           bubble(
             "入力欄に入れるリンク",
@@ -149,6 +169,8 @@
 
         $("clipSend").onclick = () => sendHere(clipMessage());
         $("clipShare").onclick = () => share(clipMessage());
+        $("fillSend").onclick = () => sendHere(fillMessage());
+        $("fillShare").onclick = () => share(fillMessage());
         $("linkSend").onclick = () => sendHere(linkMessage());
         $("linkShare").onclick = () => share(linkMessage());
 
