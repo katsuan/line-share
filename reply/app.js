@@ -5,7 +5,11 @@
 // 吹き出しはその場で書きかえられる（ひとこと足す・名前を変えるなど）。送るのは書きかえたあとの文。
 // sendMessages には LIFF アプリの chat_message.write の権限が要る。権限を外しているときは、
 // 権限なしで使える shareTargetPicker で「送り先を選んで送る」にする（このトークを選んでもらう）。
+// 投票のボタンからは候補（c）もすべて渡ってくるので、ここで別の候補に選び直せる。
+//   ?text=最初の文&title=投票の題&format={c} に投票します&pick=押した候補の番号&c=候補1&c=候補2…
+// コピーはどこでも使える。LINE の中ではコピーしたらトークに戻る（入力欄に貼って送る）。
 const MAX_LENGTH = 500;
+const MAX_CHOICES = 20;
 // トークから開いたときだけ送れる（sendMessages はそのトークに送る）
 const CHAT_TYPES = ["utou", "group", "room", "square_chat"];
 
@@ -13,17 +17,17 @@ const els = {};
 let text = "";
 // 送り方。"here"＝このトークに送る / "pick"＝送り先を選んで送る / ""＝送れない（コピーだけ）
 let mode = "";
+// LINE アプリの中で開いているか（コピーしたらトークに戻る）
+let inClient = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  for (const id of ["replyText", "replyNote", "status", "copyButton", "sendButton"]) {
+  for (const id of ["replyText", "replyNote", "status", "copyButton", "sendButton", "choiceArea", "choiceTitle", "choices"]) {
     els[id] = document.getElementById(id);
   }
-  // 改行以外の制御文字は外し、長さを抑える
-  text = (new URLSearchParams(location.search).get("text") || "")
-    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, "")
-    .trim()
-    .slice(0, MAX_LENGTH);
+  const params = new URLSearchParams(location.search);
+  text = clean(params.get("text") || "");
   els.replyText.value = text;
+  setupChoices(params);
   els.replyText.placeholder = "送る内容を入れてください";
   els.replyText.addEventListener("input", () => {
     text = els.replyText.value.trim();
@@ -38,6 +42,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   await prepare();
 });
 
+// 改行以外の制御文字は外し、長さを抑える
+function clean(value) {
+  return String(value)
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, MAX_LENGTH);
+}
+
+// 投票の候補を並べ、押すとその候補の文に入れかえる
+function setupChoices(params) {
+  const format = params.get("format") || "";
+  const choices = params.getAll("c").map((c) => clean(c).slice(0, 100)).filter(Boolean).slice(0, MAX_CHOICES);
+  if (choices.length < 2 || !format.includes("{c}")) return;
+  const title = clean(params.get("title") || "").slice(0, 60);
+  els.choiceTitle.textContent = title ? `「${title}」ほかの候補にする` : "ほかの候補にする";
+  let picked = Number(params.get("pick"));
+  const buttons = choices.map((choice, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ls-chip";
+    button.textContent = choice;
+    button.addEventListener("click", () => {
+      picked = index;
+      text = clean(format.replaceAll("{c}", choice));
+      els.replyText.value = text;
+      fit();
+      sync();
+      syncButtons();
+      setStatus("");
+    });
+    return button;
+  });
+  const sync = () => buttons.forEach((b, i) => b.setAttribute("aria-pressed", String(i === picked)));
+  sync();
+  els.choices.replaceChildren(...buttons);
+  els.choiceArea.hidden = false;
+}
+
 async function prepare() {
   const { MESSAGES } = window.LineShareLiff;
   setStatus(MESSAGES.connecting);
@@ -49,6 +91,8 @@ async function prepare() {
     els.replyNote.hidden = true;
     return;
   }
+  inClient = true;
+  els.copyButton.textContent = "コピーして戻る";
   const context = liff.getContext() || {};
   const canWrite = (context.scopes || []).includes("chat_message.write");
   if (canWrite && CHAT_TYPES.includes(context.type)) {
@@ -106,7 +150,9 @@ async function send() {
 async function copy() {
   try {
     await navigator.clipboard.writeText(text);
-    setStatus("コピーしました。トークに貼り付けて送れます。", "success");
+    setStatus("コピーしました。トークの入力欄に貼り付けて送ってください。", "success");
+    // LINE の中ではトークに戻って、そのまま貼れるようにする
+    if (inClient) setTimeout(() => liff.closeWindow(), 900);
   } catch {
     setStatus("コピーできませんでした。吹き出しの文を長押ししてコピーしてください。", "error");
   }
