@@ -276,6 +276,86 @@
   line-height: 1;
 }
 
+/* カードの種類（お知らせ・投票・チェックリスト） */
+.kind-chips {
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 投票の候補・チェックリストの項目 */
+.bubble-items {
+  display: grid;
+  gap: 8px;
+}
+
+.bubble-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 投票：受け手が押すボタンの見た目（LINE の secondary ボタン） */
+.bubble-items[data-kind="vote"] .bubble-item {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #f1f1f3;
+}
+
+.bubble-items[data-kind="vote"] .bubble-item-input {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.bubble-item-box {
+  font-size: 15px;
+}
+
+.bubble-item-input {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+}
+
+.bubble-item-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-subtext);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bubble-item:focus-within .bubble-item-remove {
+  display: grid;
+}
+
+/* チェックリストの「✅ 準備できた」ボタン（文言はそのまま書き換えられる） */
+.bubble-done {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  font-weight: 800;
+}
+
+.bubble-done[hidden] {
+  display: none;
+}
+
+.ls-preview.is-viewing .kind-chips {
+  display: none;
+}
+
 /* 複数枚（横スクロール）のカードの切り替え */
 .card-deck {
   display: flex;
