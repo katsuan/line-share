@@ -29,55 +29,22 @@ const THEMES = {
 // おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
 const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
 
-const PRESETS = {
-  emergency: {
-    label: "緊急",
-    icon: "🚨",
-    description: "障害告知・営業時間変更など",
-    state: {
-      theme: "berry",
-      headerTitle: "【緊急】重要なお知らせ",
-      date: "ご確認をお願いします",
-      title: "重要なご案内があります",
-      detail: "詳細をご確認のうえ、必要な対応をお願いいたします。",
-      badges: ["至急", "重要"],
-      buttons: [{ label: "詳細を確認", url: "" }]
-    }
-  },
-  share: {
-    label: "共有",
-    icon: "📣",
-    description: "資料共有・周知・案内など",
-    state: {
-      theme: "sky",
-      headerTitle: "共有のお知らせ",
-      date: "関係者へ展開してください",
-      title: "共有用の情報をまとめました",
-      detail: "必要に応じてメンバーへ展開し、内容をご確認ください。",
-      badges: ["共有", "案内"],
-      buttons: [{ label: "資料を見る", url: "" }]
-    }
-  },
-  intro: {
-    label: "紹介",
-    icon: "🪧",
-    description: "おくるんを友だちに紹介",
-    // リンク先が入っているので、当てはめたあとの案内を変える
-    status: "「紹介」を当てはめました。このまま送れます。",
-    state: {
-      theme: "purple",
-      headerTitle: "おくるん",
-      date: "つくって、おくるん💬",
-      // 写真の見本も兼ねて、OGP 画像（tools/ogp.py）を入れる。タップでもおくるんを開く
-      imageUrl: "https://katsuan.github.io/line-share/shared/ogp.png",
-      imageActionUrl: TOP_URL,
-      title: "このカードも、おくるんで作りました",
-      detail: "場所・予定・お知らせ・文字や手書きを、写真やボタン付きのカードにしてLINEのトークに送れます。",
-      badges: ["場所", "お知らせ", "手書き"],
-      buttons: [{ label: "おくるんを開く", url: TOP_URL }]
-    }
-  }
-};
+// 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
+// "{top}" はおくるんのトップの URL に置き換える
+let PRESETS = {};
+
+function replaceTop(value) {
+  if (typeof value === "string") return value.replaceAll("{top}", TOP_URL);
+  if (Array.isArray(value)) return value.map(replaceTop);
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, replaceTop(v)]));
+  return value;
+}
+
+async function loadPresets() {
+  const { card } = await window.LineShareUI.loadTemplates();
+  PRESETS = Object.fromEntries((Array.isArray(card) ? card : []).filter((preset) => preset?.state).map((preset, index) => [preset.key || `preset${index}`, replaceTop(preset)]));
+  renderTemplates();
+}
 
 // 写真の形。auto は写真そのものの縦横比（読み込んだときに imageRatio に入れる）
 const IMAGE_SHAPES = { auto: "", wide: "20:13", square: "1:1", tall: "3:4" };
@@ -160,6 +127,7 @@ async function init() {
 
   bindEvents();
   renderTemplates();
+  loadPresets();
   applyStateToEditor();
   render();
 

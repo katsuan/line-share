@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610111258";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610111258";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610132020";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610132020";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -28,7 +28,7 @@ const FONTS = [
   { label: "手書き風", value: "'Yomogi', 'Hiragino Maru Gothic ProN', sans-serif", weight: 400, webFont: "Yomogi" },
   { label: "ペン字風", value: "'Klee One', 'Hiragino Mincho ProN', serif", weight: 600, webFont: "Klee One" }
 ];
-const TEXT_PRESETS = ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"];
+// よく使う文字は data/templates.json の text（開いたあとに読み込む）
 // 色は2行に分ける。1行目は基本の色（黒・白など）、2行目は全ツール共通の並び
 // （shared/ui.js の PALETTE：紫・青・緑・橙・赤）で、最後に「ほかの色」
 const BLACK = "#18222f";
@@ -412,9 +412,12 @@ function updateUndo_() {
 // ---- 画面 ----
 
 function buildControls_() {
-  buildChoices_(els.textPresets, TEXT_PRESETS.map((text) => ({ label: text, value: text })), () => null, (value) => {
-    state.text = value;
-    els.textInput.value = value;
+  window.LineShareUI.loadTemplates().then(({ text }) => {
+    const presets = Array.isArray(text) ? text.filter((value) => typeof value === "string") : [];
+    buildChoices_(els.textPresets, presets.map((value) => ({ label: value, value })), () => null, (value) => {
+      state.text = value;
+      els.textInput.value = value;
+    });
   });
   buildChoices_(els.fontList, FONTS, () => state.font, (value) => (state.font = value), (button, option) => {
     button.style.fontFamily = option.value;

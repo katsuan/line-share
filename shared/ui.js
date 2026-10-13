@@ -223,5 +223,22 @@
     slot.hidden = !message;
   }
 
-  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError };
+  /**
+   * data/templates.json（テンプレートや候補の中身）を読む。どのページからでも同じ場所を読むよう、このファイルの位置から決める。
+   * 読めないときは空のものを返す（テンプレートが出ないだけで、ツールは使える）。
+   */
+  const DATA_BASE = new URL("../data/", document.currentScript?.src || location.href);
+  let templates = null;
+
+  function loadTemplates() {
+    templates ||= fetch(new URL("templates.json", DATA_BASE), { cache: "no-cache" })
+      .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+      .catch((error) => {
+        console.error("テンプレートを読み込めませんでした", error);
+        return {};
+      });
+    return templates;
+  }
+
+  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates };
 })();

@@ -1,0 +1,62 @@
+{
+  "card": [
+    {
+      "key": "emergency",
+      "label": "緊急",
+      "icon": "🚨",
+      "description": "障害告知・営業時間変更など",
+      "state": {
+        "theme": "berry",
+        "headerTitle": "【緊急】重要なお知らせ",
+        "date": "ご確認をお願いします",
+        "title": "重要なご案内があります",
+        "detail": "詳細をご確認のうえ、必要な対応をお願いいたします。",
+        "badges": ["至急", "重要"],
+        "buttons": [{ "label": "詳細を確認", "url": "" }]
+      }
+    },
+    {
+      "key": "share",
+      "label": "共有",
+      "icon": "📣",
+      "description": "資料共有・周知・案内など",
+      "state": {
+        "theme": "sky",
+        "headerTitle": "共有のお知らせ",
+        "date": "関係者へ展開してください",
+        "title": "共有用の情報をまとめました",
+        "detail": "必要に応じてメンバーへ展開し、内容をご確認ください。",
+        "badges": ["共有", "案内"],
+        "buttons": [{ "label": "資料を見る", "url": "" }]
+      }
+    },
+    {
+      "key": "intro",
+      "label": "紹介",
+      "icon": "🪧",
+      "description": "おくるんを友だちに紹介",
+      "status": "「紹介」を当てはめました。このまま送れます。",
+      "state": {
+        "theme": "purple",
+        "headerTitle": "おくるん",
+        "date": "つくって、おくるん💬",
+        "imageUrl": "https://katsuan.github.io/line-share/shared/ogp.png",
+        "imageActionUrl": "{top}",
+        "title": "このカードも、おくるんで作りました",
+        "detail": "場所・予定・お知らせ・文字や手書きを、写真やボタン付きのカードにしてLINEのトークに送れます。",
+        "badges": ["場所", "お知らせ", "手書き"],
+        "buttons": [{ "label": "おくるんを開く", "url": "{top}" }]
+      }
+    }
+  ],
+  "place": {
+    "presets": [
+      { "name": "🍽️ ランチ候補", "headerTitle": "ランチ候補", "badges": ["おすすめ", "近い", "コスパ○"], "comment": "ランチここどう？" },
+      { "name": "📍 集合場所", "headerTitle": "ここに集合！", "badges": ["集合場所"], "comment": "ここに集合で！" },
+      { "name": "✨ 行きたい", "headerTitle": "行ってみたい場所", "badges": ["行きたい", "雰囲気◎"], "comment": "今度ここ行ってみたい！" },
+      { "name": "👶 子連れOK", "headerTitle": "子連れでも行ける場所", "badges": ["子連れOK", "駅近"], "comment": "子どもと一緒でも行けそう！" }
+    ],
+    "badges": ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"]
+  },
+  "text": ["OK", "了解！", "ありがとう", "おつかれさま", "確認します", "至急", "🙏", "？"]
+}
