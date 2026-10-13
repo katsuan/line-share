@@ -13,14 +13,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Yomogi&display=swap" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610132020" />
-    <link rel="stylesheet" href="./style.css?v=202610132020" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610132033" />
+    <link rel="stylesheet" href="./style.css?v=202610132033" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610132020"></script>
-    <script src="../shared/credit.js?v=202610132020"></script>
-    <script src="../shared/liff.js?v=202610132020"></script>
-    <script src="../shared/ui.js?v=202610132020" defer></script>
-    <script type="module" src="./app.js?v=202610132020"></script>
+    <script src="../config.js?v=202610132033"></script>
+    <script src="../shared/credit.js?v=202610132033"></script>
+    <script src="../shared/liff.js?v=202610132033"></script>
+    <script src="../shared/ui.js?v=202610132033" defer></script>
+    <script type="module" src="./app.js?v=202610132033"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -128,6 +128,29 @@
             <summary><span class="ls-fold-icon" aria-hidden="true">📐</span>形 <span id="shapeMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="shapeList" class="ls-chips"></div>
+            </div>
+          </details>
+
+          <!-- カードで送るときの LINE のカードの大きさ（お知らせカードと同じスライダー）。画像で送るときは選べない -->
+          <details id="sizePanel" class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">📏</span>カードの大きさ <span id="sizeMeta" class="ls-fold-meta"></span></summary>
+            <div class="ls-fold-body">
+              <div class="size-row">
+                <div class="size-track">
+                  <input id="cardSizeRange" class="size-range" type="range" min="0" max="6" step="1" aria-label="カードの大きさ" />
+                  <div class="size-scale" aria-hidden="true">
+                    <span class="size-tick" style="--i: 0"><span>小</span></span>
+                    <span class="size-tick" style="--i: 1"></span>
+                    <span class="size-tick" style="--i: 2"></span>
+                    <span class="size-tick" style="--i: 3"></span>
+                    <span class="size-tick" style="--i: 4"></span>
+                    <span class="size-tick is-standard" style="--i: 5"><span>標準</span></span>
+                    <span class="size-tick" style="--i: 6"><span>大</span></span>
+                  </div>
+                </div>
+                <output id="cardSizeLabel" class="size-label" for="cardSizeRange">giga</output>
+              </div>
+              <p id="sizeHint" class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
             </div>
           </details>
 
