@@ -1,0 +1,9 @@
+{
+  "title": "LINE絵文字",
+  "lead": "サッカー好きなエンジニアが作るリアクション絵文字",
+  "items": [
+    { "id": "6a829856a7de545b4fcbce32", "name": "(Move) Pitch & Code Reactions", "desc": "動く絵文字" },
+    { "id": "6a4778ad6fe13735fb7c965e", "name": "Pitch & Code Reactions", "desc": "絵文字" }
+  ],
+  "author": { "id": "12342255", "name": "amisuta_k" }
+}
