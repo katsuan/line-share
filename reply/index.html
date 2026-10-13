@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f5f4f9" />
+    <meta name="robots" content="noindex" />
+    <title>トークに送る｜おくるん</title>
+    <meta name="description" content="おくるんのカードのボタンから、トークに返事を送ります。" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140132" />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="../config.js?v=202610140132"></script>
+    <script src="../shared/liff.js?v=202610140132"></script>
+    <script src="./app.js?v=202610140132" defer></script>
+    <style>
+      /* 送る文を LINE の吹き出し（自分の発言＝右寄せの緑）のように見せる */
+      .reply-talk {
+        display: grid;
+        justify-items: end;
+        gap: 8px;
+        padding: 20px 14px;
+        border-radius: var(--ls-radius-lg);
+        background: var(--ls-talk-bg);
+      }
+
+      .reply-bubble {
+        max-width: 85%;
+        margin: 0;
+        padding: 10px 14px;
+        border-radius: 18px 4px 18px 18px;
+        background: #8de055;
+        color: #111;
+        font-size: 16px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .reply-label {
+        justify-self: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.18);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body class="ls-has-sendbar">
+    <main class="ls-page">
+      <header class="ls-topbar">
+        <a class="ls-back" href="../">おくるん</a>
+        <h1 class="ls-title">トークに送る</h1>
+        <span class="ls-topbar-end"></span>
+      </header>
+
+      <div class="ls-stack">
+        <section class="reply-talk" aria-labelledby="replyLabel">
+          <span id="replyLabel" class="reply-label">送る内容</span>
+          <p id="replyText" class="reply-bubble"></p>
+        </section>
+        <p id="replyNote" class="ls-hint">このトークに、あなたの名前で送られます。内容を確かめてから送ってください。</p>
+      </div>
+    </main>
+
+    <div class="ls-sendbar">
+      <div class="ls-sendbar-inner">
+        <p id="status" class="ls-status" aria-live="polite"></p>
+        <div class="ls-sendbar-row">
+          <button id="copyButton" class="ls-send ls-send-secondary" type="button">コピー</button>
+          <button id="sendButton" class="ls-send" type="button" disabled>この内容で送る</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
