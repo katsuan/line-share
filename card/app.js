@@ -16,13 +16,16 @@ const MAX_BUTTONS = 3;
 // 横スクロール（カルーセル）で送れるカードの枚数。LINE の上限（12枚）まで
 const MAX_CARDS = 12;
 // カードの種類。投票は候補をボタンで、チェックリストは項目を □ 付きで並べる
+// title は画面の見出し（編集中のカードの種類に合わせて変える）
 const KINDS = {
-  notice: { label: "📣 お知らせ" },
-  vote: { label: "🗳️ 投票", item: "候補", min: 2, max: 10, list: true },
-  checklist: { label: "✅ チェックリスト", item: "項目", min: 1, max: 20, list: true },
-  ticket: { label: "🎫 チケット" },
-  coupon: { label: "🎟️ クーポン" }
+  notice: { label: "📣 お知らせ", title: "お知らせカード" },
+  vote: { label: "🗳️ 投票", title: "投票カード", item: "候補", min: 2, max: 10, list: true },
+  checklist: { label: "✅ チェックリスト", title: "チェックリスト", item: "項目", min: 1, max: 20, list: true },
+  ticket: { label: "🎫 チケット", title: "チケット" },
+  coupon: { label: "🎟️ クーポン", title: "クーポン" }
 };
+// HOME の「カードの形式」から ?template=<テンプレートのキー> で開いたとき、読み込んだら当てはめる
+const START_TEMPLATE = new URLSearchParams(location.search).get("template") || "";
 // チケットの「項目名＋値」（便名・ゲート・座席など）の数
 const MAX_PAIRS = 6;
 // チケット・クーポンの端の欠け丸の色。LINE のトーク背景に近い色（プレビューの --ls-talk-bg と同じ）
@@ -73,6 +76,8 @@ function replyAction(label, { text, title = "", choices = [], pick = -1, format 
 // 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
 // "{top}" はおくるんのトップの URL に置き換える
 let PRESETS = {};
+// リンクのパラメータでカードの中身を渡されて開いたか（そのときは ?template= を当てはめない）
+let startedWithQuery = false;
 
 function replaceTop(value) {
   if (typeof value === "string") return value.replaceAll("{top}", TOP_URL);
@@ -85,6 +90,11 @@ async function loadPresets() {
   const { card } = await window.LineShareUI.loadTemplates();
   PRESETS = Object.fromEntries((Array.isArray(card) ? card : []).filter((preset) => preset?.state).map((preset, index) => [preset.key || `preset${index}`, replaceTop(preset)]));
   renderTemplates();
+  const preset = PRESETS[START_TEMPLATE];
+  if (preset && !startedWithQuery) {
+    applyTemplateState({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...preset.state });
+    setStatus(preset.status || `「${preset.label}」を当てはめました。`);
+  }
 }
 
 // 写真の形。auto は写真そのものの縦横比（読み込んだときに imageRatio に入れる）
@@ -179,12 +189,17 @@ async function init() {
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
+  els.pageTitle = document.querySelector(".ls-topbar .ls-title");
 
   const queryState = getQueryState();
+  startedWithQuery = Boolean(queryState);
   const saved = loadJson(LAST_SENT_KEY);
-  // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか
+  // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか。
+  // 形式（テンプレート）を選んで開いたときは、まっさらな1枚にしてテンプレートの読み込みを待つ（種類だけ先に合わせる）
   cards = queryState
     ? [hydrate(queryState)]
+    : START_TEMPLATE
+      ? [hydrate({ ...BLANK_STATE, kind: KINDS[START_TEMPLATE] ? START_TEMPLATE : "notice" })]
     : Array.isArray(saved?.cards) && saved.cards.length
       ? saved.cards.slice(0, MAX_CARDS).map(hydrate)
       : [hydrate(saved ?? BLANK_STATE)];
@@ -282,7 +297,8 @@ function getQueryState() {
     source.buttons.push({ label: actionLabel, url: actionUrl });
   }
 
-  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff."));
+  // template は形式の選択だけなので、カードの中身のパラメータには数えない
+  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && key !== "template");
   if (!hasAny) return null;
 
   [actionUrl, source.imageActionUrl].filter(Boolean).forEach((url) => queryUrls.add(url.trim()));
@@ -455,6 +471,9 @@ function checkRadio(name, value) {
 
 function render() {
   const palette = getPalette();
+  const kindTitle = (KINDS[state.kind] || KINDS.notice).title;
+  els.pageTitle.textContent = kindTitle;
+  document.title = `${kindTitle}｜おくるん`;
   els.bubbleHeader.style.background = `linear-gradient(135deg, ${palette.start} 0%, ${palette.end} 100%)`;
   els.detailInput.style.background = palette.detailBg;
   els.detailInput.style.color = palette.detailText;

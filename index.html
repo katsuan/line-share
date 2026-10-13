@@ -20,11 +20,11 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610140132" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610140225" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610140132"></script>
-    <script src="./shared/credit.js?v=202610140132"></script>
-    <script src="./shared/liff.js?v=202610140132"></script>
+    <script src="./config.js?v=202610140225"></script>
+    <script src="./shared/credit.js?v=202610140225"></script>
+    <script src="./shared/liff.js?v=202610140225"></script>
     <style>
       .hub-head {
         display: flex;
@@ -149,6 +149,56 @@
 
       .hub-tools > li:has(.is-featured) {
         grid-column: 1 / -1;
+      }
+
+      /* お知らせカードのほかの形式（投票・持ち物・チケット・クーポン）。お知らせの下に小さく横一列で */
+      .hub-tools > li.hub-formats-row {
+        grid-column: 1 / -1;
+        display: grid;
+        gap: 6px;
+        margin: -2px 0 4px;
+      }
+
+      .hub-formats-label {
+        margin: 0 4px;
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .hub-formats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .hub-format {
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+        padding: 10px 2px 8px;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-md);
+        background: var(--ls-surface);
+        color: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .hub-format-icon {
+        font-size: 24px;
+        line-height: 1.2;
+      }
+
+      .hub-format:active {
+        background: var(--ls-surface-sub);
+      }
+
+      .hub-format:focus-visible {
+        outline: 2px solid var(--ls-text);
+        outline-offset: 2px;
       }
 
       .hub-tool.is-featured .hub-mini {
@@ -370,6 +420,16 @@
             <span class="hub-mini mini-card" aria-hidden="true"><i class="mini-head"></i><i class="mini-line"></i><i class="mini-line is-short"></i><i class="mini-button"></i></span>
             <span class="hub-tool-body">お知らせを送る<span class="hub-tool-desc">連絡・案内・イベントを、写真やボタン付きのカードで</span></span>
           </a>
+        </li>
+        <!-- お知らせカードのほかの形式。押すとその形式のテンプレートが入った状態で開く（card/?template=<data/templates.json のキー>） -->
+        <li class="hub-formats-row">
+          <p class="hub-formats-label">形式を選んでつくる</p>
+          <div class="hub-formats">
+            <a class="hub-format" href="./card/?template=vote"><span class="hub-format-icon" aria-hidden="true">🗳️</span>投票</a>
+            <a class="hub-format" href="./card/?template=checklist"><span class="hub-format-icon" aria-hidden="true">🧳</span>持ち物</a>
+            <a class="hub-format" href="./card/?template=ticket"><span class="hub-format-icon" aria-hidden="true">🎫</span>チケット</a>
+            <a class="hub-format" href="./card/?template=coupon"><span class="hub-format-icon" aria-hidden="true">🎟️</span>クーポン</a>
+          </div>
         </li>
         <li>
           <a class="hub-tool" href="./plan/">
