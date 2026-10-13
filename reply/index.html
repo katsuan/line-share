@@ -9,11 +9,11 @@
     <meta name="robots" content="noindex" />
     <title>トークに送る｜おくるん</title>
     <meta name="description" content="おくるんのカードのボタンから、トークに返事を送ります。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610140152" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140210" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610140152"></script>
-    <script src="../shared/liff.js?v=202610140152"></script>
-    <script src="./app.js?v=202610140152" defer></script>
+    <script src="../config.js?v=202610140210"></script>
+    <script src="../shared/liff.js?v=202610140210"></script>
+    <script src="./app.js?v=202610140210" defer></script>
     <style>
       /* 送る文を LINE の吹き出し（自分の発言＝右寄せの緑）のように見せる */
       .reply-talk {
@@ -81,6 +81,10 @@
         <section class="reply-talk" aria-labelledby="replyLabel">
           <span id="replyLabel" class="reply-label">送る内容</span>
           <textarea id="replyText" class="reply-bubble" rows="1" maxlength="500" aria-label="送る内容"></textarea>
+        </section>
+        <section id="choiceArea" class="ls-panel" hidden>
+          <h2 id="choiceTitle" class="ls-panel-title">ほかの候補にする</h2>
+          <div id="choices" class="ls-chips"></div>
         </section>
         <p id="replyNote" class="ls-hint">吹き出しをタップすると書きかえられます。このトークに、あなたの名前で送られます。内容を確かめてから送ってください。</p>
       </div>

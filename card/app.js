@@ -44,11 +44,30 @@ const THEMES = {
 // おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
 const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
 
-// LIFF で送るカードには、文を送るボタン（メッセージアクション）は付けられない（付けると送れない）。
-// コピーのボタン（クリップボードアクション）は付けられるので、投票・完了のボタンは押すと返事の文がコピーされ、
-// トークの入力欄に貼って送ってもらう（トークに送る権限 chat_message.write も要らない）。コピーできる文は 1000 文字まで
-function copyAction(label, text) {
-  return { type: "clipboard", label: label.slice(0, 40), clipboardText: text.slice(0, 1000) };
+// LIFF で送るカードに付けられるボタンは URI アクション（リンク）だけ（LIFF の仕様。sendMessages・shareTargetPicker とも）。
+// 投票・完了のボタンは返事のページ（reply/）へのリンクにし、そこで文を確かめて送るかコピーしてもらう。
+// 投票は候補をすべて渡し、返事のページで選び直せるようにする（format の {c} が選んだ候補になる）
+// ボタンのリンクは 1000 文字まで。収まらないときは候補を外し、それでも長ければ文を縮める
+const MAX_URI_LENGTH = 1000;
+function replyAction(label, { text, title = "", choices = [], pick = -1, format = "" }) {
+  const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/line-share/reply/";
+  const build = (body, withChoices) => {
+    const params = new URLSearchParams({ text: body });
+    if (withChoices && choices.length) {
+      if (title) params.set("title", title);
+      params.set("format", format);
+      params.set("pick", String(pick));
+      for (const choice of choices) params.append("c", choice);
+    }
+    return `${base}?${params}`;
+  };
+  let uri = build(text, true);
+  if (uri.length > MAX_URI_LENGTH) {
+    let body = text;
+    while (body && build(body, false).length > MAX_URI_LENGTH) body = body.slice(0, -1);
+    uri = build(body, false);
+  }
+  return { type: "uri", label: label.slice(0, 40), uri };
 }
 
 // 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
@@ -1078,17 +1097,23 @@ function buildFlexMessage() {
 
   const items = state.items.filter(Boolean);
   if (state.kind === "vote" && items.length) {
-    // 押すと「○○ に投票します」がコピーされ、トークに貼って送ってもらう（集計は自動ではしない）
+    // 押すと返事のページが開き、「○○ に投票します」を送るかコピーしてもらう。ほかの候補にも選び直せる（集計は自動ではしない）
     bodyContents.push({
       type: "box",
       layout: "vertical",
       spacing: "sm",
       margin: "md",
-      contents: items.map((item) => ({
+      contents: items.map((item, index) => ({
         type: "button",
         style: "secondary",
         height: "sm",
-        action: copyAction(item, `${item} に投票します`)
+        action: replyAction(item, {
+          text: `${item} に投票します`,
+          title: state.title,
+          choices: items,
+          pick: index,
+          format: "{c} に投票します"
+        })
       }))
     });
   }
@@ -1164,13 +1189,13 @@ function buildFlexMessage() {
     action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
   }));
   if (state.kind === "checklist" && items.length) {
-    // 押すと「『タイトル』準備できた！」がコピーされ、トークに貼って送ってもらう
+    // 押すと返事のページが開き、「『タイトル』準備できた！」を送るかコピーしてもらう
     const doneLabel = state.doneLabel || DEFAULT_DONE_LABEL;
     footerButtons.unshift({
       type: "button",
       style: "primary",
       color: palette.start,
-      action: copyAction(doneLabel, `「${state.title}」${doneLabel.replace(/^✅\s*/u, "")}！`)
+      action: replyAction(doneLabel, { text: `「${state.title}」${doneLabel.replace(/^✅\s*/u, "")}！` })
     });
   }
   if (footerButtons.length > 0) {
