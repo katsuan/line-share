@@ -130,12 +130,12 @@
 
 .bubble-badge-remove {
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: -12px;
+  right: -12px;
   display: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid var(--ls-line-strong);
   border-radius: 999px;
@@ -146,7 +146,8 @@
   cursor: pointer;
 }
 
-.bubble-badge:focus-within .bubble-badge-remove {
+.bubble-badge:focus-within .bubble-badge-remove,
+.bubble-badge.is-editing .bubble-badge-remove {
   display: grid;
 }
 
@@ -321,12 +322,12 @@
 
 .bubble-item-remove {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -10px;
+  right: -10px;
   display: none;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid var(--ls-line-strong);
   border-radius: 999px;
@@ -336,7 +337,8 @@
   cursor: pointer;
 }
 
-.bubble-item:focus-within .bubble-item-remove {
+.bubble-item:focus-within .bubble-item-remove,
+.bubble-item.is-editing .bubble-item-remove {
   display: grid;
 }
 
@@ -354,6 +356,124 @@
 
 .ls-preview.is-viewing .kind-chips {
   display: none;
+}
+
+/* チケット・クーポン */
+.bubble-ticket,
+.bubble-coupon {
+  display: grid;
+  gap: 10px;
+}
+
+.ticket-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-end {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.ticket-end.is-end input {
+  text-align: right;
+}
+
+.ticket-big {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.ticket-small {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.ticket-arrow {
+  color: var(--ls-accent);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* 欠け丸付きのミシン目。カードの端（本文の余白 18px の外）まで伸ばし、両端にトーク背景色の半円を置く */
+.ticket-perf {
+  position: relative;
+  height: 20px;
+  margin: 0 -18px;
+}
+
+.ticket-perf::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  right: 18px;
+  border-top: 2px dashed #d7dce3;
+}
+
+.ticket-perf::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 0 50%, var(--ls-talk-bg) 10px, transparent 10.5px),
+    radial-gradient(circle at 100% 50%, var(--ls-talk-bg) 10px, transparent 10.5px);
+}
+
+.ticket-pairs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 8px;
+}
+
+.ticket-pair {
+  position: relative;
+  display: grid;
+}
+
+.ticket-pair-label {
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ticket-pair-value {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ticket-pair:focus-within .bubble-item-remove,
+.ticket-pair.is-editing .bubble-item-remove {
+  display: grid;
+}
+
+.coupon-offer {
+  font-size: 30px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.coupon-field {
+  display: grid;
+  gap: 2px;
+  color: #9ca3af;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.coupon-field input {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.coupon-code {
+  font-size: 20px !important;
+  letter-spacing: 1px;
 }
 
 /* 複数枚（横スクロール）のカードの切り替え */
@@ -412,6 +532,55 @@
 
 /* 完成イメージでは、足す・消すは隠して番号だけ残す（ほかのカードも見られるように） */
 .ls-preview.is-viewing .card-remove {
+  display: none;
+}
+
+/* 2枚以上のとき：LINE の横スクロールのように、左右に前後のカードの端を見せる */
+.card-stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.card-stage.has-peek {
+  padding: 0 26px;
+  overflow: hidden;
+  /* 左右のプレビューの余白まで広げて、端までカードが続いて見えるように */
+  width: calc(100% + 28px);
+  margin: 0 -14px;
+}
+
+.card-stage .bubble {
+  transform: translateX(var(--drag, 0px));
+  transition: transform 0.15s ease;
+}
+
+.card-peek {
+  position: absolute;
+  top: 14px;
+  opacity: 0.55;
+  cursor: pointer;
+  transform: scale(0.94);
+}
+
+.card-peek > .bubble {
+  max-width: none;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.card-peek.is-prev {
+  right: calc(100% - 20px);
+  transform-origin: right top;
+}
+
+.card-peek.is-next {
+  left: calc(100% - 20px);
+  transform-origin: left top;
+}
+
+.card-peek[hidden] {
   display: none;
 }
 

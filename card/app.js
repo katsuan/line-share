@@ -18,9 +18,15 @@ const MAX_CARDS = 12;
 // カードの種類。投票は候補をボタンで、チェックリストは項目を □ 付きで並べる
 const KINDS = {
   notice: { label: "📣 お知らせ" },
-  vote: { label: "🗳️ 投票", item: "候補", min: 2, max: 10 },
-  checklist: { label: "✅ チェックリスト", item: "項目", min: 1, max: 20 }
+  vote: { label: "🗳️ 投票", item: "候補", min: 2, max: 10, list: true },
+  checklist: { label: "✅ チェックリスト", item: "項目", min: 1, max: 20, list: true },
+  ticket: { label: "🎫 チケット" },
+  coupon: { label: "🎟️ クーポン" }
 };
+// チケットの「項目名＋値」（便名・ゲート・座席など）の数
+const MAX_PAIRS = 6;
+// チケット・クーポンの端の欠け丸の色。LINE のトーク背景に近い色（プレビューの --ls-talk-bg と同じ）
+const NOTCH_COLOR = "#8FABD3";
 const DEFAULT_DONE_LABEL = "✅ 準備できた";
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
 
@@ -81,7 +87,12 @@ const BLANK_STATE = {
   // 投票の候補・チェックリストの項目
   items: [],
   // チェックリストの最後のボタンの文言
-  doneLabel: DEFAULT_DONE_LABEL
+  doneLabel: DEFAULT_DONE_LABEL,
+  // チケット：出発・到着（大きく）とその下の小さな文字、ミシン目の下の「項目名＋値」
+  route: { from: "", fromSub: "", to: "", toSub: "" },
+  pairs: [],
+  // クーポン：特典（大きく）、コード、有効期限
+  coupon: { offer: "", code: "", expiry: "" }
 };
 
 const els = {};
@@ -134,8 +145,10 @@ async function init() {
     "lookMeta", "photoMeta", "linkMeta",
     "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
     "copyJsonButton", "resetButton", "shareButton", "status",
-    "cardTabs", "cardAddButton", "cardRemoveButton",
+    "cardTabs", "cardAddButton", "cardRemoveButton", "cardStage", "peekPrev", "peekNext",
     "kindChips", "itemsArea", "itemAddButton", "doneButton",
+    "ticketArea", "routeFrom", "routeFromSub", "routeTo", "routeToSub", "pairsArea", "pairAddButton",
+    "couponArea", "couponOffer", "couponCode", "couponExpiry",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
@@ -160,7 +173,11 @@ async function init() {
   applyStateToEditor();
   render();
 
-  window.addEventListener("resize", autoGrowAll);
+  window.addEventListener("resize", () => {
+    autoGrowAll();
+    renderPeeks();
+  });
+  requestAnimationFrame(renderPeeks);
   requestAnimationFrame(autoGrowAll);
 
   await initLiff();
@@ -193,7 +210,12 @@ function hydrate(source = {}) {
       .slice(0, MAX_BUTTONS),
     kind: Object.hasOwn(KINDS, source.kind) ? source.kind : "notice",
     items: (Array.isArray(source.items) ? source.items : []).map((item) => String(item ?? "").trim()).slice(0, 20),
-    doneLabel: String(source.doneLabel ?? "").trim() || DEFAULT_DONE_LABEL
+    doneLabel: String(source.doneLabel ?? "").trim() || DEFAULT_DONE_LABEL,
+    route: Object.fromEntries(["from", "fromSub", "to", "toSub"].map((key) => [key, String(source.route?.[key] ?? "").trim()])),
+    pairs: (Array.isArray(source.pairs) ? source.pairs : [])
+      .map((pair) => ({ label: String(pair?.label ?? "").trim(), value: String(pair?.value ?? "").trim() }))
+      .slice(0, MAX_PAIRS),
+    coupon: Object.fromEntries(["offer", "code", "expiry"].map((key) => [key, String(source.coupon?.[key] ?? "").trim()]))
   };
 }
 
@@ -273,7 +295,10 @@ function switchCard(index) {
   state = cards[current];
   applyStateToEditor();
   render();
-  requestAnimationFrame(autoGrowAll);
+  requestAnimationFrame(() => {
+    autoGrowAll();
+    renderPeeks();
+  });
 }
 
 // 新しいカードは今のカードの色・大きさ・見出しを引き継いで、すぐうしろに足す
@@ -291,7 +316,8 @@ function addCard() {
   });
   cards.splice(current + 1, 0, next);
   switchCard(current + 1);
-  els.titleInput.focus();
+  // 隣のカードを作り直したあと（switchCard の中の次のフレーム）で入力に移る
+  requestAnimationFrame(() => els.titleInput.focus());
   setStatus(`カード${current + 1}を足しました。`);
 }
 
@@ -303,7 +329,59 @@ function removeCard() {
   state = cards[current];
   applyStateToEditor();
   render();
+  renderPeeks();
   setStatus("カードを消しました。");
+}
+
+// 隣のカード（左右に端だけ見せる）の絵を作る。編集中のカードの画面を一時的にそのカードにして写し取り、元に戻す。
+// 切り替え・足す・消す・大きさを変えたときだけ作り直す（入力中は作り直さない）
+function snapshotCard(index) {
+  const editing = state;
+  state = cards[index];
+  applyStateToEditor();
+  render();
+  const clone = els.bubble.cloneNode(true);
+  // 入力欄の中身は写し取られないので、文字として入れ直す
+  const sources = els.bubble.querySelectorAll("input, textarea");
+  clone.querySelectorAll("input, textarea").forEach((field, i) => {
+    field.setAttribute("value", sources[i]?.value ?? "");
+    if (field.tagName === "TEXTAREA") field.textContent = sources[i]?.value ?? "";
+    field.style.height = sources[i]?.style.height || "";
+    field.tabIndex = -1;
+  });
+  clone.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+  clone.removeAttribute("id");
+  clone.querySelectorAll("button, [tabindex]").forEach((element) => element.setAttribute("tabindex", "-1"));
+  state = editing;
+  return clone;
+}
+
+function renderPeeks() {
+  const multiple = cards.length > 1;
+  els.cardStage.classList.toggle("has-peek", multiple);
+  // 入力中（キーボードが開いて画面の大きさが変わったときなど）は作り直さず、幅だけ合わせる
+  const typing = document.activeElement && document.activeElement !== document.body && els.cardStage.contains(document.activeElement);
+  if (typing) {
+    const width = `${els.bubble.getBoundingClientRect().width}px`;
+    els.peekPrev.style.width = els.peekNext.style.width = width;
+    return;
+  }
+  const neighbors = [
+    [els.peekPrev, current - 1],
+    [els.peekNext, current + 1]
+  ];
+  const snapshots = neighbors.map(([, index]) => (multiple && index >= 0 && index < cards.length ? snapshotCard(index) : null));
+  // 写し取りのあとで、編集中のカードの画面に戻す
+  if (snapshots.some(Boolean)) {
+    applyStateToEditor();
+    render();
+  }
+  const width = `${els.bubble.getBoundingClientRect().width}px`;
+  neighbors.forEach(([peek], i) => {
+    peek.hidden = !snapshots[i];
+    peek.replaceChildren(...(snapshots[i] ? [snapshots[i]] : []));
+    peek.style.width = width;
+  });
 }
 
 function renderCardTabs() {
@@ -518,18 +596,24 @@ function setKind(kind) {
   if (state.kind === kind) return;
   state.kind = kind;
   // 候補・項目が足りなければ空の欄を用意して、すぐ入力できるように
-  if (kind !== "notice") {
+  if (KINDS[kind].list) {
     while (state.items.length < KINDS[kind].min) state.items.push("");
   }
+  if (kind === "ticket" && state.pairs.length === 0) {
+    state.pairs = [{ label: "", value: "" }, { label: "", value: "" }, { label: "", value: "" }];
+  }
   render();
-  if (kind !== "notice") els.itemsArea.querySelector("input")?.focus();
+  if (KINDS[kind].list) els.itemsArea.querySelector("input")?.focus();
+  if (kind === "ticket") els.routeFrom.focus();
+  if (kind === "coupon") els.couponOffer.focus();
 }
 
 // 投票の候補・チェックリストの項目をプレビューの中で直接編集する（入力中は作り直さない）
 function renderItemsPreview(palette) {
   renderKindChips();
+  renderTicketPreview(palette);
   const kind = KINDS[state.kind];
-  const active = state.kind !== "notice";
+  const active = Boolean(kind.list);
   els.itemsArea.hidden = !active;
   els.itemAddButton.hidden = !active || state.items.length >= (kind.max || 0);
   els.doneButton.hidden = state.kind !== "checklist";
@@ -603,6 +687,169 @@ function createItemRow(text, index, palette) {
   });
   row.append(input, remove);
   return row;
+}
+
+// ---- チケット・クーポン ----
+
+// 入力中の欄は書き換えない
+function setValue(input, value) {
+  if (document.activeElement !== input) input.value = value;
+}
+
+function renderTicketPreview(palette) {
+  els.ticketArea.hidden = state.kind !== "ticket";
+  els.couponArea.hidden = state.kind !== "coupon";
+  if (state.kind === "ticket") {
+    setValue(els.routeFrom, state.route.from);
+    setValue(els.routeFromSub, state.route.fromSub);
+    setValue(els.routeTo, state.route.to);
+    setValue(els.routeToSub, state.route.toSub);
+    els.pairAddButton.hidden = state.pairs.length >= MAX_PAIRS;
+    const editing = els.pairsArea.contains(document.activeElement);
+    if (!editing || els.pairsArea.children.length !== state.pairs.length) {
+      els.pairsArea.replaceChildren(...state.pairs.map(createPairCell));
+    }
+  }
+  if (state.kind === "coupon") {
+    setValue(els.couponOffer, state.coupon.offer);
+    setValue(els.couponCode, state.coupon.code);
+    setValue(els.couponExpiry, state.coupon.expiry);
+    els.couponOffer.style.color = palette.start;
+  }
+}
+
+function createPairCell(pair, index) {
+  const cell = document.createElement("div");
+  cell.className = "ticket-pair";
+  const label = document.createElement("input");
+  label.className = "bubble-input ticket-pair-label";
+  label.maxLength = 20;
+  label.value = pair.label;
+  label.placeholder = ["例：便名", "例：ゲート", "例：座席", "項目名", "項目名", "項目名"][index] || "項目名";
+  label.setAttribute("aria-label", `項目${index + 1}の名前`);
+  label.addEventListener("input", () => {
+    state.pairs[index].label = label.value.trim();
+    render();
+  });
+  const value = document.createElement("input");
+  value.className = "bubble-input ticket-pair-value";
+  value.maxLength = 30;
+  value.value = pair.value;
+  value.placeholder = ["C1212", "43D", "31B", "値", "値", "値"][index] || "値";
+  value.setAttribute("aria-label", `項目${index + 1}の値`);
+  value.addEventListener("input", () => {
+    state.pairs[index].value = value.value.trim();
+    render();
+  });
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "bubble-item-remove";
+  remove.textContent = "×";
+  remove.setAttribute("aria-label", `項目${index + 1}を消す`);
+  remove.addEventListener("pointerdown", (event) => event.preventDefault());
+  remove.addEventListener("click", () => {
+    state.pairs.splice(index, 1);
+    render();
+  });
+  cell.append(label, value, remove);
+  return cell;
+}
+
+// 欠け丸付きのミシン目。幅 10px の箱に直径 20px の丸を寄せて置き、はみ出た半分が切り取られて半円に見える
+function perforationFlex() {
+  const notch = (side) => ({
+    type: "box",
+    layout: "vertical",
+    width: "10px",
+    height: "20px",
+    contents: [
+      {
+        type: "box",
+        layout: "vertical",
+        position: "absolute",
+        width: "20px",
+        height: "20px",
+        cornerRadius: "10px",
+        backgroundColor: NOTCH_COLOR,
+        offsetTop: "0px",
+        ...(side === "start" ? { offsetEnd: "0px" } : { offsetStart: "0px" }),
+        contents: []
+      }
+    ]
+  });
+  return {
+    type: "box",
+    layout: "horizontal",
+    alignItems: "center",
+    contents: [
+      notch("start"),
+      { type: "box", layout: "vertical", flex: 1, paddingStart: "8px", paddingEnd: "8px", contents: [{ type: "separator", color: "#D7DCE3" }] },
+      notch("end")
+    ]
+  };
+}
+
+function ticketFlex(palette) {
+  const big = (text) => ({ type: "text", text: text || " ", size: "xxl", weight: "bold", color: "#111827", wrap: true });
+  const small = (text) => ({ type: "text", text: text || " ", size: "xs", color: "#6B7280", wrap: true });
+  const route = {
+    type: "box",
+    layout: "horizontal",
+    alignItems: "center",
+    spacing: "md",
+    contents: [
+      { type: "box", layout: "vertical", flex: 1, contents: [big(state.route.from), small(state.route.fromSub)] },
+      { type: "text", text: "→", size: "xl", color: palette.start, flex: 0, weight: "bold" },
+      { type: "box", layout: "vertical", flex: 1, contents: [{ ...big(state.route.to), align: "end" }, { ...small(state.route.toSub), align: "end" }] }
+    ]
+  };
+  const pairs = state.pairs.filter((pair) => pair.label || pair.value);
+  const rows = [];
+  for (let i = 0; i < pairs.length; i += 3) {
+    rows.push({
+      type: "box",
+      layout: "horizontal",
+      spacing: "md",
+      contents: [0, 1, 2].map((j) => {
+        const pair = pairs[i + j];
+        return pair
+          ? {
+              type: "box",
+              layout: "vertical",
+              flex: 1,
+              contents: [
+                { type: "text", text: pair.label || " ", size: "xxs", color: "#9CA3AF", weight: "bold" },
+                { type: "text", text: pair.value || " ", size: "md", color: "#111827", weight: "bold", wrap: true }
+              ]
+            }
+          : { type: "box", layout: "vertical", flex: 1, contents: [] };
+      })
+    });
+  }
+  return { top: [route], bottom: rows };
+}
+
+function couponFlex(palette) {
+  const top = [{ type: "text", text: state.coupon.offer || " ", size: "3xl", weight: "bold", color: palette.start, align: "center", wrap: true }];
+  const bottom = [];
+  if (state.coupon.code) {
+    bottom.push({
+      type: "box",
+      layout: "vertical",
+      paddingAll: "10px",
+      cornerRadius: "10px",
+      borderWidth: "1px",
+      borderColor: palette.start,
+      contents: [
+        { type: "text", text: "コード", size: "xxs", color: "#9CA3AF", align: "center" },
+        { type: "text", text: state.coupon.code, size: "xl", weight: "bold", color: "#111827", align: "center", wrap: true }
+      ]
+    });
+  }
+  if (state.coupon.expiry) {
+    bottom.push({ type: "text", text: `有効期限：${state.coupon.expiry}`, size: "sm", color: "#6B7280", align: "center", wrap: true });
+  }
+  return { top, bottom };
 }
 
 function renderButtonList() {
@@ -737,6 +984,12 @@ function getValidation() {
   const filled = state.items.filter(Boolean);
   if (state.kind === "vote" && filled.length < 2) {
     return { message: "投票の候補を2つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
+  }
+  if (state.kind === "ticket" && (!state.route.from || !state.route.to)) {
+    return { message: "チケットの出発と到着を入れてください。", fieldId: state.route.from ? "routeTo" : "routeFrom" };
+  }
+  if (state.kind === "coupon" && !state.coupon.offer) {
+    return { message: "クーポンの特典（例：20% OFF）を入れてください。", fieldId: "couponOffer" };
   }
   if (state.kind === "checklist" && filled.length < 1) {
     return { message: "チェックリストの項目を1つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
@@ -881,6 +1134,21 @@ function buildFlexMessage() {
     },
     body: { type: "box", layout: "vertical", spacing: "md", contents: bodyContents }
   };
+  if (state.kind === "ticket" || state.kind === "coupon") {
+    const parts = state.kind === "ticket" ? ticketFlex(palette) : couponFlex(palette);
+    bubble.body = {
+      type: "box",
+      layout: "vertical",
+      paddingAll: "0px",
+      contents: [
+        { type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingBottom: "12px", contents: [...bodyContents, ...parts.top] },
+        perforationFlex(),
+        ...(parts.bottom.length
+          ? [{ type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingTop: "12px", contents: parts.bottom }]
+          : [{ type: "box", layout: "vertical", height: "12px", contents: [] }])
+      ]
+    };
+  }
 
   if (state.imageUrl) {
     const hero = getHeroSpec(palette);
@@ -1280,10 +1548,26 @@ async function copyJson() {
 
 // ---- イベント ----
 
+// 「×」は編集中の行にだけ出す。スマホでは × を押した瞬間に先に入力欄から外れて × が消え、押せないことがあるので、
+// 外れてから少しのあいだは出したままにする
+function keepRemoveVisible(container, rowSelector) {
+  container.addEventListener("focusin", (event) => event.target.closest(rowSelector)?.classList.add("is-editing"));
+  container.addEventListener("focusout", (event) => {
+    const row = event.target.closest(rowSelector);
+    if (!row) return;
+    setTimeout(() => {
+      if (!row.contains(document.activeElement)) row.classList.remove("is-editing");
+    }, 300);
+  });
+}
+
 function bindEvents() {
+  keepRemoveVisible(els.itemsArea, ".bubble-item");
+  keepRemoveVisible(els.pairsArea, ".ticket-pair");
+  keepRemoveVisible(els.badgeRow, ".bubble-badge");
   els.itemAddButton.addEventListener("click", () => {
     const kind = KINDS[state.kind];
-    if (state.kind === "notice" || state.items.length >= kind.max) return;
+    if (!kind.list || state.items.length >= kind.max) return;
     state.items.push("");
     render();
     const inputs = els.itemsArea.querySelectorAll("input");
@@ -1293,21 +1577,61 @@ function bindEvents() {
     state.doneLabel = els.doneButton.value.trim() || DEFAULT_DONE_LABEL;
     render();
   });
+  for (const [id, key] of [["routeFrom", "from"], ["routeFromSub", "fromSub"], ["routeTo", "to"], ["routeToSub", "toSub"]]) {
+    els[id].addEventListener("input", () => {
+      state.route[key] = els[id].value.trim();
+      render();
+    });
+  }
+  for (const [id, key] of [["couponOffer", "offer"], ["couponCode", "code"], ["couponExpiry", "expiry"]]) {
+    els[id].addEventListener("input", () => {
+      state.coupon[key] = els[id].value.trim();
+      render();
+    });
+  }
+  els.pairAddButton.addEventListener("click", () => {
+    if (state.pairs.length >= MAX_PAIRS) return;
+    state.pairs.push({ label: "", value: "" });
+    render();
+    els.pairsArea.querySelector(".ticket-pair:last-child input")?.focus();
+  });
   els.cardAddButton.addEventListener("click", addCard);
   els.cardRemoveButton.addEventListener("click", removeCard);
+  // 隣のカードの端をタップすると、そのカードへ
+  els.peekPrev.addEventListener("click", () => switchCard(current - 1));
+  els.peekNext.addEventListener("click", () => switchCard(current + 1));
+  // PC のトラックパッドなどの横スクロールでも前後へ（続けて動かないよう少し間を空ける）
+  let wheelLock = 0;
+  els.cardStage.addEventListener("wheel", (event) => {
+    if (cards.length <= 1 || Math.abs(event.deltaX) < 25 || Math.abs(event.deltaX) < Math.abs(event.deltaY)) return;
+    event.preventDefault();
+    const now = Date.now();
+    if (now < wheelLock) return;
+    wheelLock = now + 500;
+    switchCard(current + (event.deltaX > 0 ? 1 : -1));
+  }, { passive: false });
   // カードを左右にスワイプすると前後のカードへ（LINE の横スクロールと同じ向き）
   let swipe = null;
   els.bubble.addEventListener("touchstart", (event) => {
     const touch = event.touches[0];
-    swipe = { x: touch.clientX, y: touch.clientY };
+    swipe = { x: touch.clientX, y: touch.clientY, horizontal: null };
+  }, { passive: true });
+  els.bubble.addEventListener("touchmove", (event) => {
+    if (!swipe || cards.length <= 1) return;
+    const touch = event.touches[0];
+    const dx = touch.clientX - swipe.x;
+    const dy = touch.clientY - swipe.y;
+    if (swipe.horizontal === null && Math.hypot(dx, dy) > 8) swipe.horizontal = Math.abs(dx) > Math.abs(dy);
+    if (swipe.horizontal) els.cardStage.style.setProperty("--drag", `${dx * 0.6}px`);
   }, { passive: true });
   els.bubble.addEventListener("touchend", (event) => {
+    els.cardStage.style.removeProperty("--drag");
     if (!swipe || cards.length <= 1) return;
     const touch = event.changedTouches[0];
     const dx = touch.clientX - swipe.x;
-    const dy = touch.clientY - swipe.y;
+    const horizontal = swipe.horizontal;
     swipe = null;
-    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (!horizontal || Math.abs(dx) < 50) return;
     switchCard(current + (dx < 0 ? 1 : -1));
   }, { passive: true });
 
@@ -1352,6 +1676,7 @@ function bindEvents() {
     state.bubbleSize = BUBBLE_SIZES[Number(els.bubbleSizeRange.value)] || "mega";
     // 横スクロールのカードは同じ大きさにそろえる
     cards.forEach((card) => (card.bubbleSize = state.bubbleSize));
+    requestAnimationFrame(renderPeeks);
     els.bubbleSizeLabel.textContent = state.bubbleSize;
     render();
   });
