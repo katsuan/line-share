@@ -387,17 +387,17 @@
         </li>
       </ul>
 
-      <!-- LINE絵文字・ほかのツール。中身は data/line-emoji.json・data/hub-links.json（下のスクリプトが1行ずつ並べる。
+      <!-- ほかのツール・LINE絵文字。中身は data/hub-links.json・data/line-emoji.json（下のスクリプトが1行ずつ並べる。
            読めないときや空のときは欄ごと隠す） -->
+      <section id="hubMore" class="hub-more" aria-labelledby="hubMoreTitle" hidden>
+        <h2 id="hubMoreTitle" class="hub-more-title"></h2>
+        <ul id="hubMoreList" class="hub-links"></ul>
+      </section>
+
       <section id="hubEmoji" class="hub-more" aria-labelledby="hubEmojiTitle" hidden>
         <h2 id="hubEmojiTitle" class="hub-more-title"></h2>
         <p id="hubEmojiLead" class="hub-emoji-lead" hidden></p>
         <ul id="hubEmojiList" class="hub-links"></ul>
-      </section>
-
-      <section id="hubMore" class="hub-more" aria-labelledby="hubMoreTitle" hidden>
-        <h2 id="hubMoreTitle" class="hub-more-title"></h2>
-        <ul id="hubMoreList" class="hub-links"></ul>
       </section>
     </main>
 
