@@ -15,6 +15,13 @@ const MAX_BADGES = 5;
 const MAX_BUTTONS = 3;
 // 横スクロール（カルーセル）で送れるカードの枚数。LINE の上限（12枚）まで
 const MAX_CARDS = 12;
+// カードの種類。投票は候補をボタンで、チェックリストは項目を □ 付きで並べる
+const KINDS = {
+  notice: { label: "📣 お知らせ" },
+  vote: { label: "🗳️ 投票", item: "候補", min: 2, max: 10 },
+  checklist: { label: "✅ チェックリスト", item: "項目", min: 1, max: 20 }
+};
+const DEFAULT_DONE_LABEL = "✅ 準備できた";
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
 
 // 色の並びは全ツール共通（shared/ui.js の PALETTE。先頭はおくるんの紫）。最後に「ほかの色」
@@ -69,7 +76,12 @@ const BLANK_STATE = {
   imageFit: "cover",
   imageRatio: "",
   badges: [],
-  buttons: []
+  buttons: [],
+  kind: "notice",
+  // 投票の候補・チェックリストの項目
+  items: [],
+  // チェックリストの最後のボタンの文言
+  doneLabel: DEFAULT_DONE_LABEL
 };
 
 const els = {};
@@ -123,6 +135,7 @@ async function init() {
     "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
     "copyJsonButton", "resetButton", "shareButton", "status",
     "cardTabs", "cardAddButton", "cardRemoveButton",
+    "kindChips", "itemsArea", "itemAddButton", "doneButton",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
@@ -177,7 +190,10 @@ function hydrate(source = {}) {
       .slice(0, MAX_BADGES),
     buttons: (Array.isArray(source.buttons) ? source.buttons : legacyButton)
       .map((button) => ({ label: String(button?.label ?? ""), url: String(button?.url ?? button?.uri ?? "") }))
-      .slice(0, MAX_BUTTONS)
+      .slice(0, MAX_BUTTONS),
+    kind: Object.hasOwn(KINDS, source.kind) ? source.kind : "notice",
+    items: (Array.isArray(source.items) ? source.items : []).map((item) => String(item ?? "").trim()).slice(0, 20),
+    doneLabel: String(source.doneLabel ?? "").trim() || DEFAULT_DONE_LABEL
   };
 }
 
@@ -207,7 +223,9 @@ function getQueryState() {
     imageUrl: get("imageUrl", "image"),
     imageActionUrl: get("imageActionUrl"),
     badges: params.getAll("badge"),
-    buttons: []
+    buttons: [],
+    kind: get("kind"),
+    items: params.getAll("item")
   };
 
   const actionUrl = get("actionUrl", "url");
@@ -360,6 +378,7 @@ function render() {
   els.photoClearButton.hidden = !imageUrl;
 
   renderBadgePreview(palette);
+  renderItemsPreview(palette);
 
   els.buttonStack.replaceChildren(
     ...state.buttons.map((button) => {
@@ -455,6 +474,135 @@ function createBadge(text, index, palette) {
 
   badge.append(field, remove);
   return badge;
+}
+
+// ---- 投票・チェックリスト ----
+
+// 1行の頭の記号（□・-・1. など）を外す。貼り付けた一覧を項目に分けるときに使う
+function cleanItem(line) {
+  return line.replace(/^\s*(?:[□☐■☑✓✔✅\-−ー・*•]|\d+[.)．、])\s*/u, "").trim();
+}
+
+// 複数行を貼ったら1行ずつ項目にする。1行目が記号なしで、本文タイトルが空なら、それをタイトルにする
+function splitPasted(text, index) {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) return false;
+  const markers = /^\s*(?:[□☐■☑✓✔✅\-−ー・*•]|\d+[.)．、])/u;
+  if (!state.title && !markers.test(lines[0]) && lines.slice(1).some((line) => markers.test(line))) {
+    state.title = lines.shift();
+    els.titleInput.value = state.title;
+  }
+  const max = KINDS[state.kind].max;
+  state.items.splice(index, 1, ...lines.map(cleanItem).filter(Boolean));
+  state.items = state.items.slice(0, max);
+  return true;
+}
+
+function renderKindChips() {
+  els.kindChips.replaceChildren(
+    ...Object.entries(KINDS).map(([key, kind]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "ls-chip is-small";
+      chip.setAttribute("role", "radio");
+      chip.setAttribute("aria-checked", String(state.kind === key));
+      chip.classList.toggle("is-active", state.kind === key);
+      chip.textContent = kind.label;
+      chip.addEventListener("click", () => setKind(key));
+      return chip;
+    })
+  );
+}
+
+function setKind(kind) {
+  if (state.kind === kind) return;
+  state.kind = kind;
+  // 候補・項目が足りなければ空の欄を用意して、すぐ入力できるように
+  if (kind !== "notice") {
+    while (state.items.length < KINDS[kind].min) state.items.push("");
+  }
+  render();
+  if (kind !== "notice") els.itemsArea.querySelector("input")?.focus();
+}
+
+// 投票の候補・チェックリストの項目をプレビューの中で直接編集する（入力中は作り直さない）
+function renderItemsPreview(palette) {
+  renderKindChips();
+  const kind = KINDS[state.kind];
+  const active = state.kind !== "notice";
+  els.itemsArea.hidden = !active;
+  els.itemAddButton.hidden = !active || state.items.length >= (kind.max || 0);
+  els.doneButton.hidden = state.kind !== "checklist";
+  if (!active) return;
+  els.itemAddButton.textContent = `＋ ${kind.item}`;
+  els.itemsArea.dataset.kind = state.kind;
+  els.doneButton.style.background = palette.start;
+  if (document.activeElement !== els.doneButton) els.doneButton.value = state.doneLabel;
+
+  const rows = els.itemsArea.querySelectorAll(".bubble-item");
+  if (els.itemsArea.contains(document.activeElement) && rows.length === state.items.length) {
+    rows.forEach((row) => (row.style.borderColor = palette.start));
+    return;
+  }
+  els.itemsArea.replaceChildren(...state.items.map((text, index) => createItemRow(text, index, palette)));
+}
+
+function createItemRow(text, index, palette) {
+  const kind = KINDS[state.kind];
+  const row = document.createElement("div");
+  row.className = "bubble-item";
+  row.style.borderColor = palette.start;
+  if (state.kind === "checklist") {
+    const box = document.createElement("span");
+    box.className = "bubble-item-box";
+    box.setAttribute("aria-hidden", "true");
+    box.textContent = "□";
+    row.append(box);
+  }
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "bubble-input bubble-item-input";
+  input.maxLength = 40;
+  input.value = text;
+  input.placeholder = state.kind === "vote" ? `候補${index + 1}（例：🏖️ 沖縄）` : `項目${index + 1}（例：財布）`;
+  input.setAttribute("aria-label", `${kind.item}${index + 1}`);
+  input.addEventListener("input", () => {
+    state.items[index] = input.value.trim();
+    render();
+  });
+  // 複数行を貼ったら1行ずつに分ける
+  input.addEventListener("paste", (event) => {
+    const pasted = event.clipboardData?.getData("text") || "";
+    if (!pasted.includes("\n")) return;
+    event.preventDefault();
+    if (splitPasted(pasted, index)) {
+      input.blur();
+      render();
+    }
+  });
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.isComposing) {
+      event.preventDefault();
+      if (state.items.length < kind.max) {
+        state.items.splice(index + 1, 0, "");
+        input.blur();
+        render();
+        els.itemsArea.querySelectorAll("input")[index + 1]?.focus();
+      }
+    }
+  });
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "bubble-item-remove";
+  remove.textContent = "×";
+  remove.setAttribute("aria-label", `${kind.item}${index + 1}を消す`);
+  remove.addEventListener("pointerdown", (event) => event.preventDefault());
+  remove.addEventListener("click", () => {
+    state.items.splice(index, 1);
+    render();
+  });
+  row.append(input, remove);
+  return row;
 }
 
 function renderButtonList() {
@@ -586,6 +734,13 @@ function getValidation() {
   if (state.showDetail && !state.detail) {
     return { message: "詳細を入力するか、− で消してください。", fieldId: "detailInput" };
   }
+  const filled = state.items.filter(Boolean);
+  if (state.kind === "vote" && filled.length < 2) {
+    return { message: "投票の候補を2つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
+  }
+  if (state.kind === "checklist" && filled.length < 1) {
+    return { message: "チェックリストの項目を1つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
+  }
   if (state.imageUrl && !isHttpsUrl(state.imageUrl)) {
     return { message: "写真のURLは https:// から始まる公開URLを入力してください。", fieldId: "imageUrlInput" };
   }
@@ -680,6 +835,40 @@ function buildFlexMessage() {
     });
   }
 
+  const items = state.items.filter(Boolean);
+  if (state.kind === "vote" && items.length) {
+    // 押した人の名前で「○○ に投票します」がトークに送られる（集計は自動ではしない）
+    bodyContents.push({
+      type: "box",
+      layout: "vertical",
+      spacing: "sm",
+      margin: "md",
+      contents: items.map((item) => ({
+        type: "button",
+        style: "secondary",
+        height: "sm",
+        action: { type: "message", label: item.slice(0, 40), text: `${item} に投票します`.slice(0, 300) }
+      }))
+    });
+  }
+  if (state.kind === "checklist" && items.length) {
+    bodyContents.push({
+      type: "box",
+      layout: "vertical",
+      spacing: "sm",
+      margin: "md",
+      contents: items.map((item) => ({
+        type: "box",
+        layout: "horizontal",
+        spacing: "sm",
+        contents: [
+          { type: "text", text: "□", size: "sm", color: palette.start, flex: 0 },
+          { type: "text", text: item, size: "sm", color: "#111827", wrap: true }
+        ]
+      }))
+    });
+  }
+
   const bubble = {
     type: "bubble",
     size: state.bubbleSize,
@@ -712,18 +901,27 @@ function buildFlexMessage() {
   const buttons = state.buttons
     .map((button) => ({ label: button.label.trim() || "詳しく見る", uri: getSendableUrl(button.url) }))
     .filter((button) => button.uri);
-  if (buttons.length > 0) {
-    bubble.footer = {
-      type: "box",
-      layout: "vertical",
-      spacing: "sm",
-      contents: buttons.map((button) => ({
-        type: "button",
-        style: "primary",
-        color: palette.start,
-        action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
-      }))
-    };
+  const footerButtons = buttons.map((button) => ({
+    type: "button",
+    style: "primary",
+    color: palette.start,
+    action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
+  }));
+  if (state.kind === "checklist" && items.length) {
+    // 押すと「『タイトル』準備できました！」がトークに送られる
+    footerButtons.unshift({
+      type: "button",
+      style: "primary",
+      color: palette.start,
+      action: {
+        type: "message",
+        label: (state.doneLabel || DEFAULT_DONE_LABEL).slice(0, 40),
+        text: `「${state.title}」${(state.doneLabel || DEFAULT_DONE_LABEL).replace(/^✅\s*/u, "")}！`.slice(0, 300)
+      }
+    });
+  }
+  if (footerButtons.length > 0) {
+    bubble.footer = { type: "box", layout: "vertical", spacing: "sm", contents: footerButtons };
   }
 
   return {
@@ -791,7 +989,9 @@ async function share() {
 
 function focusField(validation) {
   if (validation.focus) {
-    document.getElementById("linkSettings").open = true;
+    if (!validation.message.includes("候補") && !validation.message.includes("項目")) {
+      document.getElementById("linkSettings").open = true;
+    }
     validation.focus();
     return;
   }
@@ -1081,6 +1281,18 @@ async function copyJson() {
 // ---- イベント ----
 
 function bindEvents() {
+  els.itemAddButton.addEventListener("click", () => {
+    const kind = KINDS[state.kind];
+    if (state.kind === "notice" || state.items.length >= kind.max) return;
+    state.items.push("");
+    render();
+    const inputs = els.itemsArea.querySelectorAll("input");
+    inputs[inputs.length - 1]?.focus();
+  });
+  els.doneButton.addEventListener("input", () => {
+    state.doneLabel = els.doneButton.value.trim() || DEFAULT_DONE_LABEL;
+    render();
+  });
   els.cardAddButton.addEventListener("click", addCard);
   els.cardRemoveButton.addEventListener("click", removeCard);
   // カードを左右にスワイプすると前後のカードへ（LINE の横スクロールと同じ向き）
