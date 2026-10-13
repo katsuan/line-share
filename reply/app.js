@@ -3,13 +3,16 @@
 // liff.sendMessages でテキストを送る（テキストなら送れる）。送ったら閉じる。
 // 他人が作ったカードから意図しない文を送らされないよう、送る前に内容を見せて「この内容で送る」を押してもらう。
 // 吹き出しはその場で書きかえられる（ひとこと足す・名前を変えるなど）。送るのは書きかえたあとの文。
+// sendMessages には LIFF アプリの chat_message.write の権限が要る。権限を外しているときは、
+// 権限なしで使える shareTargetPicker で「送り先を選んで送る」にする（このトークを選んでもらう）。
 const MAX_LENGTH = 500;
 // トークから開いたときだけ送れる（sendMessages はそのトークに送る）
 const CHAT_TYPES = ["utou", "group", "room", "square_chat"];
 
 const els = {};
 let text = "";
-let canSend = false;
+// 送り方。"here"＝このトークに送る / "pick"＝送り先を選んで送る / ""＝送れない（コピーだけ）
+let mode = "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   for (const id of ["replyText", "replyNote", "status", "copyButton", "sendButton"]) {
@@ -46,14 +49,20 @@ async function prepare() {
     els.replyNote.hidden = true;
     return;
   }
-  const type = liff.getContext()?.type;
-  if (!CHAT_TYPES.includes(type)) {
-    setStatus("トークの中のボタンから開くと送れます。ここではコピーだけできます。");
+  const context = liff.getContext() || {};
+  const canWrite = (context.scopes || []).includes("chat_message.write");
+  if (canWrite && CHAT_TYPES.includes(context.type)) {
+    mode = "here";
+  } else if (window.LineShareLiff.canShare()) {
+    mode = "pick";
+    els.sendButton.textContent = "送り先を選んで送る";
+    els.replyNote.textContent = "吹き出しをタップすると書きかえられます。次の画面で、返事をするトークを選んで送ってください。";
+  } else {
+    setStatus("この画面からは送れません。コピーしてトークに貼り付けてください。");
     els.replyNote.hidden = true;
     return;
   }
   if (text) setStatus("");
-  canSend = true;
   syncButtons();
   if (text) els.sendButton.focus();
 }
@@ -61,7 +70,7 @@ async function prepare() {
 // 空のときは送れない・コピーできない
 function syncButtons() {
   els.copyButton.disabled = !text;
-  els.sendButton.disabled = !canSend || !text;
+  els.sendButton.disabled = !mode || !text;
 }
 
 // 吹き出しの高さを中身に合わせる（field-sizing に対応していないブラウザ向け）
@@ -72,9 +81,19 @@ function fit() {
 
 async function send() {
   els.sendButton.disabled = true;
-  setStatus("送っています…");
+  setStatus(mode === "here" ? "送っています…" : "");
   try {
-    await liff.sendMessages([{ type: "text", text }]);
+    const message = { type: "text", text };
+    if (mode === "here") {
+      await liff.sendMessages([message]);
+    } else {
+      const result = await liff.shareTargetPicker([message]);
+      // 送り先を選ばずに閉じたときは、そのまま選び直せるようにする
+      if (!result) {
+        syncButtons();
+        return;
+      }
+    }
     setStatus("送りました。", "success");
     setTimeout(() => liff.closeWindow(), 700);
   } catch (error) {
