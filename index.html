@@ -20,11 +20,11 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610132033" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610140100" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610132033"></script>
-    <script src="./shared/credit.js?v=202610132033"></script>
-    <script src="./shared/liff.js?v=202610132033"></script>
+    <script src="./config.js?v=202610140100"></script>
+    <script src="./shared/credit.js?v=202610140100"></script>
+    <script src="./shared/liff.js?v=202610140100"></script>
     <style>
       .hub-head {
         display: flex;
@@ -452,7 +452,14 @@
             mark.src = row.image;
             mark.alt = "";
             mark.loading = "lazy";
-            mark.addEventListener("error", () => (mark.style.visibility = "hidden"));
+            // 代表画像は ID が正しい商品にしかないので、取れないとき（ID の間違い・一時的な不調）は代わりのアイコンにする
+            mark.addEventListener("error", () => {
+              const fallback = document.createElement("span");
+              fallback.className = "hub-link-icon";
+              fallback.setAttribute("aria-hidden", "true");
+              fallback.textContent = row.fallbackIcon || "😀";
+              mark.replaceWith(fallback);
+            });
           } else {
             mark = document.createElement("span");
             mark.className = "hub-link-icon";

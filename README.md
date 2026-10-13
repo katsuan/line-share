@@ -90,6 +90,8 @@ python3 tools/stamp.py
 | `data/hub-links.json` | トップの「ほかのツール」。`title`、`items`（`icon`・`name`・`desc`・`url`） |
 | `data/templates.json` | テンプレートと候補。`card`＝お知らせカードのテンプレート（`key`・`label`・`icon`・`description`・`status`・`state`。`"{top}"` はおくるんのトップの URL に置き換わる）、`place.presets`＝場所のテンプレート、`place.badges`＝バッジの候補、`text`＝文字・手書きの「よく使う文字」 |
 
+`data/line-emoji.json` を書き換えたら、公開前に `python3 tools/check_emoji.py` で各 ID の LINE STORE のページがあるか（とストア上の名前）を確かめる。トップでは代表画像が取れない絵文字の行に代わりのアイコン（😀、`fallbackIcon` で変更可）を出す。
+
 ## ロゴ・アイコン・OGP 画像
 
 サービス名は「おくるん」、ロゴは「OQRN」（Q はふきだし。一筆でくるんと回り、書き始めが矢じり、終わりがしっぽ）。色は紫（`--ls-accent: #6c47ff`）。
