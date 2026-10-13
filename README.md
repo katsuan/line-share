@@ -80,6 +80,16 @@ python3 tools/stamp.py
 
 `?v=<日時>` が HTML の `<script>`・`<link>` と JS の import 先にまとめて付きます（同じモジュールは全ファイルで同じ版にそろえる必要があるため、必ずこのスクリプトで一括で付けます）。
 
+## JSON で管理している中身（data/）
+
+コードを変えずに書き換えられます。読み込めないときや空のときは、その欄やテンプレートが出ないだけで、ツールは使えます。
+
+| ファイル | 中身 |
+|---|---|
+| `data/line-emoji.json` | トップの「LINE絵文字」。`title`・`lead`、`items`（`id`＝LINE STORE の URL の `product/` のあと、`name`、`desc`）、`author`（`id`＝`author/` のあと、`name`）。リンクと画像は ID から作る（`url`・`image` を書くとそちらを使う） |
+| `data/hub-links.json` | トップの「ほかのツール」。`title`、`items`（`icon`・`name`・`desc`・`url`） |
+| `data/templates.json` | テンプレートと候補。`card`＝お知らせカードのテンプレート（`key`・`label`・`icon`・`description`・`status`・`state`。`"{top}"` はおくるんのトップの URL に置き換わる）、`place.presets`＝場所のテンプレート、`place.badges`＝バッジの候補、`text`＝文字・手書きの「よく使う文字」 |
+
 ## ロゴ・アイコン・OGP 画像
 
 サービス名は「おくるん」、ロゴは「OQRN」（Q はふきだし。一筆でくるんと回り、書き始めが矢じり、終わりがしっぽ）。色は紫（`--ls-accent: #6c47ff`）。

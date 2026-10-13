@@ -1,20 +1,16 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610111642";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610111642";
-import { bindHeader } from "./header.js?v=202610111642";
-import { createPlaceFlex } from "./flex.js?v=202610111642";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610132020";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610132020";
+import { bindHeader } from "./header.js?v=202610132020";
+import { createPlaceFlex } from "./flex.js?v=202610132020";
 
-const DEFAULT_BADGES = ["おすすめ", "近い", "コスパ○", "行きたい", "集合場所", "駅近", "雰囲気◎", "子連れOK"];
+// バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
+let DEFAULT_BADGES = [];
 const MAX_BADGES = 5;
 const MAX_BADGE_LENGTH = 12;
 const TEMPLATE_KEY = "line-share:place-templates";
 
 // 用意済みのテンプレートはヘッダーの見出し・バッジ・コメントだけを入れ替え、選んだ場所はそのまま残す
-const PLACE_PRESETS = [
-  { name: "🍽️ ランチ候補", headerTitle: "ランチ候補", badges: ["おすすめ", "近い", "コスパ○"], comment: "ランチここどう？" },
-  { name: "📍 集合場所", headerTitle: "ここに集合！", badges: ["集合場所"], comment: "ここに集合で！" },
-  { name: "✨ 行きたい", headerTitle: "行ってみたい場所", badges: ["行きたい", "雰囲気◎"], comment: "今度ここ行ってみたい！" },
-  { name: "👶 子連れOK", headerTitle: "子連れでも行ける場所", badges: ["子連れOK", "駅近"], comment: "子どもと一緒でも行けそう！" }
-];
+let PLACE_PRESETS = [];
 
 const dom = {};
 const state = {
@@ -98,6 +94,15 @@ export function initMapTab({ onCreateEvent }) {
   renderBadges_();
   renderTemplates_();
   refreshMapTab();
+  loadPlaceTemplates_();
+}
+
+async function loadPlaceTemplates_() {
+  const { place } = await window.LineShareUI.loadTemplates();
+  DEFAULT_BADGES = Array.isArray(place?.badges) ? place.badges.filter((label) => typeof label === "string") : [];
+  PLACE_PRESETS = Array.isArray(place?.presets) ? place.presets.filter((preset) => preset?.name) : [];
+  renderBadges_();
+  renderTemplates_();
 }
 
 /**
