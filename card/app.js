@@ -538,14 +538,7 @@ function createBadge(text, index, palette) {
     }
   });
 
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "bubble-badge-remove";
-  remove.textContent = "×";
-  remove.setAttribute("aria-label", `バッジ「${text}」を消す`);
-  // 先に文字欄からフォーカスが外れると × が消えるので、押した瞬間は外さない
-  remove.addEventListener("pointerdown", (event) => event.preventDefault());
-  remove.addEventListener("click", () => {
+  const remove = removeOnEdit(`バッジ「${text}」を消す`, () => {
     state.badges.splice(index, 1);
     render();
   });
@@ -675,13 +668,7 @@ function createItemRow(text, index, palette) {
       }
     }
   });
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "bubble-item-remove";
-  remove.textContent = "×";
-  remove.setAttribute("aria-label", `${kind.item}${index + 1}を消す`);
-  remove.addEventListener("pointerdown", (event) => event.preventDefault());
-  remove.addEventListener("click", () => {
+  const remove = removeOnEdit(`${kind.item}${index + 1}を消す`, () => {
     state.items.splice(index, 1);
     render();
   });
@@ -741,13 +728,7 @@ function createPairCell(pair, index) {
     state.pairs[index].value = value.value.trim();
     render();
   });
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.className = "bubble-item-remove";
-  remove.textContent = "×";
-  remove.setAttribute("aria-label", `項目${index + 1}を消す`);
-  remove.addEventListener("pointerdown", (event) => event.preventDefault());
-  remove.addEventListener("click", () => {
+  const remove = removeOnEdit(`項目${index + 1}を消す`, () => {
     state.pairs.splice(index, 1);
     render();
   });
@@ -976,14 +957,14 @@ function getValidation() {
   if (!state.headerTitle) return { message: "タイトルを入力してください。", fieldId: "headerInput" };
   if (!state.title) return { message: "本文タイトルを入力してください。", fieldId: "titleInput" };
   if (state.showDate && !state.date) {
-    return { message: "サブタイトルを入力するか、− で消してください。", fieldId: "dateInput" };
+    return { message: "サブタイトルを入力するか、× で消してください。", fieldId: "dateInput" };
   }
   if (state.showDetail && !state.detail) {
-    return { message: "詳細を入力するか、− で消してください。", fieldId: "detailInput" };
+    return { message: "詳細を入力するか、× で消してください。", fieldId: "detailInput" };
   }
   const filled = state.items.filter(Boolean);
   if (state.kind === "vote" && filled.length < 2) {
-    return { message: "投票の候補を2つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
+    return { message: "投票の候補を2つ以上入れてください。", focus: () => els.itemsArea.querySelector("input")?.focus() };
   }
   if (state.kind === "ticket" && (!state.route.from || !state.route.to)) {
     return { message: "チケットの出発と到着を入れてください。", fieldId: state.route.from ? "routeTo" : "routeFrom" };
@@ -992,7 +973,7 @@ function getValidation() {
     return { message: "クーポンの特典（例：20% OFF）を入れてください。", fieldId: "couponOffer" };
   }
   if (state.kind === "checklist" && filled.length < 1) {
-    return { message: "チェックリストの項目を1つ以上入れてください。", fieldId: null, focus: () => els.itemsArea.querySelector("input")?.focus() };
+    return { message: "チェックリストの項目を1つ以上入れてください。", focus: () => els.itemsArea.querySelector("input")?.focus() };
   }
   if (state.imageUrl && !isHttpsUrl(state.imageUrl)) {
     return { message: "写真のURLは https:// から始まる公開URLを入力してください。", fieldId: "imageUrlInput" };
@@ -1006,7 +987,7 @@ function getValidation() {
   if (brokenIndex >= 0) {
     return {
       message: "ボタンのリンク先を http(s)・tel・mailto・line のいずれかで入力するか、ボタンを削除してください。",
-      fieldId: null,
+      section: "linkSettings",
       focus: () => els.buttonList.querySelectorAll("input[type=url]")[brokenIndex]?.focus()
     };
   }
@@ -1256,10 +1237,8 @@ async function share() {
 }
 
 function focusField(validation) {
+  if (validation.section) document.getElementById(validation.section).open = true;
   if (validation.focus) {
-    if (!validation.message.includes("候補") && !validation.message.includes("項目")) {
-      document.getElementById("linkSettings").open = true;
-    }
     validation.focus();
     return;
   }
@@ -1548,23 +1527,15 @@ async function copyJson() {
 
 // ---- イベント ----
 
-// 「×」は編集中の行にだけ出す。スマホでは × を押した瞬間に先に入力欄から外れて × が消え、押せないことがあるので、
-// 外れてから少しのあいだは出したままにする
-function keepRemoveVisible(container, rowSelector) {
-  container.addEventListener("focusin", (event) => event.target.closest(rowSelector)?.classList.add("is-editing"));
-  container.addEventListener("focusout", (event) => {
-    const row = event.target.closest(rowSelector);
-    if (!row) return;
-    setTimeout(() => {
-      if (!row.contains(document.activeElement)) row.classList.remove("is-editing");
-    }, 300);
-  });
+// 行を編集しているあいだだけ出す × （バッジ・候補・項目・チケットの項目で共通。shared/ui.js）
+function removeOnEdit(ariaLabel, onClick) {
+  return window.LineShareUI.removeButton(ariaLabel, onClick, { onEdit: true });
 }
 
 function bindEvents() {
-  keepRemoveVisible(els.itemsArea, ".bubble-item");
-  keepRemoveVisible(els.pairsArea, ".ticket-pair");
-  keepRemoveVisible(els.badgeRow, ".bubble-badge");
+  for (const [container, row] of [[els.itemsArea, ".bubble-item"], [els.pairsArea, ".ticket-pair"], [els.badgeRow, ".bubble-badge"]]) {
+    window.LineShareUI.keepRemoveVisible(container, row);
+  }
   els.itemAddButton.addEventListener("click", () => {
     const kind = KINDS[state.kind];
     if (!kind.list || state.items.length >= kind.max) return;
@@ -1681,7 +1652,7 @@ function bindEvents() {
     render();
   });
 
-  // サブタイトル・詳細はプレビュー上の ＋ で出し、− で隠す（中身は残るので ＋ で戻せる）
+  // サブタイトル・詳細はプレビュー上の ＋ で出し、× で隠す（中身は残るので ＋ で戻せる）
   const toggle = (checkbox, on) => {
     checkbox.checked = on;
     checkbox.dispatchEvent(new Event("change"));

@@ -75,7 +75,37 @@
   }
 
   /**
-   * プレビュー上の任意の項目（サブタイトル・コメントなど）を「＋」で足し、「−」で消せるようにする。
+   * 消すための丸い ×（.ls-remove）。onEdit を付けると、親の行を編集しているあいだだけ出す（.is-on-edit）。
+   * 押した瞬間に入力欄から外れないようにして、行の × が先に消えないようにする。
+   */
+  function removeButton(ariaLabel, onClick, { onEdit = false } = {}) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = onEdit ? "ls-remove is-on-edit" : "ls-remove";
+    button.textContent = "×";
+    button.setAttribute("aria-label", ariaLabel);
+    if (onEdit) button.addEventListener("pointerdown", (event) => event.preventDefault());
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  /**
+   * スマホでは × を押した瞬間に先に入力欄から外れて × が消え、押せないことがある。
+   * 外れてから少しのあいだは、行に is-editing を付けたままにして × を出しておく。
+   */
+  function keepRemoveVisible(container, rowSelector) {
+    container.addEventListener("focusin", (event) => event.target.closest(rowSelector)?.classList.add("is-editing"));
+    container.addEventListener("focusout", (event) => {
+      const row = event.target.closest(rowSelector);
+      if (!row) return;
+      setTimeout(() => {
+        if (!row.contains(document.activeElement)) row.classList.remove("is-editing");
+      }, 300);
+    });
+  }
+
+  /**
+   * プレビュー上の任意の項目（サブタイトル・コメントなど）を「＋」で足し、「×」で消せるようにする。
    * wrapper の中の入力欄が対象。出ているかどうかは isOn で決める（既定：文字が入っているか、＋を押した直後か）。
    * 消すときの既定は「文字を空にする」。お知らせカードのように表示の切り替えで消すときは onAdd / onRemove を渡す。
    */
@@ -85,11 +115,16 @@
     const field = wrapper.querySelector("input, textarea");
     const on = isOn || (() => wrapper.dataset.open === "1" || field.value.trim() !== "");
 
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "ls-optional-remove";
-    remove.textContent = "−";
-    remove.setAttribute("aria-label", `${label}を消す`);
+    const remove = removeButton(`${label}を消す`, () => {
+      if (onRemove) onRemove();
+      else {
+        delete wrapper.dataset.open;
+        field.value = "";
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      sync();
+      add.focus();
+    });
     wrapper.classList.add("ls-optional");
     wrapper.append(remove);
 
@@ -111,23 +146,13 @@
       sync();
       field.focus();
     });
-    remove.addEventListener("click", () => {
-      if (onRemove) onRemove();
-      else {
-        delete wrapper.dataset.open;
-        field.value = "";
-        field.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-      sync();
-      add.focus();
-    });
 
     optionals.push(sync);
     sync();
     return sync;
   }
 
-  // テンプレートなどで中身が入れ替わったあとに、＋／−の表示をそろえる
+  // テンプレートなどで中身が入れ替わったあとに、＋／×の表示をそろえる
   function syncOptionals() {
     for (const sync of optionals) sync();
   }
@@ -135,7 +160,7 @@
   /**
    * 送信プレビューの右上に「プレビューモード切替：📝 編集／👀 完成イメージ」を付ける。選んでいるモードだけ名前を出し、
    * もう一方はアイコンだけにする（読み上げは両方とも名前）。
-   * 完成イメージのときは .ls-preview に is-viewing を付け、点線の枠・＋／−・案内を隠して、送ったときの見た目にする。
+   * 完成イメージのときは .ls-preview に is-viewing を付け、点線の枠・＋／×・案内を隠して、送ったときの見た目にする。
    * 選んだモードは端末に残し、どのツールでも同じにする。
    */
   const VIEW_KEY = "line-share:preview-viewing";
@@ -240,5 +265,5 @@
     return templates;
   }
 
-  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates };
+  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible };
 })();

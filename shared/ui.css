@@ -639,7 +639,7 @@ input[type="time"].ls-input {
 
 /* 完成イメージ：編集のための表示を隠す。各ツールの枠や入力欄は各ツールの style.css で隠す */
 .ls-preview.is-viewing .ls-optional-add,
-.ls-preview.is-viewing .ls-optional-remove,
+.ls-preview.is-viewing .ls-remove,
 .ls-preview.is-viewing .ls-preview-note {
   display: none;
 }
@@ -681,29 +681,39 @@ input[type="time"].ls-input {
   outline-offset: 2px;
 }
 
-/* プレビュー上の任意の項目：＋で足し、−で消す */
+/* プレビュー上の任意の項目：＋で足し、×で消す（ほかの × と同じ大きさ） */
 .ls-optional {
   position: relative;
 }
 
-.ls-optional-remove {
+/* 消すための丸い ×。どのツールでも同じ見た目（shared/ui.js の LineShareUI.removeButton で作る）。
+   is-on-edit は、親の行を編集しているあいだ（入力中か、外れてから少しのあいだ＝is-editing）だけ出す */
+.ls-remove {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -10px;
+  right: -10px;
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid var(--ls-line-strong);
   border-radius: 999px;
   background: var(--ls-surface);
   color: var(--ls-subtext);
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 13px;
   line-height: 1;
   cursor: pointer;
   z-index: 1;
+}
+
+.ls-remove.is-on-edit {
+  display: none;
+}
+
+:focus-within > .ls-remove.is-on-edit,
+.is-editing > .ls-remove.is-on-edit {
+  display: grid;
 }
 
 .ls-optional-add {
