@@ -276,6 +276,65 @@
   line-height: 1;
 }
 
+/* 複数枚（横スクロール）のカードの切り替え */
+.card-deck {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #fff;
+}
+
+.card-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.card-tab {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.card-tab[aria-selected="true"] {
+  background: #fff;
+  color: var(--ls-accent-ink);
+}
+
+/* 1枚だけのときは番号を出さない（＋ カード だけ） */
+.card-tabs:has(> .card-tab:only-child) {
+  display: none;
+}
+
+.card-remove {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.card-remove[hidden] {
+  display: none;
+}
+
+/* 完成イメージでは、足す・消すは隠して番号だけ残す（ほかのカードも見られるように） */
+.ls-preview.is-viewing .card-remove {
+  display: none;
+}
+
 /* 完成イメージ（送信プレビューの切り替え）：点線の枠と入力の案内を隠し、カードの中は操作しない */
 .ls-preview.is-viewing .bubble {
   pointer-events: none;

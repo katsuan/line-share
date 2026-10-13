@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610132033" />
-    <link rel="stylesheet" href="./style.css?v=202610132033" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140100" />
+    <link rel="stylesheet" href="./style.css?v=202610140100" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610132033"></script>
-    <script src="../shared/credit.js?v=202610132033"></script>
-    <script src="../shared/liff.js?v=202610132033"></script>
-    <script src="../shared/ui.js?v=202610132033" defer></script>
-    <script src="./app.js?v=202610132033" defer></script>
+    <script src="../config.js?v=202610140100"></script>
+    <script src="../shared/credit.js?v=202610140100"></script>
+    <script src="../shared/liff.js?v=202610140100"></script>
+    <script src="../shared/ui.js?v=202610140100" defer></script>
+    <script src="./app.js?v=202610140100" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -29,6 +29,12 @@
       <div class="ls-stack">
         <section class="ls-preview">
           <span class="ls-preview-label">送信プレビュー</span>
+          <!-- 複数枚（横スクロール）で送るときのカードの切り替え。カードを左右にスワイプしても切り替わる -->
+          <div class="card-deck">
+            <div id="cardTabs" class="card-tabs" role="tablist" aria-label="カード"></div>
+            <button id="cardAddButton" class="ls-optional-add" type="button">＋ カード</button>
+            <button id="cardRemoveButton" class="card-remove" type="button" hidden>このカードを消す</button>
+          </div>
           <div id="bubble" class="bubble">
             <div id="bubbleHeader" class="bubble-header">
               <input id="headerInput" class="bubble-input bubble-header-title" type="text" maxlength="60" placeholder="タイトル" aria-label="タイトル" />
@@ -46,7 +52,7 @@
             </div>
             <p class="ls-credit">Created by おくるん ›</p>
           </div>
-          <p class="ls-preview-note">文字・バッジはタップしてそのまま編集できます。サブタイトル・詳細・バッジは ＋ で足せます。写真・ボタンはタップすると設定に移ります。</p>
+          <p class="ls-preview-note">文字・バッジはタップしてそのまま編集できます。サブタイトル・詳細・バッジは ＋ で足せます。写真・ボタンはタップすると設定に移ります。「＋ カード」で横にスクロールする複数枚にできます。</p>
         </section>
 
         <div class="ls-folds">

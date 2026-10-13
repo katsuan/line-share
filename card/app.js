@@ -13,6 +13,8 @@ const ACTION_PROTOCOLS = ["https:", "http:", "line:", "tel:", "mailto:"];
 const BUBBLE_SIZES = ["nano", "micro", "deca", "hecto", "kilo", "mega", "giga"];
 const MAX_BADGES = 5;
 const MAX_BUTTONS = 3;
+// 横スクロール（カルーセル）で送れるカードの枚数。LINE の上限（12枚）まで
+const MAX_CARDS = 12;
 const DEFAULT_CUSTOM_COLOR = "#f59e0b";
 
 // 色の並びは全ツール共通（shared/ui.js の PALETTE。先頭はおくるんの紫）。最後に「ほかの色」
@@ -72,6 +74,9 @@ const BLANK_STATE = {
 
 const els = {};
 let state = structuredClone(BLANK_STATE);
+// 送るカードの並び。編集しているのは cards[current] で、編集中はそれを state として扱う
+let cards = [state];
+let current = 0;
 // クエリ由来のURL（許可ドメイン以外は送信しない）
 const queryUrls = new Set();
 let hasTriedShare = false;
@@ -117,13 +122,24 @@ async function init() {
     "lookMeta", "photoMeta", "linkMeta",
     "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
     "copyJsonButton", "resetButton", "shareButton", "status",
+    "cardTabs", "cardAddButton", "cardRemoveButton",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
 
   const queryState = getQueryState();
-  state = hydrate(queryState ?? loadJson(LAST_SENT_KEY) ?? BLANK_STATE);
+  const saved = loadJson(LAST_SENT_KEY);
+  // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか
+  cards = queryState
+    ? [hydrate(queryState)]
+    : Array.isArray(saved?.cards) && saved.cards.length
+      ? saved.cards.slice(0, MAX_CARDS).map(hydrate)
+      : [hydrate(saved ?? BLANK_STATE)];
+  // 大きさは全カードでそろえる（カルーセルのカードは同じ大きさにする）
+  cards.forEach((card) => (card.bubbleSize = cards[0].bubbleSize));
+  current = 0;
+  state = cards[0];
 
   bindEvents();
   renderTemplates();
@@ -211,6 +227,85 @@ function getEditorState() {
   return structuredClone(state);
 }
 
+// ---- 複数枚（カルーセル） ----
+
+// state を差し替えたあと（テンプレートなど）に、並びの中身も合わせる
+function storeCurrent() {
+  cards[current] = state;
+}
+
+// card を一時的に編集中のカードとして fn を呼ぶ（検証や送るカードの組み立てを、どのカードにも使えるように）
+function withCard(card, fn) {
+  const editing = state;
+  state = card;
+  try {
+    return fn();
+  } finally {
+    state = editing;
+  }
+}
+
+function switchCard(index) {
+  storeCurrent();
+  if (index < 0 || index >= cards.length || index === current) {
+    renderCardTabs();
+    return;
+  }
+  current = index;
+  state = cards[current];
+  applyStateToEditor();
+  render();
+  requestAnimationFrame(autoGrowAll);
+}
+
+// 新しいカードは今のカードの色・大きさ・見出しを引き継いで、すぐうしろに足す
+function addCard() {
+  if (cards.length >= MAX_CARDS) return;
+  storeCurrent();
+  const next = hydrate({
+    theme: state.theme,
+    customColor: state.customColor,
+    bubbleSize: state.bubbleSize,
+    headerTitle: state.headerTitle,
+    date: state.date,
+    showDate: state.showDate,
+    showDetail: false
+  });
+  cards.splice(current + 1, 0, next);
+  switchCard(current + 1);
+  els.titleInput.focus();
+  setStatus(`カード${current + 1}を足しました。`);
+}
+
+function removeCard() {
+  if (cards.length <= 1) return;
+  if (!confirm(`カード${current + 1}を消しますか？`)) return;
+  cards.splice(current, 1);
+  current = Math.min(current, cards.length - 1);
+  state = cards[current];
+  applyStateToEditor();
+  render();
+  setStatus("カードを消しました。");
+}
+
+function renderCardTabs() {
+  els.cardTabs.replaceChildren(
+    ...cards.map((card, index) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "card-tab";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", String(index === current));
+      tab.setAttribute("aria-label", `カード${index + 1}${card.headerTitle ? `「${card.headerTitle}」` : ""}`);
+      tab.textContent = String(index + 1);
+      tab.addEventListener("click", () => switchCard(index));
+      return tab;
+    })
+  );
+  els.cardAddButton.hidden = cards.length >= MAX_CARDS;
+  els.cardRemoveButton.hidden = cards.length <= 1;
+}
+
 // ---- 描画 ----
 
 function applyStateToEditor() {
@@ -284,6 +379,7 @@ function render() {
   els.buttonWarning.hidden = !state.buttons.some((button) => isBlockedQueryUrl(button.url));
   els.addButtonButton.disabled = state.buttons.length >= MAX_BUTTONS;
   updateFoldMeta();
+  renderCardTabs();
   window.LineShareUI.syncOptionals();
 
   updateShareButtonState();
@@ -509,8 +605,25 @@ function getValidation() {
   return { message: "" };
 }
 
+// 全カードを確かめ、最初に足りないところがあるカードと理由を返す（2枚以上なら「カード2：」を付ける）
+function getDeckValidation() {
+  storeCurrent();
+  const order = [current, ...cards.keys()].filter((index, i, list) => list.indexOf(index) === i);
+  for (const index of order) {
+    const validation = withCard(cards[index], getValidation);
+    if (validation.message) {
+      return {
+        ...validation,
+        index,
+        message: cards.length > 1 ? `カード${index + 1}：${validation.message}` : validation.message
+      };
+    }
+  }
+  return { message: "" };
+}
+
 function updateShareButtonState() {
-  const { message } = getValidation();
+  const { message } = getDeckValidation();
   window.LineShareUI.setPreviewError(els.bubble, message);
   els.shareButton.disabled = !shareReady;
   els.shareButton.classList.toggle("is-incomplete", Boolean(message));
@@ -620,15 +733,30 @@ function buildFlexMessage() {
   };
 }
 
+// 送るメッセージ。1枚ならそのカード、2枚以上なら横スクロール（カルーセル）。Created by は各カードに付ける
+function buildDeckMessage({ credit = true } = {}) {
+  storeCurrent();
+  const messages = cards.map((card) =>
+    withCard(card, () => (credit ? window.LineShareCredit.withCredit(buildFlexMessage()) : buildFlexMessage()))
+  );
+  if (messages.length === 1) return messages[0];
+  return {
+    type: "flex",
+    altText: `${messages[0].altText} ほか${messages.length - 1}枚`.slice(0, 400),
+    contents: { type: "carousel", contents: messages.map((message) => message.contents) }
+  };
+}
+
 async function share() {
   if (!window.LineShareLiff.canShare()) {
     setStatus(window.LineShareLiff.MESSAGES.notInLine, true);
     return;
   }
 
-  const validation = getValidation();
+  const validation = getDeckValidation();
   if (validation.message) {
     hasTriedShare = true;
+    if (validation.index !== current) switchCard(validation.index);
     setStatus(validation.message, true);
     focusField(validation);
     return;
@@ -641,7 +769,7 @@ async function share() {
 
   try {
     setStatus("共有先を開いています…");
-    const message = window.LineShareCredit.withCredit(buildFlexMessage());
+    const message = buildDeckMessage();
     const result = await liff.shareTargetPicker([message], { isMultiple: true });
 
     if (!result) {
@@ -649,7 +777,8 @@ async function share() {
       return;
     }
 
-    saveJson(LAST_SENT_KEY, getEditorState());
+    storeCurrent();
+    saveJson(LAST_SENT_KEY, { cards: structuredClone(cards) });
     setStatus("共有しました。");
     if (liff.isInClient()) {
       setTimeout(() => liff.closeWindow(), 600);
@@ -909,7 +1038,9 @@ function createTemplateButton(title, description, onClick) {
 }
 
 function applyTemplateState(source) {
-  state = hydrate(source);
+  // テンプレートは今のカードにだけ当てはめる。大きさは全カードでそろえたまま
+  state = hydrate({ ...source, bubbleSize: state.bubbleSize });
+  storeCurrent();
   queryUrls.clear();
   applyStateToEditor();
   render();
@@ -939,7 +1070,7 @@ function deleteTemplate(name) {
 
 async function copyJson() {
   try {
-    await navigator.clipboard.writeText(JSON.stringify(buildFlexMessage(), null, 2));
+    await navigator.clipboard.writeText(JSON.stringify(buildDeckMessage({ credit: false }), null, 2));
     setStatus("Flex Message の JSON をコピーしました。");
   } catch (error) {
     console.error(error);
@@ -950,6 +1081,24 @@ async function copyJson() {
 // ---- イベント ----
 
 function bindEvents() {
+  els.cardAddButton.addEventListener("click", addCard);
+  els.cardRemoveButton.addEventListener("click", removeCard);
+  // カードを左右にスワイプすると前後のカードへ（LINE の横スクロールと同じ向き）
+  let swipe = null;
+  els.bubble.addEventListener("touchstart", (event) => {
+    const touch = event.touches[0];
+    swipe = { x: touch.clientX, y: touch.clientY };
+  }, { passive: true });
+  els.bubble.addEventListener("touchend", (event) => {
+    if (!swipe || cards.length <= 1) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipe.x;
+    const dy = touch.clientY - swipe.y;
+    swipe = null;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    switchCard(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
   const textFields = [
     ["headerInput", "headerTitle"],
     ["dateInput", "date"],
@@ -989,6 +1138,8 @@ function bindEvents() {
   });
   els.bubbleSizeRange.addEventListener("input", () => {
     state.bubbleSize = BUBBLE_SIZES[Number(els.bubbleSizeRange.value)] || "mega";
+    // 横スクロールのカードは同じ大きさにそろえる
+    cards.forEach((card) => (card.bubbleSize = state.bubbleSize));
     els.bubbleSizeLabel.textContent = state.bubbleSize;
     render();
   });
@@ -1105,6 +1256,8 @@ function bindEvents() {
     els.resetButton.textContent = resetLabel;
     hasTriedShare = false;
     state = structuredClone(BLANK_STATE);
+    cards = [state];
+    current = 0;
     queryUrls.clear();
     localStorageRemove(LAST_SENT_KEY);
     applyStateToEditor();
