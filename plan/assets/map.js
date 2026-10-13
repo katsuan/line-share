@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610132033";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610132033";
-import { bindHeader } from "./header.js?v=202610132033";
-import { createPlaceFlex } from "./flex.js?v=202610132033";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610140124";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610140124";
+import { bindHeader } from "./header.js?v=202610140124";
+import { createPlaceFlex } from "./flex.js?v=202610140124";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -88,7 +88,7 @@ export function initMapTab({ onCreateEvent }) {
   });
 
   state.header = bindHeader({ prefix: "mapHeader", defaultTitle: "場所のお知らせ", onChange: refreshMapTab });
-  // サブタイトル・コメントはプレビュー上の ＋ で足し、− で消す
+  // サブタイトル・コメントはプレビュー上の ＋ で足し、× で消す
   window.LineShareUI.optional(document.getElementById("mapHeaderSubRow"), { label: "サブタイトル" });
   window.LineShareUI.optional(document.getElementById("mapCommentRow"), { label: "コメント" });
   renderBadges_();

@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610132033";
-import { MAX_URI_LENGTH } from "./config.js?v=202610132033";
-import { bindHeader } from "./header.js?v=202610132033";
-import { createEventFlex } from "./flex.js?v=202610132033";
-import { bindPlaceSearch } from "./place-search.js?v=202610132033";
+} from "./common.js?v=202610140124";
+import { MAX_URI_LENGTH } from "./config.js?v=202610140124";
+import { bindHeader } from "./header.js?v=202610140124";
+import { createEventFlex } from "./flex.js?v=202610140124";
+import { bindPlaceSearch } from "./place-search.js?v=202610140124";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -40,7 +40,7 @@ export function initCalendarTab() {
   dom.timezone.value = state.timezone;
   addCustomParamRow_();
   state.header = bindHeader({ prefix: "eventHeader", defaultTitle: "予定のお知らせ", onChange: refreshCalendarTab });
-  // サブタイトル・メモはプレビュー上の ＋ で足し、− で消す
+  // サブタイトル・メモはプレビュー上の ＋ で足し、× で消す
   window.LineShareUI.optional(document.getElementById("eventHeaderSubRow"), { label: "サブタイトル" });
   window.LineShareUI.optional(document.getElementById("detailsRow"), { label: "メモ" });
   bindEvents_();
