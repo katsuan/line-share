@@ -549,6 +549,12 @@
   border-color: transparent;
 }
 
+/* 任意の欄が空なら、送るカードと同じく項目名ごと出さない（チケットの項目・クーポンのコードと有効期限） */
+.ls-preview.is-viewing .ticket-pair:has(.ticket-pair-value:placeholder-shown),
+.ls-preview.is-viewing .coupon-field:has(input:placeholder-shown) {
+  display: none;
+}
+
 .ls-preview.is-viewing .bubble-input::placeholder,
 .ls-preview.is-viewing .bubble-badge-text:empty::before {
   color: transparent;
