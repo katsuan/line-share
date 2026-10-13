@@ -248,3 +248,11 @@
 .ls-preview.is-viewing .draw-hint {
   display: none;
 }
+
+/* カードで送るときの大きさ（LINE のカードの幅。お知らせカードと同じ比率） */
+.image-stage[data-send-mode="card"] .card-frame[data-size="nano"] { max-width: 31%; }
+.image-stage[data-send-mode="card"] .card-frame[data-size="micro"] { max-width: 41%; }
+.image-stage[data-send-mode="card"] .card-frame[data-size="deca"] { max-width: 57%; }
+.image-stage[data-send-mode="card"] .card-frame[data-size="hecto"] { max-width: 62%; }
+.image-stage[data-send-mode="card"] .card-frame[data-size="kilo"] { max-width: 67%; }
+.image-stage[data-send-mode="card"] .card-frame[data-size="mega"] { max-width: 78%; }

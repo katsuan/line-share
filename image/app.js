@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610132020";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610132020";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610132033";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610132033";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -51,6 +51,8 @@ const OUTLINES = [
 ];
 // 「ほかの色」で選べる縁の色（一重の縁取りになる）
 const OUTLINE_COLORS = HUES;
+// LINE のカード（bubble）の大きさ。小さい順
+const BUBBLE_SIZES = ["nano", "micro", "deca", "hecto", "kilo", "mega", "giga"];
 const OUTLINE_WIDTHS = [
   { label: "細い", value: 4 },
   { label: "ふつう", value: 7 },
@@ -75,7 +77,9 @@ const DEFAULT_PREFS = {
   motion: "none",
   shape: "1:1",
   // 送り方。画像は透過できるが動かない、カードは動くが背景が白くなる（今の LINE の表示）
-  sendMode: "image"
+  sendMode: "image",
+  // カードで送るときの LINE のカードの大きさ。標準は mega だが、スタンプを大きく見せるため最初は giga
+  bubbleSize: "giga"
 };
 
 const state = {
@@ -97,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "textInput", "textPresets", "fontList", "textColors",
     "penColors", "penSizes", "penSizeRange", "penSizeDot", "undoButton", "clearButton",
     "outlineList", "outlineColors", "outlineWidthList", "backgroundList", "motionList", "motionPanel",
+    "sizePanel", "sizeMeta", "sizeHint", "cardSizeRange", "cardSizeLabel",
     "clearTextButton", "drawTextRow", "drawTextLabel", "drawClearTextButton", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
@@ -560,6 +565,17 @@ function applyState_() {
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
   // 画像では動かないので、動きは選べない（グレー表示）
   els.motionPanel.classList.toggle("is-unavailable", !isCard);
+  // カードの大きさも、画像では LINE が決めるので選べない
+  if (!BUBBLE_SIZES.includes(state.bubbleSize)) state.bubbleSize = "giga";
+  els.sizePanel.classList.toggle("is-unavailable", !isCard);
+  els.cardSizeRange.disabled = !isCard;
+  els.cardSizeRange.value = String(BUBBLE_SIZES.indexOf(state.bubbleSize));
+  els.cardSizeLabel.textContent = state.bubbleSize;
+  els.sizeMeta.textContent = isCard ? state.bubbleSize : "—（画像）";
+  els.sizeHint.textContent = isCard
+    ? "小さい順に nano〜giga の7段階。迷ったら「標準」の mega。"
+    : "画像で送るときは、LINE が大きさを決めます。選べるのはカードで送るときです。";
+  els.cardFrame.dataset.size = state.bubbleSize;
   for (const button of els.motionList.querySelectorAll("button")) button.disabled = !isCard;
   els.motionHint.textContent = isCard
     ? "動きはカードで送ったときに再生されます。"
@@ -622,6 +638,10 @@ function onChange_() {
 }
 
 function bindEvents_() {
+  els.cardSizeRange.addEventListener("input", () => {
+    state.bubbleSize = BUBBLE_SIZES[Number(els.cardSizeRange.value)] || "giga";
+    onChange_();
+  });
   els.penSizeRange.addEventListener("input", () => {
     state.penSize = Math.min(PEN_SIZE_MAX, Math.max(PEN_SIZE_MIN, Number(els.penSizeRange.value) || PEN_SIZES[1].value));
     onChange_();
@@ -779,7 +799,7 @@ function buildMessage_(mode, imageUrl, item) {
     altText: (sourceText || "画像").slice(0, 100),
     contents: {
       type: "bubble",
-      size: "giga",
+      size: BUBBLE_SIZES.includes(item.size) ? item.size : "giga",
       hero: {
         type: "image",
         url: imageUrl,
@@ -825,7 +845,7 @@ async function send_() {
     return;
   }
   const image = await buildImage_();
-  await sendImage_({ ...image, text: state.text, mode: state.sendMode });
+  await sendImage_({ ...image, text: state.text, mode: state.sendMode, size: state.bubbleSize });
 }
 
 // 作った画像・送った画像のどちらも、ここから送る
@@ -849,7 +869,7 @@ async function sendImage_(item) {
     const result = await liff.shareTargetPicker([message], { isMultiple: true });
     if (result) {
       setStatus_("送信しました。", "success");
-      await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode });
+      await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode, size: item.size });
       renderHistory_();
     } else {
       setStatus_("送信をやめました。");
