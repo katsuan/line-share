@@ -263,6 +263,63 @@
 
 
       /* メイン機能とは別の、ほかのページへのリンク */
+      /* LINE絵文字：代表画像のカードを2つ横に並べる */
+      .hub-emoji-lead {
+        margin: -4px 4px 10px;
+        color: var(--ls-subtext);
+        font-size: 13px;
+      }
+
+      .hub-emoji-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 10px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .hub-emoji {
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        height: 100%;
+        padding: 12px 8px;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-lg);
+        background: var(--ls-surface);
+        color: inherit;
+        text-align: center;
+        text-decoration: none;
+      }
+
+      .hub-emoji img {
+        width: 96px;
+        height: 96px;
+      }
+
+      .hub-emoji-name {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.4;
+      }
+
+      .hub-emoji-badge {
+        padding: 1px 8px;
+        border-radius: 999px;
+        background: var(--ls-accent-soft);
+        color: var(--ls-accent-ink);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .hub-emoji:active {
+        background: var(--ls-surface-sub);
+      }
+
       .hub-more {
         margin-top: 28px;
       }
@@ -368,6 +425,35 @@
           </a>
         </li>
       </ul>
+
+      <!-- LINE絵文字（LINE STORE へ。画像は STORE の代表画像） -->
+      <section class="hub-more" aria-labelledby="hubEmojiTitle">
+        <h2 id="hubEmojiTitle" class="hub-more-title">LINE絵文字</h2>
+        <p class="hub-emoji-lead">サッカー好きなエンジニア向けのリアクション絵文字</p>
+        <ul class="hub-emoji-list">
+          <li>
+            <a class="hub-emoji" href="https://line.me/S/emoji/?id=6a829856a7de545b4fcbce32">
+              <img src="https://stickershop.line-scdn.net/sticonshop/v1/product/6a829856a7de545b4fcbce32/iPhone/main.png?v=1" alt="" width="120" height="120" loading="lazy" onerror="this.hidden = true" />
+              <span class="hub-emoji-name">Pitch &amp; Code Reactions<span class="hub-emoji-badge">動く</span></span>
+            </a>
+          </li>
+          <li>
+            <a class="hub-emoji" href="https://line.me/S/emoji/?id=6a4778ad6fe13735fb7c965e">
+              <img src="https://stickershop.line-scdn.net/sticonshop/v1/product/6a4778ad6fe13735fb7c965e/iPhone/main.png?v=1" alt="" width="120" height="120" loading="lazy" onerror="this.hidden = true" />
+              <span class="hub-emoji-name">Pitch &amp; Code Reactions</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="hub-links">
+          <li>
+            <a class="hub-link" href="https://line.me/S/shop/emoji/author/12342255">
+              <span class="hub-link-icon" aria-hidden="true">🛍️</span>
+              <span><span class="hub-link-name">amisuta_k の絵文字をもっと見る</span><span class="hub-link-desc">LINE STORE の作者ページ</span></span>
+              <span class="hub-link-arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        </ul>
+      </section>
 
       <section class="hub-more" aria-labelledby="hubMoreTitle">
         <h2 id="hubMoreTitle" class="hub-more-title">ほかのツール</h2>
