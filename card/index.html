@@ -9,14 +9,14 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610132020" />
-    <link rel="stylesheet" href="./style.css?v=202610132020" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610132027" />
+    <link rel="stylesheet" href="./style.css?v=202610132027" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610132020"></script>
-    <script src="../shared/credit.js?v=202610132020"></script>
-    <script src="../shared/liff.js?v=202610132020"></script>
-    <script src="../shared/ui.js?v=202610132020" defer></script>
-    <script src="./app.js?v=202610132020" defer></script>
+    <script src="../config.js?v=202610132027"></script>
+    <script src="../shared/credit.js?v=202610132027"></script>
+    <script src="../shared/liff.js?v=202610132027"></script>
+    <script src="../shared/ui.js?v=202610132027" defer></script>
+    <script src="./app.js?v=202610132027" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -83,11 +83,22 @@
                 <span class="ls-label">カードの大きさ</span>
                 <!-- nano（小）〜 giga（大）の7段階。LINE の bubble.size と同じ -->
                 <div class="size-row">
-                  <input id="bubbleSizeRange" class="size-range" type="range" min="0" max="6" step="1" aria-label="カードの大きさ" />
+                  <!-- 目盛りはスライダーの7つの位置に合わせる。mega（LINE の標準）だけ色を付けて「標準」と出す -->
+                  <div class="size-track">
+                    <input id="bubbleSizeRange" class="size-range" type="range" min="0" max="6" step="1" aria-label="カードの大きさ" />
+                    <div class="size-scale" aria-hidden="true">
+                      <span class="size-tick" style="--i: 0"><span>小</span></span>
+                      <span class="size-tick" style="--i: 1"></span>
+                      <span class="size-tick" style="--i: 2"></span>
+                      <span class="size-tick" style="--i: 3"></span>
+                      <span class="size-tick" style="--i: 4"></span>
+                      <span class="size-tick is-standard" style="--i: 5"><span>標準</span></span>
+                      <span class="size-tick" style="--i: 6"><span>大</span></span>
+                    </div>
+                  </div>
                   <output id="bubbleSizeLabel" class="size-label" for="bubbleSizeRange">mega</output>
                 </div>
-                <div class="size-scale" aria-hidden="true"><span>nano</span><span>giga</span></div>
-                <p class="ls-hint">LINEのカードの大きさです（左の nano が一番小さく、右の giga が一番大きい）。迷ったら mega（LINEの標準）。</p>
+                <p class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
               </div>
 
               <!-- サブタイトル・詳細の表示はプレビューの ＋／− で切り替える（ここは状態を持つだけ） -->

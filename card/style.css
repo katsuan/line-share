@@ -276,15 +276,24 @@
   line-height: 1;
 }
 
-/* カードの大きさ（nano〜giga のスライダー） */
+/* カードの大きさ（nano〜giga のスライダー）。下に7つの目盛り、mega（標準）だけ紫 */
 .size-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
-.size-range {
+.size-track {
+  --thumb: 20px;
+  position: relative;
   flex: 1;
+  padding-bottom: 28px;
+}
+
+.size-range {
+  display: block;
+  width: 100%;
+  margin: 0;
   accent-color: var(--ls-accent);
 }
 
@@ -293,16 +302,53 @@
   color: var(--ls-accent-ink);
   font-size: 15px;
   font-weight: 800;
+  line-height: 20px;
   text-align: right;
 }
 
-.size-scale {
-  display: flex;
-  justify-content: space-between;
-  margin-top: -4px;
+/* つまみの中心は両端から半分内側なので、そこから等間隔に置く */
+.size-tick {
+  position: absolute;
+  top: 22px;
+  left: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--i) / 6);
+  width: 2px;
+  height: 6px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ls-line-strong);
+}
+
+.size-tick.is-standard {
+  width: 4px;
+  height: 8px;
+  margin-left: -2px;
+  background: var(--ls-accent);
+}
+
+.size-tick > span {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  transform: translateX(-50%);
   color: var(--ls-faint);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.size-tick:first-child > span {
+  left: 0;
+  transform: none;
+}
+
+.size-tick:last-child > span {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.size-tick.is-standard > span {
+  color: var(--ls-accent-ink);
 }
 
 /* 完成イメージ（送信プレビューの切り替え）：点線の枠と入力の案内を隠し、カードの中は操作しない */
