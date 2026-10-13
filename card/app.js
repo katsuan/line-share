@@ -810,7 +810,8 @@ function ticketFlex(palette) {
       { type: "box", layout: "vertical", flex: 1, contents: [{ ...big(state.route.to), align: "end" }, { ...small(state.route.toSub), align: "end" }] }
     ]
   };
-  const pairs = state.pairs.filter((pair) => pair.label || pair.value);
+  // 値のない項目は送らない（項目名だけ並んでも意味がないので）
+  const pairs = state.pairs.filter((pair) => pair.value);
   const rows = [];
   for (let i = 0; i < pairs.length; i += 3) {
     rows.push({
