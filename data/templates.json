@@ -93,6 +93,73 @@
       }
     },
     {
+      "key": "ticket",
+      "label": "チケット",
+      "icon": "🎫",
+      "description": "搭乗券・入場券など",
+      "status": "「チケット」を当てはめました。行き先や項目を変えて送れます。",
+      "state": {
+        "theme": "sky",
+        "headerTitle": "Boarding Pass",
+        "date": "7/21（月）",
+        "title": "上海から大阪へ",
+        "showDetail": false,
+        "badges": [],
+        "buttons": [],
+        "kind": "ticket",
+        "route": {
+          "from": "上海",
+          "fromSub": "16:10 発",
+          "to": "大阪",
+          "toSub": "19:30 着"
+        },
+        "pairs": [
+          {
+            "label": "便名",
+            "value": "C1212"
+          },
+          {
+            "label": "ゲート",
+            "value": "43D"
+          },
+          {
+            "label": "座席",
+            "value": "31B"
+          },
+          {
+            "label": "クラス",
+            "value": "Business"
+          },
+          {
+            "label": "搭乗",
+            "value": "15:50"
+          }
+        ]
+      }
+    },
+    {
+      "key": "coupon",
+      "label": "クーポン",
+      "icon": "🎟️",
+      "description": "割引・特典を配る",
+      "status": "「クーポン」を当てはめました。特典やコードを変えて送れます。",
+      "state": {
+        "theme": "berry",
+        "headerTitle": "🎁 クーポン",
+        "date": "ご来店ありがとうございます",
+        "title": "次回のお会計で使えます",
+        "showDetail": false,
+        "badges": [],
+        "buttons": [],
+        "kind": "coupon",
+        "coupon": {
+          "offer": "20% OFF",
+          "code": "OQRN2026",
+          "expiry": "2026年12月31日まで"
+        }
+      }
+    },
+    {
       "key": "intro",
       "label": "紹介",
       "icon": "🪧",
