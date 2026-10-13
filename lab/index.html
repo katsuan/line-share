@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
+    <meta name="robots" content="noindex" />
+    <title>検証｜おくるん</title>
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140147" />
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="../config.js?v=202610140147"></script>
+    <script src="../shared/liff.js?v=202610140147"></script>
+    <style>
+      .lab-log {
+        margin: 0;
+        padding: 10px;
+        border-radius: var(--ls-radius-md);
+        background: #1f1d2b;
+        color: #e8e6f3;
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .lab-buttons { display: grid; gap: 8px; }
+      .lab-buttons button { min-height: 44px; }
+    </style>
+  </head>
+  <body>
+    <main class="ls-page">
+      <header class="ls-topbar">
+        <a class="ls-back" href="../">おくるん</a>
+        <h1 class="ls-title">検証</h1>
+        <span class="ls-topbar-end"></span>
+      </header>
+
+      <div class="ls-stack">
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">試す文</h2>
+          <textarea id="text" class="ls-input" rows="3">「まぐろ」に投票します。</textarea>
+          <p class="ls-hint">下のボタンで送るカードのボタンに、この文を入れます。トークの中のリンクから開くと「このトークに送る」が使えます。</p>
+        </section>
+
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">① クリップボード（コピーのボタン）</h2>
+          <p class="ls-hint">カードのボタンを「押すとコピー」（clipboard）にして送ってみます。LIFF からは断られる見込み。断られたらエラーを下に出します。</p>
+          <div class="lab-buttons">
+            <button id="clipSend" class="ls-button" type="button">このトークに送る（sendMessages）</button>
+            <button id="clipShare" class="ls-button" type="button">送り先を選んで送る（shareTargetPicker）</button>
+          </div>
+        </section>
+
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">② 入力欄に文を入れておくリンク</h2>
+          <p class="ls-hint">ボタンがリンクのカードを送ります。届いたカードの各ボタンを押して、トークの入力欄に文が入るか・送り先選びになるかを見てください。</p>
+          <div class="lab-buttons">
+            <button id="linkSend" class="ls-button" type="button">このトークに送る（sendMessages）</button>
+            <button id="linkShare" class="ls-button" type="button">送り先を選んで送る（shareTargetPicker）</button>
+          </div>
+        </section>
+
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">③ このページから直接開く</h2>
+          <p class="ls-hint">カードを通さず、このページからリンクを開いたときの動き。</p>
+          <div id="direct" class="lab-buttons"></div>
+        </section>
+
+        <section class="ls-panel">
+          <h2 class="ls-panel-title">結果</h2>
+          <pre id="log" class="lab-log"></pre>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      (async function () {
+        "use strict";
+        const $ = (id) => document.getElementById(id);
+        const text = () => $("text").value.trim() || "テスト";
+        const log = (...lines) => {
+          const time = new Date().toLocaleTimeString();
+          $("log").textContent = `[${time}] ${lines.join("\n")}\n\n${$("log").textContent}`;
+        };
+
+        // 入力欄に文を入れておけるかもしれないリンクの候補
+        const LINKS = [
+          { label: "R/share?text=", url: (t) => `https://line.me/R/share?text=${encodeURIComponent(t)}` },
+          { label: "R/msg/text/?", url: (t) => `https://line.me/R/msg/text/?${encodeURIComponent(t)}` },
+          { label: "line://msg/text/", url: (t) => `line://msg/text/${encodeURIComponent(t)}` },
+          { label: "おくるん /reply/", url: (t) => `https://liff.line.me/${window.LINE_SHARE_CONFIG.liffId}/reply/?text=${encodeURIComponent(t)}` }
+        ];
+
+        function bubble(title, buttons) {
+          return {
+            type: "flex",
+            altText: `検証：${title}`,
+            contents: {
+              type: "bubble",
+              size: "kilo",
+              body: {
+                type: "box",
+                layout: "vertical",
+                spacing: "sm",
+                contents: [
+                  { type: "text", text: `🧪 ${title}`, weight: "bold", wrap: true },
+                  { type: "text", text: text(), size: "sm", color: "#666666", wrap: true },
+                  ...buttons
+                ]
+              }
+            }
+          };
+        }
+
+        const clipMessage = () =>
+          bubble("クリップボード", [
+            { type: "button", style: "primary", height: "sm", action: { type: "clipboard", label: "📋 コピー", clipboardText: text() } }
+          ]);
+
+        const linkMessage = () =>
+          bubble(
+            "入力欄に入れるリンク",
+            LINKS.map((link) => ({
+              type: "button",
+              style: "secondary",
+              height: "sm",
+              action: { type: "uri", label: link.label.slice(0, 40), uri: link.url(text()) }
+            }))
+          );
+
+        async function sendHere(message) {
+          const type = liff.getContext()?.type;
+          log(`context.type = ${type}`);
+          try {
+            await liff.sendMessages([message]);
+            log("sendMessages: OK（トークを見てください）");
+          } catch (error) {
+            log(`sendMessages: NG\n${error.code || ""} ${error.message || error}`);
+          }
+        }
+
+        async function share(message) {
+          try {
+            const result = await liff.shareTargetPicker([message]);
+            log(`shareTargetPicker: ${result ? `OK (${result.status})` : "閉じられた"}`);
+          } catch (error) {
+            log(`shareTargetPicker: NG\n${error.code || ""} ${error.message || error}`);
+          }
+        }
+
+        $("clipSend").onclick = () => sendHere(clipMessage());
+        $("clipShare").onclick = () => share(clipMessage());
+        $("linkSend").onclick = () => sendHere(linkMessage());
+        $("linkShare").onclick = () => share(linkMessage());
+
+        for (const link of LINKS) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "ls-button";
+          button.textContent = `${link.label} を開く`;
+          button.onclick = () => {
+            const url = link.url(text());
+            log(`openWindow: ${url}`);
+            try {
+              liff.openWindow({ url, external: false });
+            } catch (error) {
+              log(`openWindow: NG ${error.message || error}\nlocation.href で開きます`);
+              location.href = url;
+            }
+          };
+          $("direct").append(button);
+        }
+
+        const { ready, reason } = await window.LineShareLiff.init({ login: "none" });
+        if (!ready) {
+          log(`LIFF の準備に失敗：${reason}`);
+          return;
+        }
+        log(
+          `LIFF OK  inClient=${liff.isInClient()}  os=${liff.getOS()}  line=${liff.getLineVersion()}`,
+          `context.type=${liff.getContext()?.type}`,
+          `shareTargetPicker=${liff.isApiAvailable("shareTargetPicker")}`
+        );
+      })();
+    </script>
+  </body>
+</html>
