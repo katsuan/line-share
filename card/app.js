@@ -44,6 +44,17 @@ const THEMES = {
 // おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
 const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
 
+// LIFF で送るカードには URI アクション（リンク）しか付けられない（メッセージアクションを付けると送れない）。
+// 投票・完了のボタンは返事のページ（reply/）へのリンクにし、開いたトークにその文を送ってもらう
+// ボタンのリンクは 1000 文字まで。日本語は URL に入れると長くなるので、収まるまで文を縮める
+const MAX_URI_LENGTH = 1000;
+function replyUrl(text) {
+  const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/line-share/reply/";
+  let body = text;
+  while (body && `${base}?text=${encodeURIComponent(body)}`.length > MAX_URI_LENGTH) body = body.slice(0, -1);
+  return `${base}?text=${encodeURIComponent(body)}`;
+}
+
 // 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
 // "{top}" はおくるんのトップの URL に置き換える
 let PRESETS = {};
@@ -1071,7 +1082,7 @@ function buildFlexMessage() {
 
   const items = state.items.filter(Boolean);
   if (state.kind === "vote" && items.length) {
-    // 押した人の名前で「○○ に投票します」がトークに送られる（集計は自動ではしない）
+    // 押すと返事のページが開き、押した人の名前で「○○ に投票します」をそのトークに送る（集計は自動ではしない）
     bodyContents.push({
       type: "box",
       layout: "vertical",
@@ -1081,7 +1092,7 @@ function buildFlexMessage() {
         type: "button",
         style: "secondary",
         height: "sm",
-        action: { type: "message", label: item.slice(0, 40), text: `${item} に投票します`.slice(0, 300) }
+        action: { type: "uri", label: item.slice(0, 40), uri: replyUrl(`${item} に投票します`) }
       }))
     });
   }
@@ -1157,15 +1168,15 @@ function buildFlexMessage() {
     action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
   }));
   if (state.kind === "checklist" && items.length) {
-    // 押すと「『タイトル』準備できました！」がトークに送られる
+    // 押すと返事のページが開き、「『タイトル』準備できた！」をそのトークに送る
     footerButtons.unshift({
       type: "button",
       style: "primary",
       color: palette.start,
       action: {
-        type: "message",
+        type: "uri",
         label: (state.doneLabel || DEFAULT_DONE_LABEL).slice(0, 40),
-        text: `「${state.title}」${(state.doneLabel || DEFAULT_DONE_LABEL).replace(/^✅\s*/u, "")}！`.slice(0, 300)
+        uri: replyUrl(`「${state.title}」${(state.doneLabel || DEFAULT_DONE_LABEL).replace(/^✅\s*/u, "")}！`)
       }
     });
   }
