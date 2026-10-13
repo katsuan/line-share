@@ -9,11 +9,11 @@
     <meta name="robots" content="noindex" />
     <title>トークに送る｜おくるん</title>
     <meta name="description" content="おくるんのカードのボタンから、トークに返事を送ります。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610140132" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140143" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610140132"></script>
-    <script src="../shared/liff.js?v=202610140132"></script>
-    <script src="./app.js?v=202610140132" defer></script>
+    <script src="../config.js?v=202610140143"></script>
+    <script src="../shared/liff.js?v=202610140143"></script>
+    <script src="./app.js?v=202610140143" defer></script>
     <style>
       /* 送る文を LINE の吹き出し（自分の発言＝右寄せの緑）のように見せる */
       .reply-talk {
@@ -25,9 +25,17 @@
         background: var(--ls-talk-bg);
       }
 
+      /* その場で書きかえられる吹き出し（中身に合わせて伸びる） */
       .reply-bubble {
+        display: block;
+        width: 85%;
         max-width: 85%;
         margin: 0;
+        border: none;
+        outline: none;
+        resize: none;
+        overflow: hidden;
+        font-family: inherit;
         padding: 10px 14px;
         border-radius: 18px 4px 18px 18px;
         background: #8de055;
@@ -36,6 +44,18 @@
         line-height: 1.5;
         white-space: pre-wrap;
         word-break: break-word;
+      }
+
+      @supports (field-sizing: content) {
+        .reply-bubble {
+          width: auto;
+          min-width: 6em;
+          field-sizing: content;
+        }
+      }
+
+      .reply-bubble:focus {
+        box-shadow: 0 0 0 3px rgba(108, 71, 255, 0.45);
       }
 
       .reply-label {
@@ -60,9 +80,9 @@
       <div class="ls-stack">
         <section class="reply-talk" aria-labelledby="replyLabel">
           <span id="replyLabel" class="reply-label">送る内容</span>
-          <p id="replyText" class="reply-bubble"></p>
+          <textarea id="replyText" class="reply-bubble" rows="1" maxlength="500" aria-label="送る内容"></textarea>
         </section>
-        <p id="replyNote" class="ls-hint">このトークに、あなたの名前で送られます。内容を確かめてから送ってください。</p>
+        <p id="replyNote" class="ls-hint">吹き出しをタップすると書きかえられます。このトークに、あなたの名前で送られます。内容を確かめてから送ってください。</p>
       </div>
     </main>
 

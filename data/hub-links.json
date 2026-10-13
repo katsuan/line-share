@@ -4,6 +4,7 @@
     { "icon": "🏋️", "name": "ワークアウト共有", "desc": "トレーニング内容をまとめてLINEで送る", "url": "https://katsuan.github.io/line-workout-share/" },
     { "icon": "🍅", "name": "ポモドーロ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
     { "icon": "👾", "name": "オセロ", "desc": "LINEの友だちと2人で対戦", "url": "https://katsuan.github.io/line-p2p-othello/" },
+    { "icon": "⏳", "name": "記念日・カウントダウン", "desc": "あと何日？今日で何日目？をLINEで送る", "url": "https://katsuan.github.io/countdown/create.html" },
     { "icon": "🐣", "name": "ジェンダーリビール", "desc": "赤ちゃんの性別をプレゼント演出で発表", "url": "https://katsuan.github.io/gender-reveal/create.html" }
   ]
 }

@@ -436,6 +436,12 @@
   color: #fff;
 }
 
+/* カードの下の「＋ カードを追加」 */
+.card-add {
+  justify-self: center;
+  color: #fff;
+}
+
 .card-tabs {
   display: flex;
   gap: 4px;

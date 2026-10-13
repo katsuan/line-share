@@ -2,12 +2,14 @@
 // LIFF で送るカードには URI アクション（リンク）しか付けられないので、押すとこのページが開き、
 // liff.sendMessages でテキストを送る（テキストなら送れる）。送ったら閉じる。
 // 他人が作ったカードから意図しない文を送らされないよう、送る前に内容を見せて「この内容で送る」を押してもらう。
+// 吹き出しはその場で書きかえられる（ひとこと足す・名前を変えるなど）。送るのは書きかえたあとの文。
 const MAX_LENGTH = 500;
 // トークから開いたときだけ送れる（sendMessages はそのトークに送る）
 const CHAT_TYPES = ["utou", "group", "room", "square_chat"];
 
 const els = {};
 let text = "";
+let canSend = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   for (const id of ["replyText", "replyNote", "status", "copyButton", "sendButton"]) {
@@ -18,13 +20,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, "")
     .trim()
     .slice(0, MAX_LENGTH);
-  if (!text) {
-    els.replyText.textContent = "（送る内容がありません）";
-    setStatus("リンクに送る内容が入っていません。", "error");
-    els.copyButton.disabled = true;
-    return;
-  }
-  els.replyText.textContent = text;
+  els.replyText.value = text;
+  els.replyText.placeholder = "送る内容を入れてください";
+  els.replyText.addEventListener("input", () => {
+    text = els.replyText.value.trim();
+    fit();
+    syncButtons();
+  });
+  fit();
+  syncButtons();
+  if (!text) setStatus("リンクに送る内容が入っていません。入れてから送れます。");
   els.copyButton.addEventListener("click", copy);
   els.sendButton.addEventListener("click", send);
   await prepare();
@@ -47,9 +52,22 @@ async function prepare() {
     els.replyNote.hidden = true;
     return;
   }
-  setStatus("");
-  els.sendButton.disabled = false;
-  els.sendButton.focus();
+  if (text) setStatus("");
+  canSend = true;
+  syncButtons();
+  if (text) els.sendButton.focus();
+}
+
+// 空のときは送れない・コピーできない
+function syncButtons() {
+  els.copyButton.disabled = !text;
+  els.sendButton.disabled = !canSend || !text;
+}
+
+// 吹き出しの高さを中身に合わせる（field-sizing に対応していないブラウザ向け）
+function fit() {
+  els.replyText.style.height = "auto";
+  els.replyText.style.height = `${els.replyText.scrollHeight}px`;
 }
 
 async function send() {
@@ -62,7 +80,7 @@ async function send() {
   } catch (error) {
     console.error(error);
     setStatus("送れませんでした。もう一度お試しください。", "error");
-    els.sendButton.disabled = false;
+    syncButtons();
   }
 }
 
@@ -71,7 +89,7 @@ async function copy() {
     await navigator.clipboard.writeText(text);
     setStatus("コピーしました。トークに貼り付けて送れます。", "success");
   } catch {
-    setStatus("コピーできませんでした。文を長押ししてコピーしてください。", "error");
+    setStatus("コピーできませんでした。吹き出しの文を長押ししてコピーしてください。", "error");
   }
 }
 
