@@ -56,7 +56,7 @@ function setupChoices(params) {
   const choices = params.getAll("c").map((c) => clean(c).slice(0, 100)).filter(Boolean).slice(0, MAX_CHOICES);
   if (choices.length < 2 || !format.includes("{c}")) return;
   const title = clean(params.get("title") || "").slice(0, 60);
-  els.choiceTitle.textContent = title ? `「${title}」ほかの候補にする` : "ほかの候補にする";
+  els.choiceTitle.textContent = title ? `「${title}」候補をえらぶ` : "候補をえらぶ";
   let picked = Number(params.get("pick"));
   const buttons = choices.map((choice, index) => {
     const button = document.createElement("button");
