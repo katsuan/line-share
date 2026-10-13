@@ -44,15 +44,11 @@ const THEMES = {
 // おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
 const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
 
-// LIFF で送るカードには URI アクション（リンク）しか付けられない（メッセージアクションを付けると送れない）。
-// 投票・完了のボタンは返事のページ（reply/）へのリンクにし、開いたトークにその文を送ってもらう
-// ボタンのリンクは 1000 文字まで。日本語は URL に入れると長くなるので、収まるまで文を縮める
-const MAX_URI_LENGTH = 1000;
-function replyUrl(text) {
-  const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/line-share/reply/";
-  let body = text;
-  while (body && `${base}?text=${encodeURIComponent(body)}`.length > MAX_URI_LENGTH) body = body.slice(0, -1);
-  return `${base}?text=${encodeURIComponent(body)}`;
+// LIFF で送るカードには、文を送るボタン（メッセージアクション）は付けられない（付けると送れない）。
+// コピーのボタン（クリップボードアクション）は付けられるので、投票・完了のボタンは押すと返事の文がコピーされ、
+// トークの入力欄に貼って送ってもらう（トークに送る権限 chat_message.write も要らない）。コピーできる文は 1000 文字まで
+function copyAction(label, text) {
+  return { type: "clipboard", label: label.slice(0, 40), clipboardText: text.slice(0, 1000) };
 }
 
 // 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
@@ -1082,7 +1078,7 @@ function buildFlexMessage() {
 
   const items = state.items.filter(Boolean);
   if (state.kind === "vote" && items.length) {
-    // 押すと返事のページが開き、押した人の名前で「○○ に投票します」をそのトークに送る（集計は自動ではしない）
+    // 押すと「○○ に投票します」がコピーされ、トークに貼って送ってもらう（集計は自動ではしない）
     bodyContents.push({
       type: "box",
       layout: "vertical",
@@ -1092,7 +1088,7 @@ function buildFlexMessage() {
         type: "button",
         style: "secondary",
         height: "sm",
-        action: { type: "uri", label: item.slice(0, 40), uri: replyUrl(`${item} に投票します`) }
+        action: copyAction(item, `${item} に投票します`)
       }))
     });
   }
@@ -1168,16 +1164,13 @@ function buildFlexMessage() {
     action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
   }));
   if (state.kind === "checklist" && items.length) {
-    // 押すと返事のページが開き、「『タイトル』準備できた！」をそのトークに送る
+    // 押すと「『タイトル』準備できた！」がコピーされ、トークに貼って送ってもらう
+    const doneLabel = state.doneLabel || DEFAULT_DONE_LABEL;
     footerButtons.unshift({
       type: "button",
       style: "primary",
       color: palette.start,
-      action: {
-        type: "uri",
-        label: (state.doneLabel || DEFAULT_DONE_LABEL).slice(0, 40),
-        uri: replyUrl(`「${state.title}」${(state.doneLabel || DEFAULT_DONE_LABEL).replace(/^✅\s*/u, "")}！`)
-      }
+      action: copyAction(doneLabel, `「${state.title}」${doneLabel.replace(/^✅\s*/u, "")}！`)
     });
   }
   if (footerButtons.length > 0) {
