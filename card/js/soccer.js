@@ -5,7 +5,8 @@
 //
 // data の形（キーは短くしてリンクを短くする）
 //   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
-//   match:  { t: チーム, o: 相手, us, th, hu, ht（前半。なければ空）, g: [[ "u"|"t", 分, 名前 ], ...], mvp }
+//   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp }
+//           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
 const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
 const GK_COLOR = "#F5A524";
@@ -56,6 +57,12 @@ function sanitizeMatch(source) {
     th: clampNum(source.th, 0, 99),
     hu: score(source.hu),
     ht: score(source.ht),
+    su: score(source.su),
+    st: score(source.st),
+    eu: score(source.eu),
+    et: score(source.et),
+    pu: score(source.pu),
+    pt: score(source.pt),
     g: (Array.isArray(source.g) ? source.g : []).slice(0, 20).map((g) => ({
       side: g?.[0] === "t" ? "t" : "u",
       min: cutText(g?.[1], 4),
@@ -105,7 +112,11 @@ function renderPitchPreview(palette) {
   const pitch = document.createElement("div");
   pitch.className = "sc-pitch";
   pitch.style.height = `${pitchHeight(lineup)}px`;
-  pitch.innerHTML = '<i class="sc-line is-border"></i><i class="sc-line is-half"></i><i class="sc-line is-circle"></i><i class="sc-line is-box-top"></i><i class="sc-line is-box-bottom"></i>';
+  // サッカーは四角いペナルティエリア、フットサルはゴール前の半円（D形）と小さめのセンターサークル
+  pitch.classList.toggle("is-futsal", lineup.m === "futsal");
+  pitch.innerHTML = lineup.m === "futsal"
+    ? '<i class="sc-line is-border"></i><i class="sc-line is-half"></i><i class="sc-line is-circle"></i><i class="sc-d is-top"><span></span></i><i class="sc-d is-bottom"><span></span></i>'
+    : '<i class="sc-line is-border"></i><i class="sc-line is-half"></i><i class="sc-line is-circle"></i><i class="sc-line is-box-top"></i><i class="sc-line is-box-bottom"></i>';
   const width = tokenWidth(lineup);
   lineup.pl.forEach((p, index) => {
     const token = document.createElement("span");
@@ -158,8 +169,8 @@ function renderMatchPreview(palette) {
   } else {
     draw.remove();
   }
-  const half = box.querySelector(".sc-half");
-  half.textContent = match.hu !== "" && match.ht !== "" ? `前半 ${match.hu} - ${match.ht}` : "";
+  box.querySelector(".sc-half").textContent = periodsText(match);
+  if (pkText(match)) box.querySelector(".sc-score").insertAdjacentElement("afterend", Object.assign(document.createElement("b"), { className: "sc-pk", textContent: pkText(match), style: `color: ${palette.start}` }));
   box.querySelector(".sc-goal-list").replaceChildren(
     ...goalLines(match).map((g) => Object.assign(document.createElement("li"), { className: g.side === "t" ? "is-them" : "", textContent: g.text }))
   );
@@ -167,12 +178,27 @@ function renderMatchPreview(palette) {
   els.matchArea.replaceChildren(box);
 }
 
-// 勝ち・負けはチームごと（us・them）、引き分けは1つ（draw）
+const hasPair = (a, b) => a !== "" && b !== "";
+
+// 前半・後半・延長の内訳（入っているものだけ）
+function periodsText(match) {
+  return [["前半", match.hu, match.ht], ["後半", match.su, match.st], ["延長", match.eu, match.et]]
+    .filter(([, a, b]) => hasPair(a, b))
+    .map(([label, a, b]) => `${label} ${a} - ${b}`)
+    .join("・");
+}
+
+const pkText = (match) => (hasPair(match.pu, match.pt) ? `PK ${match.pu} - ${match.pt}` : "");
+
+// 勝ち・負けはチームごと（us・them）、引き分けは1つ（draw）。同点で PK があれば PK で決める
 function matchSides(match, palette) {
-  const win = { label: "勝ち", color: palette.start };
-  const lose = { label: "負け", color: "#6B7280" };
-  if (match.us > match.th) return { us: win, them: lose };
-  if (match.us < match.th) return { us: lose, them: win };
+  const win = (pk) => ({ label: pk ? "勝ち（PK）" : "勝ち", color: palette.start });
+  const lose = (pk) => ({ label: pk ? "負け（PK）" : "負け", color: "#6B7280" });
+  if (match.us > match.th) return { us: win(), them: lose() };
+  if (match.us < match.th) return { us: lose(), them: win() };
+  if (hasPair(match.pu, match.pt) && match.pu !== match.pt) {
+    return match.pu > match.pt ? { us: win(true), them: lose(true) } : { us: lose(true), them: win(true) };
+  }
   return { draw: { label: "引き分け", color: "#9CA3AF" } };
 }
 
@@ -223,6 +249,21 @@ function absBox(props) {
   return { type: "box", layout: "vertical", position: "absolute", contents: [], ...props };
 }
 
+const circleFlex = (size) => ({ type: "box", layout: "vertical", width: `${size}px`, height: `${size}px`, cornerRadius: `${size / 2}px`, borderWidth: "2px", borderColor: LINE_COLOR, contents: [] });
+
+/**
+ * フットサルのゴール前のエリア（D形＝両端が丸い形の半分）。入れ物（高さ d）の中に、高さ 2d の角丸の箱を
+ * 入れ物の上（下）にはみ出させて置き、はみ出た半分を入れ物に切らせる（位置を指定した部品は親の外が切れる）
+ */
+function futsalAreasFlex(height) {
+  const d = Math.round(height * 0.15);
+  const inner = (side) => ({ ...absBox({ width: "100%", height: `${d * 2}px`, cornerRadius: `${d}px`, borderWidth: "2px", borderColor: LINE_COLOR }), ...(side === "top" ? { offsetBottom: "0px" } : { offsetTop: "0px" }), offsetStart: "0px" });
+  return [
+    { type: "box", layout: "vertical", position: "absolute", offsetTop: `${Math.round(height * 0.04)}px`, offsetStart: "15%", width: "70%", height: `${d}px`, contents: [inner("top")] },
+    { type: "box", layout: "vertical", position: "absolute", offsetTop: `${Math.round(height * 0.96) - d}px`, offsetStart: "15%", width: "70%", height: `${d}px`, contents: [inner("bottom")] }
+  ];
+}
+
 /** ピッチの図（線と選手）。body の中に置く */
 function pitchFlex(lineup, palette) {
   const height = pitchHeight(lineup);
@@ -235,14 +276,16 @@ function pitchFlex(lineup, palette) {
       type: "box",
       layout: "horizontal",
       position: "absolute",
-      offsetTop: `${height / 2 - 28}px`,
+      offsetTop: `${height / 2 - (lineup.m === "futsal" ? 23 : 28)}px`,
       offsetStart: "0px",
       width: "100%",
       justifyContent: "center",
-      contents: [{ type: "box", layout: "vertical", width: "56px", height: "56px", cornerRadius: "28px", borderWidth: "2px", borderColor: LINE_COLOR, contents: [] }]
+      contents: [circleFlex(lineup.m === "futsal" ? 46 : 56)]
     },
-    absBox({ offsetTop: "4%", offsetStart: "28%", width: "44%", height: "13%", borderWidth: "2px", borderColor: LINE_COLOR }),
-    absBox({ offsetTop: "83%", offsetStart: "28%", width: "44%", height: "13%", borderWidth: "2px", borderColor: LINE_COLOR })
+    ...(lineup.m === "futsal" ? futsalAreasFlex(height) : [
+      absBox({ offsetTop: "4%", offsetStart: "28%", width: "44%", height: "13%", borderWidth: "2px", borderColor: LINE_COLOR }),
+      absBox({ offsetTop: "83%", offsetStart: "28%", width: "44%", height: "13%", borderWidth: "2px", borderColor: LINE_COLOR })
+    ])
   ];
   const players = lineup.pl.map((p, index) => ({
     type: "box",
@@ -309,9 +352,8 @@ function matchFlex(palette) {
     { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center" }
   ];
   if (sides.draw) parts.push(badgeFlex(sides.draw));
-  if (match.hu !== "" && match.ht !== "") {
-    parts.push({ type: "text", text: `前半 ${match.hu} - ${match.ht}`, size: "xs", color: "#6B7280", align: "center" });
-  }
+  if (pkText(match)) parts.push({ type: "text", text: pkText(match), size: "md", weight: "bold", color: palette.start, align: "center" });
+  if (periodsText(match)) parts.push({ type: "text", text: periodsText(match), size: "xs", color: "#6B7280", align: "center", wrap: true });
   const goals = goalLines(match);
   if (goals.length) {
     parts.push({ type: "separator", margin: "md" });
