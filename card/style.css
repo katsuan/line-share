@@ -560,19 +560,6 @@
   color: transparent;
 }
 
-/* テンプレートの中の「JSON でコピー」。上級者向けなので目立たせない */
-.card-json-link {
-  justify-self: start;
-  padding: 4px 0;
-  border: none;
-  background: none;
-  color: var(--ls-subtext);
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 /* 写真のアップロードの進み具合（2行目に理由が出る） */
 #photoStatus {
   white-space: pre-line;

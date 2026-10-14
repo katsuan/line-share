@@ -9,28 +9,28 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141751" />
-    <link rel="stylesheet" href="./style.css?v=202610141751" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141755" />
+    <link rel="stylesheet" href="./style.css?v=202610141755" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141751"></script>
-    <script src="../shared/credit.js?v=202610141751"></script>
-    <script src="../shared/plan.js?v=202610141751"></script>
-    <script src="../shared/liff.js?v=202610141751"></script>
-    <script src="../shared/ui.js?v=202610141751" defer></script>
+    <script src="../config.js?v=202610141755"></script>
+    <script src="../shared/credit.js?v=202610141755"></script>
+    <script src="../shared/plan.js?v=202610141755"></script>
+    <script src="../shared/liff.js?v=202610141755"></script>
+    <script src="../shared/ui.js?v=202610141755" defer></script>
     <!-- お知らせカードの本体。役割ごとのファイルを、この順に読む（core が先、main が最後。どれも同じ範囲の変数を使う） -->
-    <script src="./js/core.js?v=202610141751" defer></script>
-    <script src="./js/storage.js?v=202610141751" defer></script>
-    <script src="./js/state.js?v=202610141751" defer></script>
-    <script src="./js/url.js?v=202610141751" defer></script>
-    <script src="./js/deck.js?v=202610141751" defer></script>
-    <script src="./js/render.js?v=202610141751" defer></script>
-    <script src="./js/kinds.js?v=202610141751" defer></script>
-    <script src="./js/flex.js?v=202610141751" defer></script>
-    <script src="./js/photo.js?v=202610141751" defer></script>
-    <script src="./js/templates.js?v=202610141751" defer></script>
-    <script src="./js/send.js?v=202610141751" defer></script>
-    <script src="./js/events.js?v=202610141751" defer></script>
-    <script src="./js/main.js?v=202610141751" defer></script>
+    <script src="./js/core.js?v=202610141755" defer></script>
+    <script src="./js/storage.js?v=202610141755" defer></script>
+    <script src="./js/state.js?v=202610141755" defer></script>
+    <script src="./js/url.js?v=202610141755" defer></script>
+    <script src="./js/deck.js?v=202610141755" defer></script>
+    <script src="./js/render.js?v=202610141755" defer></script>
+    <script src="./js/kinds.js?v=202610141755" defer></script>
+    <script src="./js/flex.js?v=202610141755" defer></script>
+    <script src="./js/photo.js?v=202610141755" defer></script>
+    <script src="./js/templates.js?v=202610141755" defer></script>
+    <script src="./js/send.js?v=202610141755" defer></script>
+    <script src="./js/events.js?v=202610141755" defer></script>
+    <script src="./js/main.js?v=202610141755" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -116,8 +116,6 @@
                 <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
                 <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
               </div>
-              <!-- 開発・ほかのツールへの持ち出し用 -->
-              <button id="copyJsonButton" class="card-json-link" type="button">カードの中身を JSON でコピー（上級者向け）</button>
             </div>
           </details>
 
@@ -218,6 +216,15 @@
               <button id="addButtonButton" class="ls-button is-block" type="button">＋ ボタンを追加</button>
               <p id="buttonWarning" class="ls-hint is-error" hidden>外部から渡されたリンクのため、許可されたサイト以外は送信時にボタンごと外れます。</p>
               <p class="ls-hint">最大3つ。https / tel: / mailto: / line: が使えます。</p>
+            </div>
+          </details>
+
+          <!-- 上級者向け（設定欄の決まりで、いちばん最後に置く） -->
+          <details class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span class="ls-fold-meta">JSON</span></summary>
+            <div class="ls-fold-body">
+              <p class="ls-hint">カードの中身（LINE の Flex Message）を JSON でコピーします。開発や、ほかのツールに持ち出すときに使います。</p>
+              <button id="copyJsonButton" class="ls-button" type="button">JSON をコピー</button>
             </div>
           </details>
         </div>
