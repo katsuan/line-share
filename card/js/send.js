@@ -106,6 +106,7 @@ async function share() {
 
     storeCurrent();
     saveJson(LAST_SENT_KEY, { cards: structuredClone(cards) });
+    clearDraft(); // 送った内容は「前回送った内容」に残るので、下書きは消す
     renderTemplates(); // テンプレートの「前回送った内容」を今送ったものにする
     setStatus(window.LineShareLiff.MESSAGES.sent);
     // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
