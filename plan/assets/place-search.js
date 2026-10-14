@@ -1,5 +1,5 @@
-import { CONFIG } from "./config.js?v=202610141812";
-import { isHttpsUrl, setMessage, toUserMessage, UserError } from "./common.js?v=202610141812";
+import { CONFIG } from "./config.js?v=202610141813";
+import { isHttpsUrl, setMessage, toUserMessage, UserError } from "./common.js?v=202610141813";
 
 // Google Maps JavaScript API（Places）で場所を検索する。サーバー不要。
 let mapsLoading = null;

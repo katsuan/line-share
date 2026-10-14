@@ -138,6 +138,13 @@ Render のローカルディスクは永続ではないため、保存した画�
    - `STRIPE_SECRET_KEY`: Stripe の秘密鍵（Events を読めれば足りる制限付きキーがよい）。空なら Stripe の知らせは受けない
 4. コードを変えたら `clasp push -f` のあと、デプロイを管理 → 既存のデプロイを編集して新しいバージョンにする（URL を変えないため）
 
+**利用状況とエラーの記録（shared/log.js・gas/ の action: "log"）**
+
+- 記録するのは「開いた（open）」「送った（send：道具・形式・枚数）」「エラー（error：内容と場所）」だけ。LINE のユーザーIDなど個人がわかるものは送らない。`session` はそのタブの間だけの番号
+- ページは10件ためるか、ページが隠れる・閉じるときに sendBeacon でまとめて送る（1ページ40件まで。同じエラーは1回だけ）。`config.js` の `logging: false` で止まる
+- GAS はスプレッドシート「おくるん 利用状況」（`LOG_SHEET_ID`。setup が作る）のシート `events` に1行ずつ書く
+- 毎日4時台（`rollupLogs`）：前日までの記録を日・道具・種類・形式ごとの件数（`daily`：events・sessions・LINE の中で開いた数）にまとめ、`LOG_KEEP_DAYS`（初期値30日）より古い `events` の行を消す。`daily` は消さない
+
 **Stripe（有償プランの支払い）**
 
 1. Stripe で有償プランの商品（サブスクリプション）と支払いリンク（Payment Link）を作り、URL を `config.js` の `premiumCheckoutUrl` に入れる。`/account/` の「有償プランにする」が、`?client_reference_id=<ユーザーのハッシュ>` を付けて開く

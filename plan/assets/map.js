@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610141812";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610141812";
-import { bindHeader } from "./header.js?v=202610141812";
-import { createPlaceFlex } from "./flex.js?v=202610141812";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610141813";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610141813";
+import { bindHeader } from "./header.js?v=202610141813";
+import { createPlaceFlex } from "./flex.js?v=202610141813";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -262,6 +262,7 @@ async function share_() {
     assertUriLength(place.mapUrl, "地図のURL");
 
     const sent = await shareFlex(createPlaceFlex(place));
+    if (sent) window.LineShareLog?.track("send", { kind: "place" });
     setMessage(
       dom.message,
       sent ? window.LineShareLiff.MESSAGES.sent : window.LineShareLiff.MESSAGES.canceled,

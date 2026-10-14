@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610141812";
-import { MAX_URI_LENGTH } from "./config.js?v=202610141812";
-import { bindHeader } from "./header.js?v=202610141812";
-import { createEventFlex } from "./flex.js?v=202610141812";
-import { bindPlaceSearch } from "./place-search.js?v=202610141812";
+} from "./common.js?v=202610141813";
+import { MAX_URI_LENGTH } from "./config.js?v=202610141813";
+import { bindHeader } from "./header.js?v=202610141813";
+import { createEventFlex } from "./flex.js?v=202610141813";
+import { bindPlaceSearch } from "./place-search.js?v=202610141813";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -551,6 +551,7 @@ async function shareToTargetPicker_() {
     const calendarUrl = createGoogleCalendarUrl_(data);
     assertUriLength(calendarUrl, "カレンダー登録用のリンク");
     const sent = await shareFlex(createEventFlex(data, calendarUrl, getFlexLabels_(data)));
+    if (sent) window.LineShareLog?.track("send", { kind: "event" });
     setMessage(
       dom.statusMessage,
       sent ? window.LineShareLiff.MESSAGES.sent : window.LineShareLiff.MESSAGES.canceled,

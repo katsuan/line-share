@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141812";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141812";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141813";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141813";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -860,6 +860,7 @@ async function sendImage_(item) {
     const message = window.LineShareCredit?.withCredit(buildMessage_(mode, imageUrl, item)) ?? buildMessage_(mode, imageUrl, item);
     if (await window.LineShareLiff.share([message])) {
       setStatus_(window.LineShareLiff.MESSAGES.sent, "success");
+      window.LineShareLog?.track("send", { kind: item.animated ? `${mode}-motion` : mode });
       await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode, size: item.size });
       renderHistory_();
       // 続けて別のトークにも同じ画像を送れるように（アップロードし直さず、同じ URL のメッセージを送る）

@@ -139,6 +139,7 @@ async function send() {
       }
     }
     setStatus(window.LineShareLiff.MESSAGES.sent, "success");
+    window.LineShareLog?.track("send", { kind: mode });
     setTimeout(() => liff.closeWindow(), 700);
   } catch (error) {
     console.error(error);
