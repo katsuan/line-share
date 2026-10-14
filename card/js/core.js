@@ -5,6 +5,8 @@ const config = window.LINE_SHARE_CONFIG || {};
 const LAST_SENT_KEY = "flexshare:lastSentState";
 const SEND_WARNING_DISMISSED_KEY = "flexshare:sendWarningDismissed";
 const TEMPLATE_KEY = "line-share:card-templates";
+// 編集中の下書き（送る前に閉じても、次に開いたら続きから）。送ったら消す
+const DRAFT_KEY = "line-share:card-draft";
 
 // クエリから渡されたリンクは、ここにあるドメイン以外は送信時に外す
 const ALLOWED_ACTION_HOSTS = ["katsuan.github.io"];

@@ -28,19 +28,23 @@ async function init() {
   const queryState = getQueryState();
   startedWithQuery = Boolean(queryState);
   const saved = loadJson(LAST_SENT_KEY);
+  // 編集中の下書きがあれば続きから（リンクで中身を渡されたとき・形式を選んで開いたときは使わない）
+  const draft = queryState || START_TEMPLATE ? null : loadDraft();
   // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか。
   // 形式（テンプレート）を選んで開いたときは、まっさらな1枚にしてテンプレートの読み込みを待つ（種類だけ先に合わせる）
   cards = queryState
     ? [hydrate(queryState)]
     : START_TEMPLATE
       ? [hydrate({ ...BLANK_STATE, kind: KINDS[START_TEMPLATE] ? START_TEMPLATE : "notice" })]
+    : draft
+      ? draft.cards.slice(0, MAX_CARDS).map(hydrate)
     : Array.isArray(saved?.cards) && saved.cards.length
       ? saved.cards.slice(0, MAX_CARDS).map(hydrate)
       : [hydrate(saved ?? BLANK_STATE)];
   // 大きさは全カードでそろえる（カルーセルのカードは同じ大きさにする）
   cards.forEach((card) => (card.bubbleSize = cards[0].bubbleSize));
-  current = 0;
-  state = cards[0];
+  current = draft ? Math.min(draft.current || 0, cards.length - 1) : 0;
+  state = cards[current];
 
   bindEvents();
   renderTemplates();
@@ -54,6 +58,24 @@ async function init() {
   });
   requestAnimationFrame(renderPeeks);
   requestAnimationFrame(autoGrowAll);
+
+  // ここから先の編集は下書きに残す。ページが隠れる・閉じるときはすぐ残す
+  draftReady = true;
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveDraftNow();
+  });
+  window.addEventListener("pagehide", saveDraftNow);
+  if (draft) {
+    window.LineShareUI.toast("前回の続きから開きました", {
+      actionLabel: "新しく作る",
+      onAction: () => {
+        const show = offerUndo("新しいカードにしました");
+        restoreDeck({ cards: [{ ...BLANK_STATE, bubbleSize: state.bubbleSize }], current: 0 });
+        setStatus("");
+        show();
+      }
+    });
+  }
 
   // はじめて開いた人にだけ、短い使い方を出す（shared/ui.js）
   window.LineShareUI.firstTip("card", [

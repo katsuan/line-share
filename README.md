@@ -32,6 +32,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `LineShareLiff.share(messages)`（`shared/liff.js`） | 送り先を選んで送る（複数選べる）。送れたら `true` |
 | `LineShareUI.afterSent({ resend })`（`shared/ui.js`） | 送ったあとのシート。「続けて別のトークにも送る」「閉じる」「もう少し作る」。すぐには閉じない |
 | `LineShareUI.firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方を出す（「わかった」で消え、その端末では二度と出さない） |
+| お知らせカードの下書き（`card/js/storage.js`） | 編集するたびに少し間をおいて端末に残し、ページが隠れる・閉じるときもすぐ残す。次に開いたら「前回の続きから開きました［新しく作る］」。送ったら消す（送った内容は「前回送った内容」に残る） |
 | `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・リセットのあとに「元に戻す」を出す |
 | プレビューへ戻るボタン（`shared/ui.js` が自動で付ける） | 下の設定までスクロールしてプレビューが見えなくなったら右下に「👀 プレビュー」を出す。`.ls-preview` があるページすべて（場所・予定は表示中のタブのプレビューへ） |
 | `LineShareUI.progress(label, show)` | 時間のかかる処理（画像の保存）に、経過秒数と、長引いたときの理由を出す |

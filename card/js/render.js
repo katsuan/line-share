@@ -104,6 +104,7 @@ function render() {
 
   updateShareButtonState();
   autoGrowAll();
+  saveDraftSoon();
 }
 
 // アコーディオンの見出しの右に、今の設定を短く出す（ほかのツールとそろえる）
