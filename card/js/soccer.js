@@ -171,7 +171,7 @@ function renderMatchPreview(palette) {
     <p class="sc-mvp"></p>`;
   // チーム名の行（勝ち・負けはそれぞれの下）とスコアの行。引き分けはスコアの下の中央
   const [usBox, , themBox] = box.querySelector(".sc-teams").children;
-  [[usBox, match.t || "自分たち", sides.us], [themBox, match.o || "相手", sides.them]].forEach(([el, name, result]) => {
+  [[usBox, match.t || "自チーム", sides.us], [themBox, match.o || "相手", sides.them]].forEach(([el, name, result]) => {
     el.querySelector("b").textContent = name;
     if (result) el.append(badgeEl(result));
   });
@@ -246,7 +246,7 @@ function badgeFlex(result) {
   };
 }
 
-// 得点を時間の順に。自分たちは「⚽ 12' 山田」、相手は「25' 相手 ⚽」
+// 得点を時間の順に。自チームは「⚽ 12' 山田」、相手は「25' 相手 ⚽」
 function goalLines(match) {
   return [...match.g]
     .sort((a, b) => (parseInt(a.min, 10) || 0) - (parseInt(b.min, 10) || 0))
@@ -363,7 +363,7 @@ function matchFlex(palette) {
       type: "box",
       layout: "horizontal",
       spacing: "sm",
-      contents: [team(match.t || "自分たち", sides.us), { type: "text", text: "vs", size: "xs", color: "#9CA3AF", flex: 0, gravity: "top" }, team(match.o || "相手", sides.them)]
+      contents: [team(match.t || "自チーム", sides.us), { type: "text", text: "vs", size: "xs", color: "#9CA3AF", flex: 0, gravity: "top" }, team(match.o || "相手", sides.them)]
     },
     { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center" }
   ];
