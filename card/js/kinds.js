@@ -24,7 +24,10 @@ function splitPasted(text, index) {
 
 function renderKindChips() {
   els.kindChips.replaceChildren(
-    ...Object.entries(KINDS).map(([key, kind]) => {
+    ...Object.entries(KINDS)
+      // サッカーの形式は、ほかのツールから渡されたカードのときだけ出す
+      .filter(([key, kind]) => !kind.external || state.kind === key)
+      .map(([key, kind]) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "ls-chip is-small";
@@ -58,6 +61,7 @@ function setKind(kind) {
 function renderItemsPreview(palette) {
   renderKindChips();
   renderTicketPreview(palette);
+  renderSoccerPreview(palette);
   const kind = KINDS[state.kind];
   const active = Boolean(kind.list);
   els.itemsArea.hidden = !active;

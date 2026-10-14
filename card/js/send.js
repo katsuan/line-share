@@ -68,7 +68,7 @@ function updateShareButtonState() {
   els.shareButton.classList.toggle("is-incomplete", Boolean(message));
 
   if (!shareReady) return;
-  setStatus(message || "送信後は修正できません。", Boolean(message) && hasTriedShare);
+  setStatus(message || "送ったあとは直せません。", Boolean(message) && hasTriedShare);
 }
 
 function setStatus(message, isError = false) {

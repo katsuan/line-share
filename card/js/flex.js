@@ -109,6 +109,10 @@ function buildFlexMessage() {
     });
   }
 
+  // サッカーの形式：ピッチの図・スコア（card/js/soccer.js）
+  if (state.kind === "lineup") bodyContents.push(...lineupFlex(palette));
+  if (state.kind === "match") bodyContents.push(...matchFlex(palette));
+
   const bubble = {
     type: "bubble",
     size: state.bubbleSize,

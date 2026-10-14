@@ -32,7 +32,10 @@ function hydrate(source = {}) {
     pairs: (Array.isArray(source.pairs) ? source.pairs : [])
       .map((pair) => ({ label: String(pair?.label ?? "").trim(), value: String(pair?.value ?? "").trim() }))
       .slice(0, MAX_PAIRS),
-    coupon: Object.fromEntries(["offer", "code", "expiry"].map((key) => [key, String(source.coupon?.[key] ?? "").trim()]))
+    coupon: Object.fromEntries(["offer", "code", "expiry"].map((key) => [key, String(source.coupon?.[key] ?? "").trim()])),
+    // サッカーの形式の中身（card/js/soccer.js が確かめる）。保存した形（data の形）でも、整えた形でも受け取る
+    lineup: source.lineup ? sanitizeLineup(source.lineup.pl?.[0]?.number !== undefined ? lineupToData(source.lineup) : source.lineup) : null,
+    match: source.match ? sanitizeMatch(source.match.g?.[0]?.side !== undefined ? matchToData(source.match) : source.match) : null
   };
 }
 
@@ -64,6 +67,9 @@ function getQueryState() {
     badges: params.getAll("badge"),
     buttons: [],
     kind: get("kind"),
+    // サッカーの道具から渡される中身（?kind=lineup|match&data=…）
+    lineup: get("kind") === "lineup" ? decodeSoccerData(get("data")) : null,
+    match: get("kind") === "match" ? decodeSoccerData(get("data")) : null,
     items: params.getAll("item")
   };
 

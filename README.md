@@ -39,6 +39,8 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `LineSharePlan.warmUp()`（`shared/plan.js`） | 無料の画像サーバー（Render）を、画像を保存するページを開いた時点で起こしておく |
 | `LineShareLiff.init()` | LINE とつながらないときは10秒で打ち切り、案内を出す（`reason: "timeout"`） |
 
+サッカー・フットサルの形式（`card/js/soccer.js`）：「⚽ スタメン」（ピッチに選手を配置）と「🏆 試合結果」（スコア・勝敗・前半・得点・MVP）。作るのは別のリポジトリのサッカーの道具（https://katsuan.github.io/soccer/）で、`/card/?kind=lineup|match&data=<JSON を base64url>` で渡される。お知らせカードは中身を確かめて（人数・長さ・位置の範囲）、ピッチの図やスコアをカードにして送る。ピッチの線と選手はカードの部品（位置を指定した箱）で描くので、画像のアップロードは要らない。「⚽ 配置・結果を直す」で同じ中身のままサッカーの道具に戻る。この2つの形式は、渡されたカードのときだけ形式の切り替えに出る
+
 お知らせカードの本体は `card/js/` に役割ごとに分けています（`core` 定数と状態 → `storage` → `state` → `url` → `deck` 複数枚 → `render` 描画 → `kinds` 投票・チェックリスト・チケット・クーポン → `flex` 送るカードの組み立て → `photo` → `templates` → `send` 送信 → `events` 操作 → `main` はじめに動かす）。どれも普通の `<script defer>` で、`card/index.html` に書いた順に読み、同じ範囲の変数（`state`・`els` など）を使います。新しい形式は `kinds.js`（プレビューと Flex の部品）・`core.js` の `KINDS` に足します。
 
 全ページ共通のデザイン（`shared/ui.css`）、プランと使える機能・画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
