@@ -4,7 +4,7 @@
 // 選手の配置などを直すときは「配置を直す」で同じ中身のままサッカーの道具に戻る。
 //
 // data の形（キーは短くしてリンクを短くする）
-//   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
+//   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
 //   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp }
 //           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
@@ -43,7 +43,8 @@ function sanitizeLineup(source) {
     y: clampNum(Array.isArray(p) ? p[3] : 50, 0, 100)
   }));
   if (!players.length) return null;
-  return { m: mode, f: cutText(source.f, 10), t: cutText(source.t, 20), o: cutText(source.o, 20), s: cutText(source.s, 80), pl: players };
+  const color = /^#[0-9a-f]{6}$/i.test(source.c || "") ? source.c.toLowerCase() : "";
+  return { m: mode, f: cutText(source.f, 10), t: cutText(source.t, 20), o: cutText(source.o, 20), s: cutText(source.s, 80), c: color, pl: players };
 }
 
 /** 試合結果の中身を確かめる。おかしなものは null */
@@ -92,6 +93,18 @@ const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360);
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
 
+// 選手の丸の色（チームの色。GK は見分けやすいオレンジ、チームがオレンジ系なら黒）と、その上の背番号の色
+const isLightColor = (hex) => {
+  const n = parseInt(String(hex).slice(1), 16);
+  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
+};
+function tokenColors(lineup, index, palette) {
+  const team = lineup.c || palette.start;
+  const fill = isKeeper(lineup, index) ? (["#f97316", GK_COLOR.toLowerCase()].includes(team.toLowerCase()) ? "#1F2937" : GK_COLOR) : team;
+  const light = isLightColor(fill);
+  return { fill, text: light ? "#23302A" : "#FFFFFF", border: light ? "#23302A" : "#FFFFFF" };
+}
+
 // ---- プレビュー ----
 
 function renderSoccerPreview(palette) {
@@ -126,7 +139,10 @@ function renderPitchPreview(palette) {
     token.style.top = `${Math.min(pitchHeight(lineup) - 40, Math.max(0, (p.y / 100) * pitchHeight(lineup) - 18))}px`;
     const number = document.createElement("b");
     number.textContent = p.number || "";
-    number.style.background = isKeeper(lineup, index) ? GK_COLOR : palette.start;
+    const colors = tokenColors(lineup, index, palette);
+    number.style.background = colors.fill;
+    number.style.color = colors.text;
+    number.style.borderColor = colors.border;
     const name = document.createElement("small");
     name.textContent = p.name || "";
     token.append(number, name);
@@ -302,11 +318,11 @@ function pitchFlex(lineup, palette) {
         width: "24px",
         height: "24px",
         cornerRadius: "12px",
-        backgroundColor: isKeeper(lineup, index) ? GK_COLOR : palette.start,
+        backgroundColor: tokenColors(lineup, index, palette).fill,
         borderWidth: "1px",
-        borderColor: "#FFFFFF",
+        borderColor: tokenColors(lineup, index, palette).border,
         justifyContent: "center",
-        contents: [{ type: "text", text: p.number || " ", size: "xxs", color: "#FFFFFF", weight: "bold", align: "center" }]
+        contents: [{ type: "text", text: p.number || " ", size: "xxs", color: tokenColors(lineup, index, palette).text, weight: "bold", align: "center" }]
       },
       { type: "text", text: p.name || " ", size: "xxs", color: "#FFFFFF", weight: "bold", align: "center", margin: "xs" }
     ]
