@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610141813";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141813";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141813";
+import { app } from "./common.js?v=202610141836";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141836";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141836";
 
 const TABS = ["map", "calendar"];
 
@@ -42,7 +42,7 @@ async function initializeLiff_() {
 // クエリパラメータからカードを作る。tab=calendar か start があれば予定、mapUrl・title などがあれば場所
 // （使えるパラメータは map.js の applyMapQuery・calendar.js の applyEventQuery と README）
 function applyQuery_(params) {
-  const keys = [...params.keys()].filter((key) => key !== "tab" && !key.startsWith("liff"));
+  const keys = [...params.keys()].filter((key) => !["tab", "from", "credit"].includes(key) && !key.startsWith("liff"));
   const tab = TABS.includes(params.get("tab")) ? params.get("tab") : params.has("start") ? "calendar" : keys.length ? "map" : null;
   if (!tab) return;
   selectTab(tab);
