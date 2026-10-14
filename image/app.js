@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610132033";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610132033";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610140225";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610140225";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -763,28 +763,15 @@ function closeSheet_(sheet) {
 // ---- 送信 ----
 
 
+// アップロード先（無料は画像サーバー、有償は GAS）は shared/plan.js が選ぶ
 async function uploadImage_(blob) {
-  const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
-  if (!base) throw new Error("画像のアップロード先（config.js の imageApiBaseUrl）が未設定です。");
-
   const dataUrl = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(blob);
   });
-
-  const response = await fetch(`${base}/api/upload`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ imageData: dataUrl })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.imageUrl) {
-    console.error("upload failed", response.status, data);
-    throw new Error("画像のアップロードに失敗しました。");
-  }
-  return data.imageUrl;
+  return window.LineSharePlan.upload(dataUrl);
 }
 
 // 今の LINE ではカード（Flex）の背景は透過しない（元の文字アイコンも同じ）。透過したいときは「画像で送る」

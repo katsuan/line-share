@@ -173,7 +173,7 @@ async function init() {
     "heroArea", "heroImage", "badgeRow", "buttonStack",
     "showDateToggle", "showDetailToggle", "customColorInput",
     "imageUrlInput", "imageActionUrlInput", "imageWarning",
-    "photoFileInput", "photoClearButton", "photoStatus",
+    "photoFileInput", "photoClearButton", "photoStatus", "photoExpireNote",
     "photoShapeField", "photoShapeHint", "photoFitField",
     "badgeAddButton",
     "buttonList", "addButtonButton", "buttonWarning",
@@ -499,6 +499,7 @@ function render() {
   els.photoShapeHint.hidden = !imageUrl || !hero.note;
   els.imageWarning.hidden = photo.uploading || !imageUrl || isHttpsUrl(imageUrl);
   els.photoClearButton.hidden = !imageUrl;
+  els.photoExpireNote.hidden = !isUploadedPhoto(state.imageUrl);
 
   renderBadgePreview(palette);
   renderItemsPreview(palette);
@@ -1401,12 +1402,6 @@ async function uploadPhoto(file) {
     setPhotoStatus("画像ファイルを選んでください。", true);
     return;
   }
-  const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
-  if (!base) {
-    setPhotoStatus("写真のアップロード先が未設定です（config.js の imageApiBaseUrl）。", true);
-    return;
-  }
-
   try {
     const dataUrl = await resizePhoto(file);
     photo.uploading = true;
@@ -1414,20 +1409,12 @@ async function uploadPhoto(file) {
     setPhotoStatus("アップロードしています…（初回は30秒ほどかかることがあります）");
     render();
 
-    const response = await fetch(`${base}/api/upload`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageData: dataUrl })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !isHttpsUrl(data.imageUrl)) {
-      console.error("photo upload failed", response.status, data);
-      throw new Error("upload failed");
-    }
+    // アップロード先（無料は画像サーバー、有償は GAS）は shared/plan.js が選ぶ
+    const imageUrl = await window.LineSharePlan.upload(dataUrl);
 
-    state.imageUrl = data.imageUrl;
+    state.imageUrl = imageUrl;
     state.imageRatio = "";
-    els.imageUrlInput.value = data.imageUrl;
+    els.imageUrlInput.value = imageUrl;
     setPhotoStatus("写真を入れました。");
   } catch (error) {
     console.error(error);
@@ -1437,6 +1424,12 @@ async function uploadPhoto(file) {
     photo.localUrl = "";
     render();
   }
+}
+
+// 端末から選んでアップロードした写真か（画像サーバーのファイルはスリープで消えることがある）
+function isUploadedPhoto(url) {
+  const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
+  return Boolean(base && url && url.startsWith(`${base}/uploads/`));
 }
 
 // 長い辺を 1200px までに縮めて JPEG にする（アップロードを軽くし、カードに十分な大きさを保つ）

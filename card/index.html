@@ -14,6 +14,7 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="../config.js?v=202610140225"></script>
     <script src="../shared/credit.js?v=202610140225"></script>
+    <script src="../shared/plan.js?v=202610140225"></script>
     <script src="../shared/liff.js?v=202610140225"></script>
     <script src="../shared/ui.js?v=202610140225" defer></script>
     <script src="./app.js?v=202610140225" defer></script>
@@ -165,6 +166,7 @@
                 <button id="photoClearButton" class="ls-button is-danger" type="button" hidden>写真を外す</button>
               </div>
               <p id="photoStatus" class="ls-hint" hidden></p>
+              <p id="photoExpireNote" class="ls-hint" hidden>⏳ 相手が開くのが遅いと写真が消えることがあります。長く残すなら写真のURLを使ってください。</p>
               <label class="ls-field">
                 <span class="ls-label">または写真のURL</span>
                 <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />

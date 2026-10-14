@@ -13,14 +13,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Yomogi&display=swap" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610132033" />
-    <link rel="stylesheet" href="./style.css?v=202610132033" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610140225" />
+    <link rel="stylesheet" href="./style.css?v=202610140225" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610132033"></script>
-    <script src="../shared/credit.js?v=202610132033"></script>
-    <script src="../shared/liff.js?v=202610132033"></script>
-    <script src="../shared/ui.js?v=202610132033" defer></script>
-    <script type="module" src="./app.js?v=202610132033"></script>
+    <script src="../config.js?v=202610140225"></script>
+    <script src="../shared/credit.js?v=202610140225"></script>
+    <script src="../shared/plan.js?v=202610140225"></script>
+    <script src="../shared/liff.js?v=202610140225"></script>
+    <script src="../shared/ui.js?v=202610140225" defer></script>
+    <script type="module" src="./app.js?v=202610140225"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -52,6 +53,8 @@
               <button id="sendModeCard" class="ls-chip is-small" type="button" role="radio">🪧 カード（動きOK）</button>
             </div>
           </div>
+          <p class="ls-preview-note" data-plan-only="free">⏳ 相手が開くのが遅いと画像が消えることがあります。そのときは「送った画像」から送り直してください。</p>
+          <p class="ls-preview-note" data-plan-only="premium">⭐ 有償プランのため、画像は長く保存されます。</p>
         </section>
 
         <div class="ls-folds">
@@ -59,7 +62,7 @@
             <summary><span class="ls-fold-icon" aria-hidden="true">🔤</span>文字 <span id="textMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <textarea id="textInput" class="ls-input text-input" rows="2" maxlength="40" aria-label="文字" placeholder="例：OK / ありがとう"></textarea>
-              <div id="textPresets" class="ls-chips" aria-label="よく使う文字"></div>
+              <div id="textPresets" class="ls-chips text-presets" aria-label="よく使う文字"></div>
               <button id="clearTextButton" class="ls-button is-danger" type="button">文字を消す</button>
               <div class="ls-field">
                 <span class="ls-label">文字の色</span>
@@ -166,7 +169,7 @@
         <section id="historyPanel" class="ls-panel" hidden>
           <div class="ls-panel-head">
             <h2 class="ls-panel-title">🕘 送った画像</h2>
-            <p class="ls-panel-note">タップでもう一度送れます。この端末に最大20件残ります。</p>
+            <p class="ls-panel-note">タップでもう一度送れます。相手の画面で表示されなくなった画像も、ここから送り直せます。この端末に最大20件残ります。</p>
           </div>
           <div id="historyList" class="history-list"></div>
         </section>

@@ -211,6 +211,12 @@ textarea {
   color: var(--ls-danger);
 }
 
+/* プランで出し分ける案内（shared/plan.js が <html data-plan> を付ける） */
+:root:not([data-plan="premium"]) [data-plan-only="premium"],
+:root[data-plan="premium"] [data-plan-only="free"] {
+  display: none;
+}
+
 /* ---- 入力 ---- */
 
 .ls-field {

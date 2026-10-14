@@ -90,34 +90,21 @@
     return enabled;
   }
 
-  async function sha256(text) {
-    const bytes = new TextEncoder().encode(text);
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-  }
-
   /**
-   * LIFF の初期化後に呼ぶ。ログイン中の LINE ユーザーが creditFreeUsers に入っていれば消す。
-   * ?credit=whoami のときは、config.js に書くためのハッシュを表示する。
+   * LIFF の初期化後に、ログイン中の LINE ユーザーのハッシュを渡して呼ぶ（shared/liff.js が呼ぶ）。
+   * creditFreeUsers に入っていれば消す。?credit=whoami のときは、config.js に書くためのハッシュを表示する。
    */
-  async function checkUser() {
-    try {
-      if (!window.liff || !liff.isLoggedIn()) return;
-      const { userId } = await liff.getProfile();
-      const hash = await sha256(userId);
-
-      if (param === "whoami") {
-        window.prompt(
-          "あなたのハッシュです。config.js の creditFreeUsers に追加すると、LINEでログインしたときに Created by が消えます。",
-          hash
-        );
-      }
-
-      const allowList = Array.isArray(config.creditFreeUsers) ? config.creditFreeUsers : [];
-      if (allowList.includes(hash)) grantPrivilege();
-    } catch (error) {
-      console.error(error);
+  function checkUser(hash) {
+    if (!hash) return;
+    if (param === "whoami") {
+      window.prompt(
+        "あなたのハッシュです。config.js の creditFreeUsers（Created by を消す）や premiumUsers（有償プラン）に追加して使います。",
+        hash
+      );
     }
+
+    const allowList = Array.isArray(config.creditFreeUsers) ? config.creditFreeUsers : [];
+    if (allowList.includes(hash)) grantPrivilege();
   }
 
   function topUrl() {

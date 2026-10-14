@@ -1,7 +1,7 @@
 # おくるん（OQRN）
 
 場所・予定・お知らせ・文字・手書きを、LINE のトークにカードや画像で送れる LIFF ツール集です。
-GitHub Pages で配信する静的サイトで、GAS は使いません。
+GitHub Pages で配信する静的サイトです。GAS は有償プランの画像保存（`gas/`）だけに使います。
 
 公開URL: https://katsuan.github.io/line-share/
 
@@ -14,9 +14,10 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 | `/card/` | 🪧 お知らせカード。見出し・写真・バッジ・リンクボタン付きのお知らせカード。カード上で直接編集でき、ひな形・テンプレート保存・JSONコピーあり。投票・チェックリスト・チケット・クーポンの形式もあり、`/card/?template=<data/templates.json のキー>` でその形式のテンプレートを入れて開く（HOME の「形式を選んでつくる」） |
 | `/image/` | 💬👆 文字・手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
 | `/reply/` | カードの投票・完了のボタンから開き、返事の文を書きかえてから送るかコピーするページ（LIFF で送るカードのボタンはリンクだけなので）。投票は候補もすべて渡し、ここで選び直せる（`?text=`・`title`・`format`・`pick`・`c`）。トークに送る権限（chat_message.write）があればそのトークに、なければ送り先を選んで送る。LINE の中ではコピーするとトークに戻る |
-| `server/` | 画像アップロード用 API（Render で動かす Node.js） |
+| `server/` | 画像アップロード用 API（Render で動かす Node.js）。無料プランの保存先 |
+| `gas/` | 有償プランの画像保存（Google ドライブ。GAS のウェブアプリ） |
 
-全ページ共通のデザイン（`shared/ui.css`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
+全ページ共通のデザイン（`shared/ui.css`）、画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
 
 ### 場所・予定をリンクから作る（クエリパラメータ）
 
@@ -33,6 +34,7 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 | 予定 | `location` / `mapUrl` / `photoUrl` | 場所名・地図の URL・写真 |
 
 例：`/plan/?tab=calendar&title=定例会&start=2026-10-18T10:00&minutes=90&location=渋谷オフィス&header=今週の定例&color=sky`
+
 ## 設定
 
 `config.js` の1か所にまとめています。
@@ -40,6 +42,8 @@ GitHub Pages で配信する静的サイトで、GAS は使いません。
 - `liffId`: LIFF アプリの ID（1つだけ作る）
 - `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
 - `imageApiBaseUrl`: `server/` をデプロイした URL
+- `gasWebAppUrl`: `gas/` をデプロイしたウェブアプリの URL（有償プランの画像の保存先）
+- `premiumUsers`: 有償プランの LINE ユーザー（ユーザーIDの SHA-256）。送り先を選ぶためだけで、保存してよいかは GAS の `PREMIUM_USERS` で判定する
 - `showCredit`: 送るカードに「Created by おくるん」を付けるか（`false` で全員から消える）
 - `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
 
@@ -69,7 +73,22 @@ LINE の画像メッセージには HTTPS で公開された画像 URL が必要
 - Start Command: `npm start`
 - 環境変数: `ALLOWED_ORIGIN=https://katsuan.github.io`、`PUBLIC_BASE_URL=https://<サービス名>.onrender.com`
 
-Render のローカルディスクは永続ではないため、保存した画像は再起動で消えます。
+Render のローカルディスクは永続ではないため、保存した画像は再起動（無料プランでは15分アクセスがないとスリープ）で消えます。受け取った人がすぐに開かないと画像が表示されないことがあるため、文字・手書きのプレビューの下と、お知らせカードの写真（端末から選んだとき）に注意書きを出しています。
+
+### 有償プランの画像保存（gas/）
+
+無料プランの画像は Render に保存するため、スリープで消えることがあります（画面に注意書きを出しています）。
+有償プランのユーザーは、ページが GAS に画像を送り、GAS が LINE のアクセストークンで本人を確かめてから Google ドライブに保存します。GAS に失敗したときは Render に保存します。
+
+1. `cd gas && clasp push -f`（`.clasp.json` は git に含めない）
+2. Apps Script エディタで `setup` を一度実行して権限を許可する。保存先フォルダ「おくるカード画像」と毎日の掃除（`cleanupOldImages`）ができる
+3. プロジェクトの設定 → スクリプト プロパティで値を確かめる
+   - `PREMIUM_USERS`: 有償プランのユーザーのハッシュ（カンマか改行区切り）
+   - `KEEP_DAYS`: 画像を残す日数（初期値 30）
+   - `LINE_CHANNEL_ID`: LIFF アプリの LINE ログインチャネル ID
+   - `DRIVE_FOLDER_ID`: 保存先フォルダ（setup が作る）
+4. コードを変えたら `clasp push -f` のあと、デプロイを管理 → 既存のデプロイを編集して新しいバージョンにする（URL を変えないため）
+5. 有償にするユーザーは、`config.js` の `premiumUsers` と GAS の `PREMIUM_USERS` の両方に追加する
 
 ## 公開するとき
 
