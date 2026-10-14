@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610141746";
-import { MAX_URI_LENGTH } from "./config.js?v=202610141746";
-import { bindHeader } from "./header.js?v=202610141746";
-import { createEventFlex } from "./flex.js?v=202610141746";
-import { bindPlaceSearch } from "./place-search.js?v=202610141746";
+} from "./common.js?v=202610141747";
+import { MAX_URI_LENGTH } from "./config.js?v=202610141747";
+import { bindHeader } from "./header.js?v=202610141747";
+import { createEventFlex } from "./flex.js?v=202610141747";
+import { bindPlaceSearch } from "./place-search.js?v=202610141747";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};

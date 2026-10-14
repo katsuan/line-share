@@ -1107,7 +1107,7 @@ html[data-credit="off"] .ls-credit {
 .ls-toast {
   position: fixed;
   left: 50%;
-  bottom: calc(118px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(168px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
   display: flex;
   align-items: center;
@@ -1135,4 +1135,29 @@ html[data-credit="off"] .ls-credit {
   font-family: inherit;
   font-weight: 800;
   cursor: pointer;
+}
+
+/* ---- プレビューへ戻るボタン（プレビューが画面から消えたときだけ） ---- */
+
+.ls-to-preview {
+  position: fixed;
+  right: 16px;
+  bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(20, 20, 18, 0.16);
+  cursor: pointer;
+}
+
+.ls-to-preview[hidden],
+body.is-typing .ls-to-preview {
+  display: none;
 }
