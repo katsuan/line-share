@@ -631,10 +631,23 @@
 }
 
 .sc-teams {
-  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  width: 100%;
   font-size: 14px;
-  font-weight: 800;
   text-align: center;
+}
+
+.sc-teams > div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.sc-teams > span {
+  color: #9ca3af;
+  font-size: 12px;
 }
 
 .sc-score {
