@@ -15,11 +15,18 @@ window.LINE_SHARE_CONFIG = {
   // 有償プランの画像の保存先。gas/ をウェブアプリとしてデプロイしたURL（空なら全員が imageApiBaseUrl に保存）
   gasWebAppUrl: "https://script.google.com/macros/s/AKfycbzS7t9G-ryS_brovmbJxlIPv3hQNQsWSHfq-72i0JqWLBE7fp-CCR60resQkHzOV2-uHw/exec",
 
-  // 有償プランの LINE ユーザー（ユーザーIDの SHA-256）。画像を gasWebAppUrl に保存する。
-  // ここは送り先を選ぶためだけ。保存してよいかは GAS 側の Script Properties「PREMIUM_USERS」で判定する
+  // 有償プランの LINE ユーザー（ユーザーIDの SHA-256）。GAS がプランを答えられないときだけ使う予備の一覧。
+  // 正本は GAS（プランの一覧のシートと Script Properties「PREMIUM_USERS」）。保存してよいかも GAS が確かめる
   premiumUsers: [
     "24f2d88d2332937479e0e0275c2f8713d029cdf4a7fe788a136178b456e5b519" // katsuan
   ],
+
+  // 有償プランの支払いページ（Stripe の支払いリンク）。/account/ の「有償プランにする」から、
+  // ?client_reference_id=<ユーザーのハッシュ> を付けて開く。空なら「準備中」と出す
+  premiumCheckoutUrl: "",
+
+  // お支払いの確認・解約のページ（Stripe のカスタマーポータルのリンク）。空ならボタンを出さない
+  billingPortalUrl: "",
 
   // 送るカードに「Created by おくるん」を付けるか（false で全員から消える）
   showCredit: true,

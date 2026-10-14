@@ -5,8 +5,8 @@
 //   1. URL に ?credit=off を付けて一度開く → その端末では以後消える（?credit=on で戻る）
 //   2. config.js の creditFreeUsers に自分の LINE ユーザーIDのハッシュを入れる → LINE でログインすると自動で消える
 //      ハッシュは ?credit=whoami を付けて LINE で開くと表示される
+//   3. 「Created by を消せる」プラン（shared/plan.js の hideCredit）の人 → プランが決まると消せるようになる
 //   消せる人の画面には送信バーに「Created by を付ける」スイッチが出て、送るごとに選べる（初期は付けない）
-// どちらもページ側の判定なので、有償プランで消すときはサーバーで購入状態を確かめてから setEnabled(false) を呼ぶ。
 (function () {
   const LABEL = "Created by おくるん ›";
   const STORAGE_KEY = "line-share:credit";
@@ -140,6 +140,11 @@
       : { type: "box", layout: "vertical", paddingAll: "8px", contents: [creditBox()] };
     return { ...message, contents: { ...bubble, footer } };
   }
+
+  // プランで消せるようになったとき（shared/plan.js が知らせる）
+  document.addEventListener("lineshare:plan", (event) => {
+    if (event.detail?.features?.hideCredit) grantPrivilege();
+  });
 
   applyToPage();
   if (document.readyState === "loading") {
