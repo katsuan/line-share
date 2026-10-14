@@ -136,16 +136,17 @@ function renderMatchPreview(palette) {
   const box = document.createElement("div");
   box.className = "sc-match";
   box.innerHTML = `
-    <div class="sc-score"><span></span><b></b><span></span></div>
+    <p class="sc-teams"></p>
+    <b class="sc-score"></b>
     <span class="sc-result"></span>
     <small class="sc-half"></small>
     <ul class="sc-goal-list"></ul>
     <p class="sc-mvp"></p>`;
-  const [teamEl, scoreEl, oppEl] = box.querySelector(".sc-score").children;
-  teamEl.textContent = match.t || "自分たち";
+  // チーム名で1行、スコアで1行（チーム名が長くてもスコアの横で折り返さないように）
+  box.querySelector(".sc-teams").textContent = matchTeams(match);
+  const scoreEl = box.querySelector(".sc-score");
   scoreEl.textContent = `${match.us} - ${match.th}`;
   scoreEl.style.color = palette.start;
-  oppEl.textContent = match.o || "相手";
   const badge = box.querySelector(".sc-result");
   badge.textContent = result.label;
   badge.style.background = result.color;
@@ -157,6 +158,8 @@ function renderMatchPreview(palette) {
   box.querySelector(".sc-mvp").textContent = match.mvp ? `🏅 MVP ${match.mvp}` : "";
   els.matchArea.replaceChildren(box);
 }
+
+const matchTeams = (match) => `${match.t || "自分たち"} vs ${match.o || "相手"}`;
 
 function matchResult(match, palette) {
   if (match.us > match.th) return { label: "勝ち", color: palette.start };
@@ -251,19 +254,10 @@ function matchFlex(palette) {
   const match = state.match;
   if (!match) return [];
   const result = matchResult(match, palette);
-  const side = (text) => ({ type: "text", text: text || " ", size: "sm", weight: "bold", color: "#111827", align: "center", wrap: true, flex: 1 });
+  // チーム名で1行、スコアで1行
   const parts = [
-    {
-      type: "box",
-      layout: "horizontal",
-      alignItems: "center",
-      spacing: "sm",
-      contents: [
-        side(match.t || "自分たち"),
-        { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center", flex: 0 },
-        side(match.o || "相手")
-      ]
-    },
+    { type: "text", text: matchTeams(match), size: "sm", weight: "bold", color: "#111827", align: "center", wrap: true },
+    { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center" },
     {
       type: "box",
       layout: "horizontal",
