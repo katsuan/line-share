@@ -13,15 +13,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Yomogi&display=swap" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141755" />
-    <link rel="stylesheet" href="./style.css?v=202610141755" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141756" />
+    <link rel="stylesheet" href="./style.css?v=202610141756" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141755"></script>
-    <script src="../shared/credit.js?v=202610141755"></script>
-    <script src="../shared/plan.js?v=202610141755"></script>
-    <script src="../shared/liff.js?v=202610141755"></script>
-    <script src="../shared/ui.js?v=202610141755" defer></script>
-    <script type="module" src="./app.js?v=202610141755"></script>
+    <script src="../config.js?v=202610141756"></script>
+    <script src="../shared/credit.js?v=202610141756"></script>
+    <script src="../shared/plan.js?v=202610141756"></script>
+    <script src="../shared/liff.js?v=202610141756"></script>
+    <script src="../shared/ui.js?v=202610141756" defer></script>
+    <script type="module" src="./app.js?v=202610141756"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -135,9 +135,12 @@
           </details>
 
           <!-- カードで送るときの LINE のカードの大きさ（お知らせカードと同じスライダー）。画像で送るときは選べない -->
-          <details id="sizePanel" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">📏</span>カードの大きさ <span id="sizeMeta" class="ls-fold-meta"></span></summary>
+          <!-- カードで送るときだけ使う設定（大きさ・動き）。画像で送るときは欄ごとグレーにする -->
+          <details id="cardPanel" class="ls-fold">
+            <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>カードで送るとき <span id="cardMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
+              <p id="cardOnlyNote" class="ls-hint" hidden>画像で送るときは使いません。送り方を「カード」にすると選べます。</p>
+              <span class="ls-label">カードの大きさ</span>
               <div class="size-row">
                 <div class="size-track">
                   <input id="cardSizeRange" class="size-range" type="range" min="0" max="6" step="1" aria-label="カードの大きさ" />
@@ -153,15 +156,10 @@
                 </div>
                 <output id="cardSizeLabel" class="size-label" for="cardSizeRange">giga</output>
               </div>
-              <p id="sizeHint" class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
-            </div>
-          </details>
-
-          <details id="motionPanel" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎞️</span>動き <span id="motionMeta" class="ls-fold-meta"></span></summary>
-            <div class="ls-fold-body">
+              <p class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
+              <span class="ls-label">動き</span>
               <div id="motionList" class="ls-chips"></div>
-              <p id="motionHint" class="ls-hint">動きはカードで送ったときに再生されます。</p>
+              <p class="ls-hint">動きはカードで送ったときに再生されます。</p>
             </div>
           </details>
         </div>
