@@ -25,7 +25,7 @@
           liff.login({ redirectUri: returnUrl() });
           return { ready: false, reason: "redirecting" };
         }
-        window.LineShareCredit?.checkUser();
+        checkUser();
         return { ready: true };
       } catch (error) {
         console.error(error);
@@ -33,6 +33,24 @@
       }
     })();
     return pending;
+  }
+
+  async function sha256(text) {
+    const bytes = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  // ログイン中のユーザーのハッシュで、Created by の表示（credit.js）と有償プラン（plan.js）を決める
+  function checkUser() {
+    const checks = (async () => {
+      if (!liff.isLoggedIn()) return;
+      const { userId } = await liff.getProfile();
+      const hash = await sha256(userId);
+      window.LineShareCredit?.checkUser(hash);
+      window.LineSharePlan?.checkUser(hash);
+    })().catch((error) => console.error(error));
+    window.LineSharePlan?.setChecking(checks);
   }
 
   // ログイン後に戻る URL。ログインの受け渡しで付く一時的なパラメータは外す

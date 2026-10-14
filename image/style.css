@@ -52,6 +52,17 @@
   font-weight: 700;
 }
 
+/* よく使う文字の候補は数が多いので、ほかのチップより詰めて小さくする */
+.text-presets {
+  gap: 6px;
+}
+
+.text-presets .ls-chip {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
 .sheet-preview {
   justify-self: center;
   width: min(60vw, 220px);
