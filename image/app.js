@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141755";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141755";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141756";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141756";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -106,13 +106,13 @@ document.addEventListener("DOMContentLoaded", () => {
     "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
     "penColors", "penSizes", "penSizeRange", "penSizeDot", "undoButton", "clearButton",
-    "outlineList", "outlineColors", "outlineWidthList", "backgroundList", "motionList", "motionPanel",
-    "sizePanel", "sizeMeta", "sizeHint", "cardSizeRange", "cardSizeLabel",
-    "clearTextButton", "drawTextRow", "drawTextLabel", "drawClearTextButton", "sendModeImage", "sendModeCard", "cardFrame", "motionHint", "backgroundHint",
+    "outlineList", "outlineColors", "outlineWidthList", "backgroundList", "motionList", "cardPanel", "cardOnlyNote",
+    "cardMeta", "cardSizeRange", "cardSizeLabel",
+    "clearTextButton", "drawTextRow", "drawTextLabel", "drawClearTextButton", "sendModeImage", "sendModeCard", "cardFrame", "backgroundHint",
     "drawHint", "saveButton", "sendButton", "status",
     "saveSheet", "savePreview", "saveDownload", "saveClose",
     "shapeList", "historyPanel", "historyList",
-    "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta", "motionMeta"
+    "textMeta", "penMeta", "shapeMeta", "outlineMeta", "backgroundMeta"
   ].forEach((id) => {
     els[id] = document.getElementById(id);
   });
@@ -569,23 +569,15 @@ function applyState_() {
   if (!state.busy) els.sendButton.textContent = sendLabel_();
   els.textInput.value = state.text;
   els.outlineWidthList.closest(".ls-field").hidden = state.outline === "none";
-  // 画像では動かないので、動きは選べない（グレー表示）
-  els.motionPanel.classList.toggle("is-unavailable", !isCard);
-  // カードの大きさも、画像では LINE が決めるので選べない
+  // 大きさと動きはカードで送るときだけ（画像では LINE が大きさを決め、動きもしない）。画像のときは欄ごとグレーにする
   if (!BUBBLE_SIZES.includes(state.bubbleSize)) state.bubbleSize = "giga";
-  els.sizePanel.classList.toggle("is-unavailable", !isCard);
+  els.cardPanel.classList.toggle("is-unavailable", !isCard);
+  els.cardOnlyNote.hidden = isCard;
   els.cardSizeRange.disabled = !isCard;
   els.cardSizeRange.value = String(BUBBLE_SIZES.indexOf(state.bubbleSize));
   els.cardSizeLabel.textContent = state.bubbleSize;
-  els.sizeMeta.textContent = isCard ? state.bubbleSize : "—（画像）";
-  els.sizeHint.textContent = isCard
-    ? "小さい順に nano〜giga の7段階。迷ったら「標準」の mega。"
-    : "画像で送るときは、LINE が大きさを決めます。選べるのはカードで送るときです。";
   els.cardFrame.dataset.size = state.bubbleSize;
   for (const button of els.motionList.querySelectorAll("button")) button.disabled = !isCard;
-  els.motionHint.textContent = isCard
-    ? "動きはカードで送ったときに再生されます。"
-    : "画像では動きません。動かしたいときは、送り方を「カード」にしてください。";
   syncTextClear_();
   updateMeta_();
   syncChoices_();
@@ -607,7 +599,7 @@ function updateMeta_() {
       : `${labelOf(OUTLINES, state.outline) || "色"}・${labelOf(OUTLINE_WIDTHS, state.outlineWidth)}`;
   els.backgroundMeta.textContent = state.background ? "色あり" : "透明";
   updatePreviewError_();
-  els.motionMeta.textContent = state.sendMode === "card" ? labelOf(MOTIONS, state.motion) : "なし（画像）";
+  els.cardMeta.textContent = state.sendMode === "card" ? `${state.bubbleSize}・${labelOf(MOTIONS, state.motion) || "なし"}` : "—（画像）";
 }
 
 function sendLabel_() {
