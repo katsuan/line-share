@@ -1,7 +1,7 @@
 # おくるん（OQRN）
 
 場所・予定・お知らせ・文字・手書きを、LINE のトークにカードや画像で送れる LIFF ツール集です。
-GitHub Pages で配信する静的サイトです。GAS は有償プランの画像保存（`gas/`）だけに使います。
+GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプランの判定と有償プランの画像保存だけに使います。
 
 公開URL: https://katsuan.github.io/line-share/
 
@@ -13,11 +13,12 @@ GitHub Pages で配信する静的サイトです。GAS は有償プランの画
 | `/plan/` | 📍🗓️ 場所・予定。Google Maps の場所を写真・バッジ・コメント付きで送る。場所から「この場所で予定を作る」で Google カレンダー登録リンク付きの予定カードにできる |
 | `/card/` | 🪧 お知らせカード。見出し・写真・バッジ・リンクボタン付きのお知らせカード。カード上で直接編集でき、ひな形・テンプレート保存・JSONコピーあり。投票・チェックリスト・チケット・クーポンの形式もあり、`/card/?template=<data/templates.json のキー>` でその形式のテンプレートを入れて開く（HOME の「形式を選んでつくる」） |
 | `/image/` | 💬👆 文字・手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
+| `/account/` | プラン（無料・有償）と使える機能、有償プランへの支払い（Stripe） |
 | `/reply/` | カードの投票・完了のボタンから開き、返事の文を書きかえてから送るかコピーするページ（LIFF で送るカードのボタンはリンクだけなので）。投票は候補もすべて渡し、ここで選び直せる（`?text=`・`title`・`format`・`pick`・`c`）。トークに送る権限（chat_message.write）があればそのトークに、なければ送り先を選んで送る。LINE の中ではコピーするとトークに戻る |
 | `server/` | 画像アップロード用 API（Render で動かす Node.js）。無料プランの保存先 |
-| `gas/` | 有償プランの画像保存（Google ドライブ。GAS のウェブアプリ） |
+| `gas/` | プランの判定・有償プランの画像保存（Google ドライブ）・Stripe の知らせの受け取り（GAS のウェブアプリ） |
 
-全ページ共通のデザイン（`shared/ui.css`）、画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
+全ページ共通のデザイン（`shared/ui.css`）、プランと使える機能・画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
 
 ### 場所・予定をリンクから作る（クエリパラメータ）
 
@@ -42,8 +43,10 @@ GitHub Pages で配信する静的サイトです。GAS は有償プランの画
 - `liffId`: LIFF アプリの ID（1つだけ作る）
 - `googleMapsApiKey`: 場所の検索に使う Google Maps JavaScript API のキー（任意）
 - `imageApiBaseUrl`: `server/` をデプロイした URL
-- `gasWebAppUrl`: `gas/` をデプロイしたウェブアプリの URL（有償プランの画像の保存先）
-- `premiumUsers`: 有償プランの LINE ユーザー（ユーザーIDの SHA-256）。送り先を選ぶためだけで、保存してよいかは GAS の `PREMIUM_USERS` で判定する
+- `gasWebAppUrl`: `gas/` をデプロイしたウェブアプリの URL（プランの判定・有償プランの画像の保存先）
+- `premiumUsers`: 有償プランの LINE ユーザー（ユーザーIDの SHA-256）。GAS がプランを答えられないときだけ使う予備の一覧（正本は GAS のプランの一覧）
+- `premiumCheckoutUrl`: 有償プランの支払いリンク（Stripe Payment Link）。空なら `/account/` に「準備中」と出す
+- `billingPortalUrl`: お支払いの確認・解約のリンク（Stripe カスタマーポータル）。空ならボタンを出さない
 - `showCredit`: 送るカードに「Created by おくるん」を付けるか（`false` で全員から消える）
 - `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
 
@@ -51,7 +54,8 @@ GitHub Pages で配信する静的サイトです。GAS は有償プランの画
 
 - その端末だけ: URL に `?credit=off` を付けて一度開く（`?credit=on` で戻る）
 - LINE アカウント単位: `?credit=whoami` で表示された値を `creditFreeUsers` に追加する（機種変更しても有効）
-- どちらもページ側の判定です。有償プランで消すときは、サーバーで購入状態を確かめてから `LineShareCredit.setEnabled(false)` を呼ぶ想定です
+- 有償プラン（`hideCredit` が使えるプラン）の人は、プランが決まると自動で消せるようになります（`shared/plan.js` が知らせる）
+- 消せる人の送信バーには「Created by を付ける」スイッチが出て、送るごとに選べます
 
 ### LIFF
 
@@ -75,20 +79,50 @@ LINE の画像メッセージには HTTPS で公開された画像 URL が必要
 
 Render のローカルディスクは永続ではないため、保存した画像は再起動（無料プランでは15分アクセスがないとスリープ）で消えます。受け取った人がすぐに開かないと画像が表示されないことがあるため、文字・手書きのプレビューの下と、お知らせカードの写真（端末から選んだとき）に注意書きを出しています。
 
-### 有償プランの画像保存（gas/）
+### プランと課金（shared/plan.js・gas/・/account/）
 
-無料プランの画像は Render に保存するため、スリープで消えることがあります（画面に注意書きを出しています）。
-有償プランのユーザーは、ページが GAS に画像を送り、GAS が LINE のアクセストークンで本人を確かめてから Google ドライブに保存します。GAS に失敗したときは Render に保存します。
+プラン（無料・有償）と、プランごとに使える機能は `shared/plan.js` の `PLANS` で決めます。各ページは「その機能を使えるか」（`LineSharePlan.has("longImageStorage")` など）で判定します。
+
+| 機能 | 無料 | 有償 |
+|---|---|---|
+| `longImageStorage` 画像を長く保存（Google ドライブ。無料は Render でスリープすると消える） | — | ✓ |
+| `hideCredit` 送るカードの「Created by おくるん」を消せる | — | ✓ |
+
+機能を足すときは `shared/plan.js` の `PLANS`・`FEATURE_LABELS` と、`gas/Code.js` の `PLANS` をそろえます。
+
+**プランの決め方**：ページが GAS に `{ action: "me", accessToken }` で聞き、GAS が LINE のアクセストークンで本人を確かめてから、プランの一覧で判定します（結果はそのタブに10分覚える）。GAS が答えられないとき（未設定・古い版）は `config.js` の `premiumUsers` で判定します。画像の保存など実際の権限は、GAS がその都度確かめ直します。
+
+**役割**
+
+| 役割 | すること |
+|---|---|
+| システム管理者 | `gas/` のデプロイ、Script Properties（Stripe の鍵など）、`config.js` |
+| ツール管理者 | プランの一覧（スプレッドシート「おくるん プランの一覧」のシート `plans`）で、誰をどのプランに・いつまで |
+| ユーザー | `/account/` で自分のプランと使える機能を見る、Stripe で支払う |
+
+プランの一覧の列：`userHash`（LINE ユーザーIDの SHA-256）・`plan`（`free`／`premium`）・`source`（`manual`／`stripe`）・`expiresAt`（空ならずっと。過ぎたら無料）・`stripeCustomerId`・`stripeSubscriptionId`・`note`・`updatedAt`。手で有償にするときは行を足します（`source` は `manual`）。シートを作る前からの Script Properties の `PREMIUM_USERS` も引き続き有効です。
+
+**GAS の用意**
 
 1. `cd gas && clasp push -f`（`.clasp.json` は git に含めない）
-2. Apps Script エディタで `setup` を一度実行して権限を許可する。保存先フォルダ「おくるカード画像」と毎日の掃除（`cleanupOldImages`）ができる
+2. Apps Script エディタで `setup` を実行して権限を許可する。保存先フォルダ「おくるカード画像」、プランの一覧のスプレッドシート、毎日の掃除（`cleanupOldImages`）ができる（何度実行してもよい）
 3. プロジェクトの設定 → スクリプト プロパティで値を確かめる
-   - `PREMIUM_USERS`: 有償プランのユーザーのハッシュ（カンマか改行区切り）
+   - `PLANS_SHEET_ID`: プランの一覧（setup が作る）
+   - `PREMIUM_USERS`: シートを使う前からの有償ユーザー（カンマか改行区切り）
    - `KEEP_DAYS`: 画像を残す日数（初期値 30）
    - `LINE_CHANNEL_ID`: LIFF アプリの LINE ログインチャネル ID
    - `DRIVE_FOLDER_ID`: 保存先フォルダ（setup が作る）
+   - `STRIPE_SECRET_KEY`: Stripe の秘密鍵（Events を読めれば足りる制限付きキーがよい）。空なら Stripe の知らせは受けない
 4. コードを変えたら `clasp push -f` のあと、デプロイを管理 → 既存のデプロイを編集して新しいバージョンにする（URL を変えないため）
-5. 有償にするユーザーは、`config.js` の `premiumUsers` と GAS の `PREMIUM_USERS` の両方に追加する
+
+**Stripe（有償プランの支払い）**
+
+1. Stripe で有償プランの商品（サブスクリプション）と支払いリンク（Payment Link）を作り、URL を `config.js` の `premiumCheckoutUrl` に入れる。`/account/` の「有償プランにする」が、`?client_reference_id=<ユーザーのハッシュ>` を付けて開く
+2. カスタマーポータルのリンクを `billingPortalUrl` に入れると、有償の人に「お支払いの確認・解約」が出る
+3. Webhook の送り先に GAS のウェブアプリの URL を登録し、`checkout.session.completed` と `customer.subscription.deleted` を送るようにする
+   - 支払いが済むと、その人の行が `premium`（`source`＝`stripe`）になる。解約（期間の終わり）で `free` に戻る
+   - GAS はリクエストのヘッダーを読めず Stripe の署名を確かめられないので、届いたイベント ID で Stripe からイベントを取り直して処理する（偽の知らせは取り直せない）
+   - 注意：GAS のウェブアプリは POST に 302 で答えるため、Stripe の管理画面では送信が失敗に見え、再送されることがある（処理は1回目で済み、同じ内容を書き直すだけ）。続けて失敗扱いになると Stripe が送信を止めるので、本番では `server/`（Render）など 200 を返せる所で受けて GAS に渡す形に替える
 
 ## 公開するとき
 
