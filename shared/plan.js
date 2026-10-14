@@ -158,6 +158,23 @@
     return uploadToServer(dataUrl);
   }
 
+  /**
+   * 無料の画像サーバー（Render）を起こしておく。しばらく使わないと眠り、最初の保存に30秒ほどかかるため、
+   * 画像を保存するページ（お知らせカード・文字・手書き）を開いたときに呼ぶ。同じタブでは5分に1回まで
+   */
+  function warmUp() {
+    const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
+    if (!base) return;
+    try {
+      const last = Number(sessionStorage.getItem("line-share:warm") || 0);
+      if (Date.now() - last < 5 * 60 * 1000) return;
+      sessionStorage.setItem("line-share:warm", String(Date.now()));
+    } catch {
+      // 覚えられなくても起こすだけ
+    }
+    fetch(`${base}/health`, { mode: "no-cors", cache: "no-store" }).catch(() => {});
+  }
+
   /** 有償プランの支払いページ（Stripe の支払いリンク）。だれの支払いかわかるよう、ユーザーのハッシュを付ける */
   function checkoutUrl() {
     if (!config.premiumCheckoutUrl || !current.userHash) return "";
@@ -167,5 +184,5 @@
   }
 
   applyToPage();
-  window.LineSharePlan = { PLANS, FEATURE_LABELS, checkUser, has, get, upload, checkoutUrl };
+  window.LineSharePlan = { PLANS, FEATURE_LABELS, checkUser, has, get, upload, checkoutUrl, warmUp };
 })();

@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141727";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141727";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141736";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141736";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -924,9 +924,11 @@ async function initLiff_() {
   // LIFF の準備は shared/liff.js。LINE の外のブラウザでもログインして送れるようにする
   const { MESSAGES } = window.LineShareLiff;
   setStatus_(MESSAGES.connecting);
-  const { ready } = await window.LineShareLiff.init({ login: "external" });
+  // 無料の画像サーバーは眠っていると最初の保存が遅いので、開いた時点で起こしておく
+  window.LineSharePlan?.warmUp();
+  const { ready, reason } = await window.LineShareLiff.init({ login: "external" });
   if (!ready) {
-    setStatus_(MESSAGES.failed, "error");
+    if (reason !== "redirecting") setStatus_(MESSAGES[reason] || MESSAGES.failed, "error");
     return;
   }
   state.liffReady = true;

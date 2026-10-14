@@ -55,6 +55,8 @@ async function init() {
   requestAnimationFrame(renderPeeks);
   requestAnimationFrame(autoGrowAll);
 
+  // 無料の画像サーバーは眠っていると写真の保存が遅いので、開いた時点で起こしておく
+  window.LineSharePlan?.warmUp();
   await initLiff();
 }
 
