@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141747";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141747";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141751";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141751";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -597,7 +597,7 @@ function applyState_() {
 function updateMeta_() {
   const labelOf = (options, value) => options.find((option) => option.value === value)?.label || "";
   const text = state.text.trim().replace(/\s+/g, " ");
-  els.textMeta.textContent = text ? (text.length > 10 ? `${text.slice(0, 10)}…` : text) : "未入力";
+  els.textMeta.textContent = text ? (text.length > 10 ? `${text.slice(0, 10)}…` : text) : "なし";
   els.penMeta.textContent = `${labelOf(PEN_SIZES, state.penSize) || `太さ${state.penSize}`}・${state.strokes.length}本`;
   syncPenSize_();
   els.shapeMeta.textContent = labelOf(SHAPES, state.shape);

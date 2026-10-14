@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610141747";
-import { MAX_URI_LENGTH } from "./config.js?v=202610141747";
-import { bindHeader } from "./header.js?v=202610141747";
-import { createEventFlex } from "./flex.js?v=202610141747";
-import { bindPlaceSearch } from "./place-search.js?v=202610141747";
+} from "./common.js?v=202610141751";
+import { MAX_URI_LENGTH } from "./config.js?v=202610141751";
+import { bindHeader } from "./header.js?v=202610141751";
+import { createEventFlex } from "./flex.js?v=202610141751";
+import { bindPlaceSearch } from "./place-search.js?v=202610141751";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -450,16 +450,26 @@ function updateOptionalCount_() {
   if (dom.sourceUrl.value.trim()) count += 1;
   count += getCustomParams_().length;
 
-  dom.optionalCount.textContent = `${count}件入力中`;
+  dom.optionalCount.textContent = count ? `${count}件` : "なし";
 }
 
+// 設定欄の見出しの右には、空なら「なし」、入っていれば中身の要約を出す（全ツール共通の決まり。README）
 function updateOptionalFieldStates_() {
-  updateFieldStateChip_(dom.locationState, dom.location.value.trim() || dom.locationMapUrl.value.trim());
-  updateFieldStateChip_(dom.urlState, dom.url.value.trim());
+  const location = dom.location.value.trim();
+  dom.locationState.textContent = location ? shorten_(location) : dom.locationMapUrl.value.trim() ? "地図のURL" : "なし";
+  dom.urlState.textContent = dom.url.value.trim() ? hostOf_(dom.url.value.trim()) : "なし";
 }
 
-function updateFieldStateChip_(element, value) {
-  element.textContent = value ? "入力済み" : "未入力";
+function shorten_(text, max = 10) {
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+function hostOf_(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return shorten_(url);
+  }
 }
 
 function handleLocationMapUrlInput_() {
