@@ -237,6 +237,7 @@ function bindEvents() {
     clearTimeout(resetTimer);
     resetTimer = null;
     els.resetButton.textContent = resetLabel;
+    const showUndo = offerUndo("入力をリセットしました");
     hasTriedShare = false;
     state = structuredClone(BLANK_STATE);
     cards = [state];
@@ -246,6 +247,7 @@ function bindEvents() {
     applyStateToEditor();
     render();
     setStatus("入力をリセットしました。");
+    showUndo();
   });
 
   // カード上の1行入力は Enter で次の欄へ

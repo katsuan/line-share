@@ -106,6 +106,7 @@ async function share() {
 
     storeCurrent();
     saveJson(LAST_SENT_KEY, { cards: structuredClone(cards) });
+    renderTemplates(); // テンプレートの「前回送った内容」を今送ったものにする
     setStatus("共有しました。");
     // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
     window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
