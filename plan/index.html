@@ -9,15 +9,15 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるん</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141747" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610141747" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141751" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610141751" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141747"></script>
-    <script src="../shared/credit.js?v=202610141747"></script>
-    <script src="../shared/plan.js?v=202610141747"></script>
-    <script src="../shared/liff.js?v=202610141747"></script>
-    <script src="../shared/ui.js?v=202610141747" defer></script>
-    <script type="module" src="./assets/main.js?v=202610141747"></script>
+    <script src="../config.js?v=202610141751"></script>
+    <script src="../shared/credit.js?v=202610141751"></script>
+    <script src="../shared/plan.js?v=202610141751"></script>
+    <script src="../shared/liff.js?v=202610141751"></script>
+    <script src="../shared/ui.js?v=202610141751" defer></script>
+    <script type="module" src="./assets/main.js?v=202610141751"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -106,7 +106,7 @@
           <details class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
             <div class="ls-fold-body">
-              <p class="ls-hint">見出し・バッジ・コメントをまとめて入れます。今の内容を保存すると、場所ごと残せます。</p>
+              <p class="ls-hint">選ぶと中身が入れ替わります。今の内容も名前を付けて保存できます。</p>
               <div id="mapTemplateList" class="ls-list"></div>
               <div class="ls-row">
                 <input id="mapTemplateName" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
@@ -116,8 +116,9 @@
           </details>
 
           <details id="mapHeaderFold" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>ヘッダーの色 <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
+              <span class="ls-label">カラー</span>
               <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
               <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
             </div>
@@ -216,15 +217,16 @@
 
           <div class="ls-folds">
             <details id="eventHeaderFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>ヘッダーの色 <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
               <div class="ls-fold-body">
+                <span class="ls-label">カラー</span>
                 <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
                 <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
               </div>
             </details>
 
             <details id="locationAccordion" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">📍</span>場所 <span id="locationState" class="ls-fold-meta">未入力</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">📍</span>場所 <span id="locationState" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <input id="location" class="ls-input" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
                 <button id="locationFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
@@ -241,14 +243,15 @@
             </details>
 
             <details id="urlFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>関連URL <span id="urlState" class="ls-fold-meta">未入力</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン <span id="urlState" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <input id="url" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="関連URL" placeholder="https://example.com" />
+                <p class="ls-hint">入れると、カードに「関連URLを開く」ボタンが付きます。</p>
               </div>
             </details>
 
             <details id="optionalAccordion" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">0件入力中</span></summary>
+              <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <p class="ls-hint">繰り返しや参照元など、必要なときだけ入力してください。</p>
                 <label class="ls-field">
