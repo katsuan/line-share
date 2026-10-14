@@ -19,6 +19,7 @@ async function init() {
     "kindChips", "itemsArea", "itemAddButton", "doneButton",
     "ticketArea", "routeFrom", "routeFromSub", "routeTo", "routeToSub", "pairsArea", "pairAddButton",
     "couponArea", "couponOffer", "couponCode", "couponExpiry",
+    "lineupArea", "matchArea", "soccerEditLink",
     "sendWarningModal", "sendWarningDontShow", "sendWarningConfirm", "sendWarningCancel"
   ].forEach((id) => {
     els[id] = document.getElementById(id);

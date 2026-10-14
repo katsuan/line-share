@@ -25,7 +25,10 @@ const KINDS = {
   vote: { label: "🗳️ 投票", title: "投票カード", item: "候補", min: 2, max: 10, list: true },
   checklist: { label: "✅ チェックリスト", title: "チェックリスト", item: "項目", min: 1, max: 20, list: true },
   ticket: { label: "🎫 チケット", title: "チケット" },
-  coupon: { label: "🎟️ クーポン", title: "クーポン" }
+  coupon: { label: "🎟️ クーポン", title: "クーポン" },
+  // サッカーの道具（別のツール）から渡されたときだけ使う形式。形式の切り替えには、その形式のカードのときだけ出す
+  lineup: { label: "⚽ スタメン", title: "スタメン", external: true },
+  match: { label: "🏆 試合結果", title: "試合結果", external: true }
 };
 // HOME の「カードの形式」から ?template=<テンプレートのキー> で開いたとき、読み込んだら当てはめる
 const START_TEMPLATE = new URLSearchParams(location.search).get("template") || "";
@@ -87,7 +90,9 @@ const BLANK_STATE = {
   route: { from: "", fromSub: "", to: "", toSub: "" },
   pairs: [],
   // クーポン：特典（大きく）、コード、有効期限
-  coupon: { offer: "", code: "", expiry: "" }
+  coupon: { offer: "", code: "", expiry: "" },
+  lineup: null,
+  match: null
 };
 
 const els = {};
