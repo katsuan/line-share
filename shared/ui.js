@@ -228,6 +228,47 @@
   else setupPreviewToggles();
 
   /**
+   * 下の設定までスクロールしてプレビューが見えなくなったら、右下に「プレビュー」ボタンを出し、押すとプレビューへ戻る。
+   * プレビューが複数あるページ（場所・予定のタブ）は、いま表示されているほうへ戻る
+   */
+  function setupPreviewReturn() {
+    const previews = [...document.querySelectorAll(".ls-preview")];
+    if (!previews.length) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ls-to-preview";
+    button.textContent = "👀 プレビュー";
+    button.setAttribute("aria-label", "プレビューに戻る");
+    button.hidden = true;
+    document.body.append(button);
+
+    const shown = () => previews.find((preview) => preview.offsetParent !== null);
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const preview = shown();
+      // プレビューの下の端が画面の上のほうへ消えたら出す
+      button.hidden = !preview || preview.getBoundingClientRect().bottom > 60;
+    };
+    const schedule = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    // タブの切り替えなどで表示中のプレビューが変わったとき
+    document.addEventListener("click", schedule);
+    button.addEventListener("click", () => {
+      shown()?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    update();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setupPreviewReturn);
+  else setupPreviewReturn();
+
+  /**
    * 今の内容では送れない理由を、「送信プレビュー」とカードのあいだに出す（空の文字で消す）。
    * target はプレビューの中の要素か id。表示は完成イメージのときだけ（編集中は送信バーの案内で足りる）。
    */
