@@ -92,7 +92,7 @@ async function share() {
   }
 
   if (!(await confirmSendWarning())) {
-    setStatus("送信をキャンセルしました。");
+    setStatus(window.LineShareLiff.MESSAGES.canceled);
     return;
   }
 
@@ -100,19 +100,19 @@ async function share() {
     setStatus("共有先を開いています…");
     const messages = [buildDeckMessage()];
     if (!(await window.LineShareLiff.share(messages))) {
-      setStatus("共有はキャンセルされました。");
+      setStatus(window.LineShareLiff.MESSAGES.canceled);
       return;
     }
 
     storeCurrent();
     saveJson(LAST_SENT_KEY, { cards: structuredClone(cards) });
     renderTemplates(); // テンプレートの「前回送った内容」を今送ったものにする
-    setStatus("共有しました。");
+    setStatus(window.LineShareLiff.MESSAGES.sent);
     // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
     window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
   } catch (error) {
     console.error(error);
-    setStatus("共有に失敗しました。時間をおいて再度お試しください。", true);
+    setStatus(window.LineShareLiff.MESSAGES.sendFailed, true);
   }
 }
 

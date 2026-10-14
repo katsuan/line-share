@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610141756";
-import { MAX_URI_LENGTH } from "./config.js?v=202610141756";
-import { bindHeader } from "./header.js?v=202610141756";
-import { createEventFlex } from "./flex.js?v=202610141756";
-import { bindPlaceSearch } from "./place-search.js?v=202610141756";
+} from "./common.js?v=202610141758";
+import { MAX_URI_LENGTH } from "./config.js?v=202610141758";
+import { bindHeader } from "./header.js?v=202610141758";
+import { createEventFlex } from "./flex.js?v=202610141758";
+import { bindPlaceSearch } from "./place-search.js?v=202610141758";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -553,11 +553,11 @@ async function shareToTargetPicker_() {
     const sent = await shareFlex(createEventFlex(data, calendarUrl, getFlexLabels_(data)));
     setMessage(
       dom.statusMessage,
-      sent ? "送信先を選んで共有しました。" : "共有はキャンセルされました。",
+      sent ? window.LineShareLiff.MESSAGES.sent : window.LineShareLiff.MESSAGES.canceled,
       sent ? "success" : "default"
     );
   } catch (error) {
-    setMessage(dom.statusMessage, toUserMessage(error, "送信に失敗しました。"), "error");
+    setMessage(dom.statusMessage, toUserMessage(error, window.LineShareLiff.MESSAGES.sendFailed), "error");
   }
 }
 

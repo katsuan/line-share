@@ -9,28 +9,28 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141756" />
-    <link rel="stylesheet" href="./style.css?v=202610141756" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141758" />
+    <link rel="stylesheet" href="./style.css?v=202610141758" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141756"></script>
-    <script src="../shared/credit.js?v=202610141756"></script>
-    <script src="../shared/plan.js?v=202610141756"></script>
-    <script src="../shared/liff.js?v=202610141756"></script>
-    <script src="../shared/ui.js?v=202610141756" defer></script>
+    <script src="../config.js?v=202610141758"></script>
+    <script src="../shared/credit.js?v=202610141758"></script>
+    <script src="../shared/plan.js?v=202610141758"></script>
+    <script src="../shared/liff.js?v=202610141758"></script>
+    <script src="../shared/ui.js?v=202610141758" defer></script>
     <!-- お知らせカードの本体。役割ごとのファイルを、この順に読む（core が先、main が最後。どれも同じ範囲の変数を使う） -->
-    <script src="./js/core.js?v=202610141756" defer></script>
-    <script src="./js/storage.js?v=202610141756" defer></script>
-    <script src="./js/state.js?v=202610141756" defer></script>
-    <script src="./js/url.js?v=202610141756" defer></script>
-    <script src="./js/deck.js?v=202610141756" defer></script>
-    <script src="./js/render.js?v=202610141756" defer></script>
-    <script src="./js/kinds.js?v=202610141756" defer></script>
-    <script src="./js/flex.js?v=202610141756" defer></script>
-    <script src="./js/photo.js?v=202610141756" defer></script>
-    <script src="./js/templates.js?v=202610141756" defer></script>
-    <script src="./js/send.js?v=202610141756" defer></script>
-    <script src="./js/events.js?v=202610141756" defer></script>
-    <script src="./js/main.js?v=202610141756" defer></script>
+    <script src="./js/core.js?v=202610141758" defer></script>
+    <script src="./js/storage.js?v=202610141758" defer></script>
+    <script src="./js/state.js?v=202610141758" defer></script>
+    <script src="./js/url.js?v=202610141758" defer></script>
+    <script src="./js/deck.js?v=202610141758" defer></script>
+    <script src="./js/render.js?v=202610141758" defer></script>
+    <script src="./js/kinds.js?v=202610141758" defer></script>
+    <script src="./js/flex.js?v=202610141758" defer></script>
+    <script src="./js/photo.js?v=202610141758" defer></script>
+    <script src="./js/templates.js?v=202610141758" defer></script>
+    <script src="./js/send.js?v=202610141758" defer></script>
+    <script src="./js/events.js?v=202610141758" defer></script>
+    <script src="./js/main.js?v=202610141758" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -102,14 +102,14 @@
           </div>
           <!-- カードを足すのはカードの下（次のカードは右に並ぶ） -->
           <button id="cardAddButton" class="ls-optional-add card-add" type="button">＋ カードを追加</button>
-          <p class="ls-preview-note">文字はタップしてそのまま編集、＋で項目を足せます。写真・ボタンはタップで設定へ。投票・チェックリストは複数行を貼ると1行ずつ入ります。</p>
+          <p class="ls-preview-note">文字はタップで編集、＋で追加。投票・チェックリストは複数行の貼り付けもできます。</p>
         </section>
 
         <div class="ls-folds">
           <details class="ls-fold">
             <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
             <div class="ls-fold-body">
-              <p class="ls-hint">選ぶと中身が入れ替わります。今の内容も名前を付けて保存できます。直後なら「元に戻す」で戻せます。</p>
+              <p class="ls-hint">選ぶと中身が入れ替わります（直後なら元に戻せます）。今の内容も名前を付けて保存できます。</p>
               <div id="presetGrid" class="preset-grid"></div>
               <div id="templateList" class="ls-list"></div>
               <div class="ls-row">
@@ -154,7 +154,7 @@
                   </div>
                   <output id="bubbleSizeLabel" class="size-label" for="bubbleSizeRange">mega</output>
                 </div>
-                <p class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
+                <p class="ls-hint">迷ったら「標準」（mega）。</p>
               </div>
 
               <!-- サブタイトル・詳細の表示はプレビューの ＋／× で切り替える（ここは状態を持つだけ） -->
@@ -179,7 +179,7 @@
                 <button id="photoClearButton" class="ls-button is-danger" type="button" hidden>写真を外す</button>
               </div>
               <p id="photoStatus" class="ls-hint" hidden></p>
-              <p id="photoExpireNote" class="ls-hint" hidden>⏳ 相手が開くのが遅いと写真が消えることがあります。長く残すなら写真のURLを使ってください。</p>
+              <p id="photoExpireNote" class="ls-hint" hidden>⏳ 時間がたつと写真が消えることがあります。長く残すなら写真のURLを使ってください。</p>
               <label class="ls-field">
                 <span class="ls-label">または写真のURL</span>
                 <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
@@ -245,7 +245,7 @@
     <div id="sendWarningModal" class="ls-sheet" hidden>
       <div class="ls-sheet-card" role="alertdialog" aria-modal="true" aria-labelledby="sendWarningTitle">
         <p id="sendWarningTitle" class="ls-sheet-title">送信前の確認</p>
-        <p class="ls-hint">送信後の修正はできません。内容をご確認のうえ送信してください。</p>
+        <p class="ls-hint">送ったあとは直せません。内容を確かめてから送ってください。</p>
         <label class="ls-chip modal-check"><input id="sendWarningDontShow" type="checkbox" />次から表示しない</label>
         <div class="ls-sheet-actions">
           <button id="sendWarningCancel" class="ls-send ls-send-secondary" type="button">やめる</button>

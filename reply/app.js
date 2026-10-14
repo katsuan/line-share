@@ -100,7 +100,7 @@ async function prepare() {
   } else if (window.LineShareLiff.canShare()) {
     mode = "pick";
     els.sendButton.textContent = "送り先を選んで送る";
-    els.replyNote.textContent = "吹き出しをタップすると書きかえられます。次の画面で、返事をするトークを選んで送ってください。";
+    els.replyNote.textContent = "吹き出しはタップで書きかえられます。次の画面で、返事をするトークを選んでください。";
   } else {
     setStatus("この画面からは送れません。コピーしてトークに貼り付けてください。");
     els.replyNote.hidden = true;
@@ -138,7 +138,7 @@ async function send() {
         return;
       }
     }
-    setStatus("送りました。", "success");
+    setStatus(window.LineShareLiff.MESSAGES.sent, "success");
     setTimeout(() => liff.closeWindow(), 700);
   } catch (error) {
     console.error(error);

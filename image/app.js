@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141756";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141756";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141758";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141758";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -859,17 +859,17 @@ async function sendImage_(item) {
     setStatus_("");
     const message = window.LineShareCredit?.withCredit(buildMessage_(mode, imageUrl, item)) ?? buildMessage_(mode, imageUrl, item);
     if (await window.LineShareLiff.share([message])) {
-      setStatus_("送信しました。", "success");
+      setStatus_(window.LineShareLiff.MESSAGES.sent, "success");
       await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode, size: item.size });
       renderHistory_();
       // 続けて別のトークにも同じ画像を送れるように（アップロードし直さず、同じ URL のメッセージを送る）
       window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share([message]) });
     } else {
-      setStatus_("送信をやめました。");
+      setStatus_(window.LineShareLiff.MESSAGES.canceled);
     }
   } catch (error) {
     console.error(error);
-    setStatus_("送信に失敗しました。時間をおいてもう一度お試しください。", "error");
+    setStatus_(window.LineShareLiff.MESSAGES.sendFailed, "error");
   } finally {
     state.busy = false;
     els.sendButton.disabled = !state.liffReady;
