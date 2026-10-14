@@ -18,6 +18,17 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `server/` | 画像アップロード用 API（Render で動かす Node.js）。無料プランの保存先 |
 | `gas/` | プランの判定・有償プランの画像保存（Google ドライブ）・Stripe の知らせの受け取り（GAS のウェブアプリ） |
 
+全ツールで共通の動き（`shared/`）
+
+| 部品 | 中身 |
+|---|---|
+| `LineShareLiff.share(messages)`（`shared/liff.js`） | 送り先を選んで送る（複数選べる）。送れたら `true` |
+| `LineShareUI.afterSent({ resend })`（`shared/ui.js`） | 送ったあとのシート。「続けて別のトークにも送る」「閉じる」「もう少し作る」。すぐには閉じない |
+| `LineShareUI.firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方を出す（「わかった」で消え、その端末では二度と出さない） |
+| `LineShareUI.progress(label, show)` | 時間のかかる処理（画像の保存）に、経過秒数と、長引いたときの理由を出す |
+| `LineSharePlan.warmUp()`（`shared/plan.js`） | 無料の画像サーバー（Render）を、画像を保存するページを開いた時点で起こしておく |
+| `LineShareLiff.init()` | LINE とつながらないときは10秒で打ち切り、案内を出す（`reason: "timeout"`） |
+
 お知らせカードの本体は `card/js/` に役割ごとに分けています（`core` 定数と状態 → `storage` → `state` → `url` → `deck` 複数枚 → `render` 描画 → `kinds` 投票・チェックリスト・チケット・クーポン → `flex` 送るカードの組み立て → `photo` → `templates` → `send` 送信 → `events` 操作 → `main` はじめに動かす）。どれも普通の `<script defer>` で、`card/index.html` に書いた順に読み、同じ範囲の変数（`state`・`els` など）を使います。新しい形式は `kinds.js`（プレビューと Flex の部品）・`core.js` の `KINDS` に足します。
 
 全ページ共通のデザイン（`shared/ui.css`）、プランと使える機能・画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。

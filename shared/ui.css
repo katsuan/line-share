@@ -1053,3 +1053,51 @@ html[data-credit="off"] .ls-credit {
   margin: 0;
   accent-color: var(--ls-accent);
 }
+
+/* ---- 送ったあとのシート ---- */
+
+.after-sent-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.after-sent-note {
+  margin: -4px 0 0;
+}
+
+/* ---- はじめて使う人への案内 ---- */
+
+.ls-tip {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--ls-accent);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-accent-soft);
+  color: var(--ls-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ls-tip-title {
+  margin: 0;
+  font-weight: 800;
+}
+
+.ls-tip ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+
+.ls-tip-ok {
+  justify-self: end;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ls-accent);
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

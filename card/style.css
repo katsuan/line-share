@@ -572,3 +572,8 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* 写真のアップロードの進み具合（2行目に理由が出る） */
+#photoStatus {
+  white-space: pre-line;
+}

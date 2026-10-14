@@ -76,5 +76,16 @@
     }
   }
 
-  window.LineShareLiff = { init, canShare, MESSAGES };
+  /**
+   * 送り先を選んで送る（全ツール共通）。送れたら true、閉じられたら false を返す。
+   * Created by は各ツールがメッセージを作るときに付ける（カルーセルなど付け方がツールで違うため）。
+   * 送ったあとのシート（LineShareUI.afterSent）の「続けて別のトークにも送る」からも、同じ messages で呼ぶ
+   */
+  async function share(messages) {
+    if (!canShare()) throw new Error(MESSAGES.notInLine);
+    const result = await liff.shareTargetPicker(messages, { isMultiple: true });
+    return Boolean(result) && (!result.status || result.status === "success");
+  }
+
+  window.LineShareLiff = { init, canShare, share, MESSAGES };
 })();

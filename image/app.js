@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141736";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610141736";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610141740";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610141740";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -96,6 +96,12 @@ let renderQueued = false;
 let animationFrame = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  // はじめて開いた人にだけ、短い使い方を出す（shared/ui.js）
+  window.LineShareUI.firstTip("image", [
+    "文字を入れるか、手書きタブで描きます（重ねることもできます）。",
+    "送り方は「画像」か「カード」を選べます。動きを付けるならカード。",
+    "下のボタンで、送り先を選んで送れます。"
+  ], document.querySelector(".ls-tabs"));
   [
     "canvas", "canvasFrame", "previewStage", "modeText", "modeDraw", "textPanel", "drawPanel",
     "textInput", "textPresets", "fontList", "textColors",
@@ -850,14 +856,22 @@ async function sendImage_(item) {
     const mode = item.mode || (item.animated ? "card" : "image");
 
     els.sendButton.textContent = "準備中...";
-    setStatus_("画像を準備しています…");
-    const imageUrl = await uploadImage_(item.blob);
+    // 画像の保存は30秒前後かかることがあるので、経過秒数と理由を出す（shared/ui.js）
+    const stopProgress = window.LineShareUI.progress("画像を保存しています", (text) => setStatus_(text));
+    let imageUrl;
+    try {
+      imageUrl = await uploadImage_(item.blob);
+    } finally {
+      stopProgress();
+    }
+    setStatus_("");
     const message = window.LineShareCredit?.withCredit(buildMessage_(mode, imageUrl, item)) ?? buildMessage_(mode, imageUrl, item);
-    const result = await liff.shareTargetPicker([message], { isMultiple: true });
-    if (result) {
+    if (await window.LineShareLiff.share([message])) {
       setStatus_("送信しました。", "success");
       await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode, size: item.size });
       renderHistory_();
+      // 続けて別のトークにも同じ画像を送れるように（アップロードし直さず、同じ URL のメッセージを送る）
+      window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share([message]) });
     } else {
       setStatus_("送信をやめました。");
     }

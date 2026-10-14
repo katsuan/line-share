@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610141736";
+import { MAX_URI_LENGTH } from "./config.js?v=202610141740";
 
 export const app = {
   liffReady: false
@@ -87,8 +87,11 @@ export async function shareFlex(message) {
   if (!app.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
     throw new UserError("この環境では送信機能を利用できません。LINEアプリ内で開いてください。");
   }
-  const result = await liff.shareTargetPicker([window.LineShareCredit.withCredit(message)]);
-  return result?.status === "success";
+  // 送り先は複数選べる。送れたら、続けて別のトークにも送るか・閉じるかを選んでもらう（shared/ui.js）
+  const messages = [window.LineShareCredit.withCredit(message)];
+  const sent = await window.LineShareLiff.share(messages);
+  if (sent) window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
+  return sent;
 }
 
 // 場所名から Google Maps の検索リンクを作る（アプリがあれば地図アプリで開く）
