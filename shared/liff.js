@@ -2,19 +2,28 @@
 //   login: "redirect" … LINE の外ではログイン画面へ移る（場所・予定）
 //          "external" … LINE の外ではログイン画面へ移る（文字・手書き。redirect と同じ動き）
 //          "none"     … ログインさせない。送るときに LINE アプリ内か確かめる（お知らせカード）
-// 結果は { ready, reason } で返す。reason: "noLiffId" | "failed" | "redirecting"
+// 結果は { ready, reason } で返す。reason: "noLiffId" | "failed" | "redirecting" | "timeout"
+// 10秒たっても終わらないときは timeout で返す（画面が「つないでいます…」のまま止まらないように）
 (function () {
   const MESSAGES = {
     connecting: "LINEとつないでいます…",
     failed: "LINEとの接続に失敗しました。LINEアプリから開き直してください。",
+    timeout: "LINEとつながりませんでした。電波のよい所で開き直してください（作成・プレビューはできます）。",
     notInLine: "LINEアプリ内で開くと送れます。"
   };
 
   let pending = null;
+  const TIMEOUT_MS = 10000;
 
   function init({ login = "none" } = {}) {
     if (pending) return pending;
-    pending = (async () => {
+    const timeout = new Promise((resolve) => setTimeout(() => resolve({ ready: false, reason: "timeout" }), TIMEOUT_MS));
+    pending = Promise.race([start(login), timeout]);
+    return pending;
+  }
+
+  function start(login) {
+    return (async () => {
       const liffId = window.LINE_SHARE_CONFIG?.liffId;
       if (!liffId || !window.liff) return { ready: false, reason: "noLiffId" };
       try {
@@ -32,7 +41,6 @@
         return { ready: false, reason: "failed" };
       }
     })();
-    return pending;
   }
 
   async function sha256(text) {

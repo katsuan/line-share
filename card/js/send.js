@@ -171,12 +171,12 @@ async function initLiff() {
   // LIFF の準備は shared/liff.js。ログインはさせず、送るときに LINE アプリ内か確かめる
   const { MESSAGES } = window.LineShareLiff;
   setStatus(MESSAGES.connecting);
-  const { ready } = await window.LineShareLiff.init({ login: "none" });
+  const { ready, reason } = await window.LineShareLiff.init({ login: "none" });
   if (ready) {
     shareReady = true;
     els.shareButton.addEventListener("click", share);
   } else {
-    setStatus(MESSAGES.failed, true);
+    setStatus(MESSAGES[reason] || MESSAGES.failed, true);
   }
   updateShareButtonState();
 }

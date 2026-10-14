@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610141727";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141727";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141727";
+import { app } from "./common.js?v=202610141736";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141736";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141736";
 
 const TABS = ["map", "calendar"];
 
@@ -64,6 +64,12 @@ const SEND_TARGETS = {
   calendar: { button: "shareTargetButton", message: "statusMessage" }
 };
 
+// 送れないのに理由が出ていないときに送信バーに出す一言
+const EMPTY_HINTS = {
+  map: "場所を検索して選ぶか、場所名を入れると送れます。",
+  calendar: "件名と日時を入れると送れます。"
+};
+
 function bindSendBar_() {
   const barButton = document.getElementById("sendBarButton");
   const barMessage = document.getElementById("sendBarMessage");
@@ -84,8 +90,11 @@ function bindSendBar_() {
     const message = document.getElementById(target.message);
     barButton.disabled = source.disabled;
     barButton.textContent = source.textContent;
-    barMessage.textContent = message.textContent;
-    barMessage.className = `ls-status ${message.className.replace("message", "")}`;
+    // 送れないのに理由が空のときは、何を入れれば送れるかを出す
+    const hint = source.disabled && !message.textContent.trim() ? EMPTY_HINTS[activeTab_()] : "";
+    barMessage.textContent = hint || message.textContent;
+    // 送れない間は「次に何を入れるか」の案内なので赤くしない（送ろうとして失敗したときだけ赤）
+    barMessage.className = source.disabled ? "ls-status" : `ls-status ${message.className.replace("message", "")}`;
   }
 
   window.syncSendBar = syncSendBar_;

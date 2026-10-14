@@ -9,28 +9,28 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141727" />
-    <link rel="stylesheet" href="./style.css?v=202610141727" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141736" />
+    <link rel="stylesheet" href="./style.css?v=202610141736" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141727"></script>
-    <script src="../shared/credit.js?v=202610141727"></script>
-    <script src="../shared/plan.js?v=202610141727"></script>
-    <script src="../shared/liff.js?v=202610141727"></script>
-    <script src="../shared/ui.js?v=202610141727" defer></script>
+    <script src="../config.js?v=202610141736"></script>
+    <script src="../shared/credit.js?v=202610141736"></script>
+    <script src="../shared/plan.js?v=202610141736"></script>
+    <script src="../shared/liff.js?v=202610141736"></script>
+    <script src="../shared/ui.js?v=202610141736" defer></script>
     <!-- お知らせカードの本体。役割ごとのファイルを、この順に読む（core が先、main が最後。どれも同じ範囲の変数を使う） -->
-    <script src="./js/core.js?v=202610141727" defer></script>
-    <script src="./js/storage.js?v=202610141727" defer></script>
-    <script src="./js/state.js?v=202610141727" defer></script>
-    <script src="./js/url.js?v=202610141727" defer></script>
-    <script src="./js/deck.js?v=202610141727" defer></script>
-    <script src="./js/render.js?v=202610141727" defer></script>
-    <script src="./js/kinds.js?v=202610141727" defer></script>
-    <script src="./js/flex.js?v=202610141727" defer></script>
-    <script src="./js/photo.js?v=202610141727" defer></script>
-    <script src="./js/templates.js?v=202610141727" defer></script>
-    <script src="./js/send.js?v=202610141727" defer></script>
-    <script src="./js/events.js?v=202610141727" defer></script>
-    <script src="./js/main.js?v=202610141727" defer></script>
+    <script src="./js/core.js?v=202610141736" defer></script>
+    <script src="./js/storage.js?v=202610141736" defer></script>
+    <script src="./js/state.js?v=202610141736" defer></script>
+    <script src="./js/url.js?v=202610141736" defer></script>
+    <script src="./js/deck.js?v=202610141736" defer></script>
+    <script src="./js/render.js?v=202610141736" defer></script>
+    <script src="./js/kinds.js?v=202610141736" defer></script>
+    <script src="./js/flex.js?v=202610141736" defer></script>
+    <script src="./js/photo.js?v=202610141736" defer></script>
+    <script src="./js/templates.js?v=202610141736" defer></script>
+    <script src="./js/send.js?v=202610141736" defer></script>
+    <script src="./js/events.js?v=202610141736" defer></script>
+    <script src="./js/main.js?v=202610141736" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -102,7 +102,7 @@
           </div>
           <!-- カードを足すのはカードの下（次のカードは右に並ぶ） -->
           <button id="cardAddButton" class="ls-optional-add card-add" type="button">＋ カードを追加</button>
-          <p class="ls-preview-note">文字・バッジはタップしてそのまま編集できます。サブタイトル・詳細・バッジは ＋ で足せます。写真・ボタンはタップすると設定に移ります。「＋ カードを追加」で横にスクロールする複数枚にできます。投票・チェックリストは複数行を貼ると1行ずつ候補・項目になります。</p>
+          <p class="ls-preview-note">文字はタップしてそのまま編集、＋で項目を足せます。写真・ボタンはタップで設定へ。投票・チェックリストは複数行を貼ると1行ずつ入ります。</p>
         </section>
 
         <div class="ls-folds">
@@ -116,6 +116,8 @@
                 <input id="templateNameInput" class="ls-input" type="text" maxlength="40" placeholder="名前を付けて保存" aria-label="保存するテンプレートの名前" />
                 <button id="saveTemplateButton" class="ls-button" type="button">保存</button>
               </div>
+              <!-- 開発・ほかのツールへの持ち出し用 -->
+              <button id="copyJsonButton" class="card-json-link" type="button">カードの中身を JSON でコピー（上級者向け）</button>
             </div>
           </details>
 
@@ -221,7 +223,6 @@
         </div>
 
         <div class="card-tools">
-          <button id="copyJsonButton" class="ls-button" type="button">JSONをコピー</button>
           <button id="resetButton" class="ls-button is-danger" type="button">入力をリセット</button>
         </div>
       </div>
