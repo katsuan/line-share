@@ -132,24 +132,32 @@ function renderMatchPreview(palette) {
     els.matchArea.replaceChildren(Object.assign(document.createElement("p"), { className: "sc-empty", textContent: "サッカーの道具で結果を入れてから開いてください。" }));
     return;
   }
-  const result = matchResult(match, palette);
+  const sides = matchSides(match, palette);
   const box = document.createElement("div");
   box.className = "sc-match";
   box.innerHTML = `
-    <p class="sc-teams"></p>
+    <div class="sc-teams"><div><b></b></div><span>vs</span><div><b></b></div></div>
     <b class="sc-score"></b>
-    <span class="sc-result"></span>
+    <span class="sc-result is-draw"></span>
     <small class="sc-half"></small>
     <ul class="sc-goal-list"></ul>
     <p class="sc-mvp"></p>`;
-  // チーム名で1行、スコアで1行（チーム名が長くてもスコアの横で折り返さないように）
-  box.querySelector(".sc-teams").textContent = matchTeams(match);
+  // チーム名の行（勝ち・負けはそれぞれの下）とスコアの行。引き分けはスコアの下の中央
+  const [usBox, , themBox] = box.querySelector(".sc-teams").children;
+  [[usBox, match.t || "自分たち", sides.us], [themBox, match.o || "相手", sides.them]].forEach(([el, name, result]) => {
+    el.querySelector("b").textContent = name;
+    if (result) el.append(badgeEl(result));
+  });
   const scoreEl = box.querySelector(".sc-score");
   scoreEl.textContent = `${match.us} - ${match.th}`;
   scoreEl.style.color = palette.start;
-  const badge = box.querySelector(".sc-result");
-  badge.textContent = result.label;
-  badge.style.background = result.color;
+  const draw = box.querySelector(".sc-result.is-draw");
+  if (sides.draw) {
+    draw.textContent = sides.draw.label;
+    draw.style.background = sides.draw.color;
+  } else {
+    draw.remove();
+  }
   const half = box.querySelector(".sc-half");
   half.textContent = match.hu !== "" && match.ht !== "" ? `前半 ${match.hu} - ${match.ht}` : "";
   box.querySelector(".sc-goal-list").replaceChildren(
@@ -159,12 +167,41 @@ function renderMatchPreview(palette) {
   els.matchArea.replaceChildren(box);
 }
 
-const matchTeams = (match) => `${match.t || "自分たち"} vs ${match.o || "相手"}`;
+// 勝ち・負けはチームごと（us・them）、引き分けは1つ（draw）
+function matchSides(match, palette) {
+  const win = { label: "勝ち", color: palette.start };
+  const lose = { label: "負け", color: "#6B7280" };
+  if (match.us > match.th) return { us: win, them: lose };
+  if (match.us < match.th) return { us: lose, them: win };
+  return { draw: { label: "引き分け", color: "#9CA3AF" } };
+}
 
-function matchResult(match, palette) {
-  if (match.us > match.th) return { label: "勝ち", color: palette.start };
-  if (match.us < match.th) return { label: "負け", color: "#6B7280" };
-  return { label: "引き分け", color: "#9CA3AF" };
+function badgeEl(result) {
+  const el = Object.assign(document.createElement("span"), { className: "sc-result", textContent: result.label });
+  el.style.background = result.color;
+  return el;
+}
+
+// 勝ち・負け・引き分けの印（Flex）
+function badgeFlex(result) {
+  return {
+    type: "box",
+    layout: "horizontal",
+    justifyContent: "center",
+    contents: [
+      {
+        type: "box",
+        layout: "vertical",
+        cornerRadius: "999px",
+        backgroundColor: result.color,
+        paddingStart: "12px",
+        paddingEnd: "12px",
+        paddingTop: "2px",
+        paddingBottom: "2px",
+        contents: [{ type: "text", text: result.label, size: "xxs", color: "#FFFFFF", weight: "bold" }]
+      }
+    ]
+  };
 }
 
 // 得点を時間の順に。自分たちは「⚽ 12' 山田」、相手は「25' 相手 ⚽」
@@ -253,30 +290,25 @@ function lineupFlex(palette) {
 function matchFlex(palette) {
   const match = state.match;
   if (!match) return [];
-  const result = matchResult(match, palette);
-  // チーム名で1行、スコアで1行
+  const sides = matchSides(match, palette);
+  // チーム名の行（勝ち・負けはそれぞれの下。名前が長ければ折り返す）とスコアの行。引き分けはスコアの下の中央
+  const team = (name, result) => ({
+    type: "box",
+    layout: "vertical",
+    flex: 1,
+    spacing: "xs",
+    contents: [{ type: "text", text: name, size: "sm", weight: "bold", color: "#111827", align: "center", wrap: true }, ...(result ? [badgeFlex(result)] : [])]
+  });
   const parts = [
-    { type: "text", text: matchTeams(match), size: "sm", weight: "bold", color: "#111827", align: "center", wrap: true },
-    { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center" },
     {
       type: "box",
       layout: "horizontal",
-      justifyContent: "center",
-      contents: [
-        {
-          type: "box",
-          layout: "vertical",
-          cornerRadius: "999px",
-          backgroundColor: result.color,
-          paddingStart: "14px",
-          paddingEnd: "14px",
-          paddingTop: "2px",
-          paddingBottom: "2px",
-          contents: [{ type: "text", text: result.label, size: "xs", color: "#FFFFFF", weight: "bold" }]
-        }
-      ]
-    }
+      spacing: "sm",
+      contents: [team(match.t || "自分たち", sides.us), { type: "text", text: "vs", size: "xs", color: "#9CA3AF", flex: 0, gravity: "top" }, team(match.o || "相手", sides.them)]
+    },
+    { type: "text", text: `${match.us} - ${match.th}`, size: "3xl", weight: "bold", color: palette.start, align: "center" }
   ];
+  if (sides.draw) parts.push(badgeFlex(sides.draw));
   if (match.hu !== "" && match.ht !== "") {
     parts.push({ type: "text", text: `前半 ${match.hu} - ${match.ht}`, size: "xs", color: "#6B7280", align: "center" });
   }
