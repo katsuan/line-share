@@ -9,15 +9,15 @@
     <meta name="theme-color" content="#f5f4f9" />
     <title>場所・予定｜おくるん</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141756" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610141756" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141758" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610141758" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141756"></script>
-    <script src="../shared/credit.js?v=202610141756"></script>
-    <script src="../shared/plan.js?v=202610141756"></script>
-    <script src="../shared/liff.js?v=202610141756"></script>
-    <script src="../shared/ui.js?v=202610141756" defer></script>
-    <script type="module" src="./assets/main.js?v=202610141756"></script>
+    <script src="../config.js?v=202610141758"></script>
+    <script src="../shared/credit.js?v=202610141758"></script>
+    <script src="../shared/plan.js?v=202610141758"></script>
+    <script src="../shared/liff.js?v=202610141758"></script>
+    <script src="../shared/ui.js?v=202610141758" defer></script>
+    <script type="module" src="./assets/main.js?v=202610141758"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -62,7 +62,7 @@
             </div>
             <p class="ls-credit">Created by おくるん ›</p>
           </div>
-          <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真・バッジ・日時・ボタンはタップすると設定に移ります。</p>
+          <p class="ls-preview-note">文字はタップで編集。写真・バッジ・日時・ボタンはタップで設定へ。</p>
         </section>
 
         <section id="mapPlacePanel" class="ls-panel">
@@ -93,7 +93,7 @@
               <input id="mapUrl" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://maps.app.goo.gl/..." />
               <button id="mapPasteButton" class="ls-button" type="button">貼り付け</button>
             </div>
-            <p class="ls-hint">Google Mapsで場所を開き「共有」→「リンクをコピー」して貼り付けます。空のままなら、場所名で検索する地図リンクを付けます。</p>
+            <p class="ls-hint">Google Maps の「共有」→「リンクをコピー」で貼り付けます。空なら場所名で検索するリンクになります。</p>
           </div>
 
           <div class="ls-actions">
@@ -120,7 +120,7 @@
             <div class="ls-fold-body">
               <span class="ls-label">カラー</span>
               <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
-              <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
+              <p class="ls-hint">見出しを空にすると、色の帯なしで送ります。</p>
             </div>
           </details>
 
@@ -164,7 +164,7 @@
               <div id="eventPreviewActions" class="preview-actions"></div>
               <p class="ls-credit">Created by おくるん ›</p>
             </div>
-            <p class="ls-preview-note">文字はタップしてそのまま編集できます。写真・バッジ・日時・ボタンはタップすると設定に移ります。</p>
+            <p class="ls-preview-note">文字はタップで編集。写真・バッジ・日時・ボタンはタップで設定へ。</p>
           </section>
 
           <section id="eventPanel" class="ls-panel">
@@ -221,7 +221,7 @@
               <div class="ls-fold-body">
                 <span class="ls-label">カラー</span>
                 <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
-                <p class="ls-hint">見出しとサブタイトルはプレビューで直接入力します。見出しを空にするとヘッダーなしで送ります。</p>
+                <p class="ls-hint">見出しを空にすると、色の帯なしで送ります。</p>
               </div>
             </details>
 
@@ -238,7 +238,7 @@
                   <div id="locationSearchResults" class="ls-list"></div>
                 </div>
                 <input id="locationMapUrl" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="場所のGoogle Maps URL" placeholder="Google Maps のURL（任意）" />
-                <p class="ls-hint">送るカードに「地図を開く」ボタンが付きます。URLが空なら場所名で検索する地図リンクを付けます。</p>
+                <p class="ls-hint">カードに「地図を開く」ボタンが付きます（URLが空なら場所名で検索）。</p>
               </div>
             </details>
 
@@ -253,7 +253,6 @@
             <details id="optionalAccordion" class="ls-fold">
               <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
-                <p class="ls-hint">繰り返しや参照元など、必要なときだけ入力してください。</p>
                 <label class="ls-field">
                   <span class="ls-label">タイムゾーン</span>
                   <input id="timezone" class="ls-input" type="text" placeholder="例：Asia/Tokyo" />

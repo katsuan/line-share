@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610141756";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610141756";
-import { bindHeader } from "./header.js?v=202610141756";
-import { createPlaceFlex } from "./flex.js?v=202610141756";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610141758";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610141758";
+import { bindHeader } from "./header.js?v=202610141758";
+import { createPlaceFlex } from "./flex.js?v=202610141758";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -264,11 +264,11 @@ async function share_() {
     const sent = await shareFlex(createPlaceFlex(place));
     setMessage(
       dom.message,
-      sent ? "送信しました。" : "送信先の画面を閉じました。送信されていない場合は、LINEアプリを最新版に更新して再度お試しください。",
+      sent ? window.LineShareLiff.MESSAGES.sent : window.LineShareLiff.MESSAGES.canceled,
       sent ? "success" : "default"
     );
   } catch (error) {
-    setMessage(dom.message, toUserMessage(error, "送信に失敗しました。"), "error");
+    setMessage(dom.message, toUserMessage(error, window.LineShareLiff.MESSAGES.sendFailed), "error");
   } finally {
     setSending_(false);
     refreshMapTab();

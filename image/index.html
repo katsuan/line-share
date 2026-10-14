@@ -13,15 +13,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Yomogi&display=swap" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610141756" />
-    <link rel="stylesheet" href="./style.css?v=202610141756" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610141758" />
+    <link rel="stylesheet" href="./style.css?v=202610141758" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610141756"></script>
-    <script src="../shared/credit.js?v=202610141756"></script>
-    <script src="../shared/plan.js?v=202610141756"></script>
-    <script src="../shared/liff.js?v=202610141756"></script>
-    <script src="../shared/ui.js?v=202610141756" defer></script>
-    <script type="module" src="./app.js?v=202610141756"></script>
+    <script src="../config.js?v=202610141758"></script>
+    <script src="../shared/credit.js?v=202610141758"></script>
+    <script src="../shared/plan.js?v=202610141758"></script>
+    <script src="../shared/liff.js?v=202610141758"></script>
+    <script src="../shared/ui.js?v=202610141758" defer></script>
+    <script type="module" src="./app.js?v=202610141758"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -53,7 +53,7 @@
               <button id="sendModeCard" class="ls-chip is-small" type="button" role="radio">🪧 カード（動きOK）</button>
             </div>
           </div>
-          <p class="ls-preview-note" data-plan-only="free">⏳ 相手が開くのが遅いと画像が消えることがあります。そのときは「送った画像」から送り直してください。</p>
+          <p class="ls-preview-note" data-plan-only="free">⏳ 時間がたつと画像が消えることがあります。消えたら「送った画像」から送り直せます。</p>
           <p class="ls-preview-note" data-plan-only="premium">⭐ 有償プランのため、画像は長く保存されます。</p>
         </section>
 
@@ -72,7 +72,7 @@
                 <span class="ls-label">書体</span>
                 <div id="fontList" class="ls-chips"></div>
               </div>
-              <p class="ls-hint">手書きタブに切り替えると、文字の上から描き足せます。文字を消すと手書きだけになります。</p>
+              <p class="ls-hint">手書きタブで、文字の上から描き足せます。</p>
             </div>
           </details>
 
@@ -156,10 +156,9 @@
                 </div>
                 <output id="cardSizeLabel" class="size-label" for="cardSizeRange">giga</output>
               </div>
-              <p class="ls-hint">小さい順に nano〜giga の7段階。迷ったら「標準」の mega。</p>
+              <p class="ls-hint">迷ったら「標準」（mega）。</p>
               <span class="ls-label">動き</span>
               <div id="motionList" class="ls-chips"></div>
-              <p class="ls-hint">動きはカードで送ったときに再生されます。</p>
             </div>
           </details>
         </div>
@@ -167,7 +166,7 @@
         <section id="historyPanel" class="ls-panel" hidden>
           <div class="ls-panel-head">
             <h2 class="ls-panel-title">🕘 送った画像</h2>
-            <p class="ls-panel-note">タップでもう一度送れます。相手の画面で表示されなくなった画像も、ここから送り直せます。この端末に最大20件残ります。</p>
+            <p class="ls-panel-note">タップでもう一度送れます（相手の画面で消えた画像も）。この端末に20件まで残ります。</p>
           </div>
           <div id="historyList" class="history-list"></div>
         </section>
