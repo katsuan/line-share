@@ -329,6 +329,31 @@
     again.focus();
   }
 
+  // ---- 数秒だけ出る通知 ----
+
+  /**
+   * 画面下（送信バーの上）に数秒だけ通知を出す。actionLabel を渡すとボタンが付き、押すと onAction を呼ぶ
+   * （例：テンプレートを当てはめたあとの「元に戻す」）。新しい通知が来たら前のものは消える
+   */
+  function toast(message, { actionLabel = "", onAction, ms = 6000 } = {}) {
+    document.querySelector(".ls-toast")?.remove();
+    const box = document.createElement("div");
+    box.className = "ls-toast";
+    box.setAttribute("role", "status");
+    box.append(Object.assign(document.createElement("span"), { textContent: message }));
+    const hide = () => box.remove();
+    if (actionLabel && typeof onAction === "function") {
+      const button = Object.assign(document.createElement("button"), { type: "button", textContent: actionLabel });
+      button.addEventListener("click", () => {
+        hide();
+        onAction();
+      });
+      box.append(button);
+    }
+    document.body.append(box);
+    setTimeout(hide, ms);
+  }
+
   // ---- はじめて使う人への案内 ----
 
   /**
@@ -380,6 +405,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress
+    afterSent, firstTip, progress, toast
   };
 })();

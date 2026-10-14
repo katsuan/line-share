@@ -1101,3 +1101,38 @@ html[data-credit="off"] .ls-credit {
   font-weight: 800;
   cursor: pointer;
 }
+
+/* ---- 数秒だけ出る通知 ---- */
+
+.ls-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(118px + env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 10px 12px 10px 16px;
+  border-radius: 999px;
+  background: rgba(32, 30, 44, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.ls-toast button {
+  flex: none;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ls-accent-ink);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}

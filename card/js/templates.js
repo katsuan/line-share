@@ -26,33 +26,70 @@ function getTemplates() {
 }
 
 // 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる
+// 当てはめる前の全カード（複数枚もまとめて）を覚え、数秒だけ「元に戻す」を出す
+function offerUndo(message) {
+  storeCurrent();
+  const snapshot = { cards: structuredClone(cards), current };
+  return () =>
+    window.LineShareUI.toast(message, {
+      actionLabel: "元に戻す",
+      onAction: () => {
+        restoreDeck(snapshot);
+        setStatus("元に戻しました。");
+      }
+    });
+}
+
+// 覚えておいた全カードに戻す（前回送った内容を呼び戻すときにも使う）
+function restoreDeck({ cards: saved, current: index = 0 }) {
+  const restored = saved.map(hydrate);
+  restored.forEach((card) => (card.bubbleSize = restored[0].bubbleSize));
+  cards = restored;
+  current = Math.min(index, cards.length - 1);
+  state = cards[current];
+  queryUrls.clear();
+  applyStateToEditor();
+  render();
+  requestAnimationFrame(() => {
+    autoGrowAll();
+    renderPeeks();
+  });
+}
+
+// 前回送った内容（送ったときに保存したもの。複数枚ならまとめて）
+function getLastSent() {
+  const saved = loadJson(LAST_SENT_KEY);
+  if (Array.isArray(saved?.cards) && saved.cards.length) return saved.cards.slice(0, MAX_CARDS);
+  return saved && typeof saved === "object" && !Array.isArray(saved) && Object.keys(saved).length ? [saved] : null;
+}
+
 function renderTemplates() {
-  // 用意済みのテンプレートは横に並べ、保存したものはその下に一覧で出す
-  const builtIn = Object.values(PRESETS).map((preset) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "preset-tile";
-    button.title = preset.description;
-    const icon = document.createElement("span");
-    icon.className = "preset-tile-icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = preset.icon;
-    const name = document.createElement("span");
-    name.textContent = preset.label;
-    button.append(icon, name);
-    button.addEventListener("click", () => {
+  // 先頭は「前回送った内容」（あれば）。用意済みのテンプレートは横に並べ、保存したものはその下に一覧で出す
+  const lastSent = getLastSent();
+  const lastTile = lastSent ? presetTile("🕘", "前回送った内容", lastSent.length > 1 ? `${lastSent.length}枚まとめて戻します` : "最後に送ったカード", () => {
+    const show = offerUndo("前回送った内容にしました");
+    restoreDeck({ cards: lastSent, current: 0 });
+    setStatus("前回送った内容を呼び戻しました。");
+    show();
+  }) : null;
+
+  const builtIn = Object.values(PRESETS).map((preset) =>
+    presetTile(preset.icon, preset.label, preset.description, () => {
+      const show = offerUndo(`「${preset.label}」にしました`);
       applyTemplateState({ ...BLANK_STATE, bubbleSize: state.bubbleSize, ...preset.state });
       setStatus(preset.status || `「${preset.label}」を当てはめました。リンク先を入力してください。`);
-    });
-    return button;
-  });
+      show();
+    })
+  );
 
   const saved = getTemplates().map((template) => {
     const row = document.createElement("div");
     row.className = "ls-list-row";
     const button = createTemplateButton(template.name, "保存したテンプレート", () => {
+      const show = offerUndo(`「${template.name}」にしました`);
       applyTemplateState(template.state);
       setStatus(`「${template.name}」を読み込みました。`);
+      show();
     });
     const remove = document.createElement("button");
     remove.type = "button";
@@ -64,8 +101,25 @@ function renderTemplates() {
     return row;
   });
 
-  els.presetGrid.replaceChildren(...builtIn);
+  els.presetGrid.replaceChildren(...(lastTile ? [lastTile] : []), ...builtIn);
   els.templateList.replaceChildren(...saved);
+}
+
+// 用意済みテンプレートのタイル（アイコンと名前。説明は長押し・ホバーで出る）
+function presetTile(iconText, label, description, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "preset-tile";
+  button.title = description || "";
+  const icon = document.createElement("span");
+  icon.className = "preset-tile-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = iconText;
+  const name = document.createElement("span");
+  name.textContent = label;
+  button.append(icon, name);
+  button.addEventListener("click", onClick);
+  return button;
 }
 
 function createTemplateButton(title, description, onClick) {
