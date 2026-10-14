@@ -705,3 +705,13 @@
 .ls-preview.is-viewing .sc-edit {
   display: none;
 }
+
+/* フットサル：ゴール前の半円（D形）と小さめのセンターサークル（送るカードと同じ形） */
+.sc-pitch.is-futsal .sc-line.is-circle { top: calc(50% - 23px); left: calc(50% - 23px); width: 46px; height: 46px; }
+.sc-d { position: absolute; left: 15%; width: 70%; height: 15%; overflow: hidden; }
+.sc-d.is-top { top: 4%; }
+.sc-d.is-bottom { top: 81%; }
+.sc-d span { position: absolute; left: 0; width: 100%; height: 200%; border: 2px solid rgba(255, 255, 255, 0.67); border-radius: 999px; }
+.sc-d.is-top span { bottom: 0; }
+.sc-d.is-bottom span { top: 0; }
+.sc-pk { color: inherit; font-size: 16px; }
