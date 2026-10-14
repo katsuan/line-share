@@ -1,10 +1,16 @@
-import { app } from "./common.js?v=202610141736";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141736";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141736";
+import { app } from "./common.js?v=202610141740";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610141740";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610141740";
 
 const TABS = ["map", "calendar"];
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // はじめて開いた人にだけ、短い使い方を出す（shared/ui.js）
+  window.LineShareUI.firstTip("plan", [
+    "📍 場所：場所を探すと、地図を開けるカードになります。",
+    "🗓️ 予定：件名と日時を入れると、カレンダーに入れられるカードになります。",
+    "下の「カードで送る」で、送り先を選んで送れます。"
+  ], document.querySelector(".ls-tabs"));
   initMapTab({
     onCreateEvent: (place) => {
       selectTab("calendar");

@@ -55,6 +55,12 @@ async function init() {
   requestAnimationFrame(renderPeeks);
   requestAnimationFrame(autoGrowAll);
 
+  // はじめて開いた人にだけ、短い使い方を出す（shared/ui.js）
+  window.LineShareUI.firstTip("card", [
+    "カードの文字をタップして、そのまま入力します。",
+    "投票・チケットなどの形式は、上のボタンで切り替えられます。",
+    "下の「カードで送る」で、送り先を選んで送れます。"
+  ], document.querySelector(".ls-preview"));
   // 無料の画像サーバーは眠っていると写真の保存が遅いので、開いた時点で起こしておく
   window.LineSharePlan?.warmUp();
   await initLiff();

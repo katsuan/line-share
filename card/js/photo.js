@@ -9,15 +9,18 @@ async function uploadPhoto(file) {
     setPhotoStatus("画像ファイルを選んでください。", true);
     return;
   }
+  // 進み具合（経過秒数・長引いたときの理由）を出す（shared/ui.js）
+  let stopProgress = () => {};
   try {
     const dataUrl = await resizePhoto(file);
     photo.uploading = true;
     photo.localUrl = dataUrl;
-    setPhotoStatus("アップロードしています…（初回は30秒ほどかかることがあります）");
+    stopProgress = window.LineShareUI.progress("写真をアップロードしています", (text) => setPhotoStatus(text));
     render();
 
     // アップロード先（無料は画像サーバー、有償は GAS）は shared/plan.js が選ぶ
     const imageUrl = await window.LineSharePlan.upload(dataUrl);
+    stopProgress();
 
     state.imageUrl = imageUrl;
     state.imageRatio = "";
@@ -25,8 +28,10 @@ async function uploadPhoto(file) {
     setPhotoStatus("写真を入れました。");
   } catch (error) {
     console.error(error);
+    stopProgress();
     setPhotoStatus("写真をアップロードできませんでした。時間をおいてもう一度お試しください。", true);
   } finally {
+    stopProgress();
     photo.uploading = false;
     photo.localUrl = "";
     render();

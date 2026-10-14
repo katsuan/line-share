@@ -98,10 +98,8 @@ async function share() {
 
   try {
     setStatus("共有先を開いています…");
-    const message = buildDeckMessage();
-    const result = await liff.shareTargetPicker([message], { isMultiple: true });
-
-    if (!result) {
+    const messages = [buildDeckMessage()];
+    if (!(await window.LineShareLiff.share(messages))) {
       setStatus("共有はキャンセルされました。");
       return;
     }
@@ -109,9 +107,8 @@ async function share() {
     storeCurrent();
     saveJson(LAST_SENT_KEY, { cards: structuredClone(cards) });
     setStatus("共有しました。");
-    if (liff.isInClient()) {
-      setTimeout(() => liff.closeWindow(), 600);
-    }
+    // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
+    window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
   } catch (error) {
     console.error(error);
     setStatus("共有に失敗しました。時間をおいて再度お試しください。", true);

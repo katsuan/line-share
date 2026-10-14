@@ -265,5 +265,121 @@
     return templates;
   }
 
-  window.LineShareUI = { jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible };
+  // ---- 送ったあと ----
+
+  /**
+   * 送り終えたら下からシートを出し、次にすることを選んでもらう（すぐ閉じない）。
+   *   続けて別のトークにも送る … resend() で同じものをもう一度送る（送り先を選ぶ画面が開く）
+   *   閉じる                   … LINE の中ならツールを閉じてトークに戻る
+   *   もう少し作る             … シートだけ閉じて、そのまま編集を続ける
+   * resend は送れたら true を返す関数（LineShareLiff.share と同じ形）
+   */
+  function afterSent({ resend, title = "送りました" } = {}) {
+    document.querySelector(".ls-sheet.is-after-sent")?.remove();
+    let count = 1;
+    const sheet = document.createElement("div");
+    sheet.className = "ls-sheet is-after-sent";
+    sheet.innerHTML = `
+      <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="afterSentTitle">
+        <p id="afterSentTitle" class="ls-sheet-title"></p>
+        <p class="ls-hint after-sent-note" aria-live="polite"></p>
+        <div class="after-sent-actions">
+          <button class="ls-button is-primary" type="button" data-act="again">続けて別のトークにも送る</button>
+          <button class="ls-button" type="button" data-act="close">閉じる</button>
+        </div>
+        <button class="ls-sheet-cancel" type="button" data-act="stay">もう少し作る</button>
+      </div>`;
+    const titleEl = sheet.querySelector(".ls-sheet-title");
+    const note = sheet.querySelector(".after-sent-note");
+    const again = sheet.querySelector('[data-act="again"]');
+    const update = () => {
+      titleEl.textContent = `✅ ${title}${count > 1 ? `（${count}回）` : ""}`;
+      note.textContent = "同じ内容を、ほかのトークにも送れます。";
+    };
+    update();
+    const hide = () => sheet.remove();
+    again.hidden = typeof resend !== "function";
+    again.addEventListener("click", async () => {
+      again.disabled = true;
+      try {
+        if (await resend()) {
+          count += 1;
+          update();
+        }
+      } catch (error) {
+        console.error(error);
+        note.textContent = "送れませんでした。もう一度お試しください。";
+      } finally {
+        again.disabled = false;
+      }
+    });
+    sheet.querySelector('[data-act="close"]').addEventListener("click", () => {
+      hide();
+      try {
+        if (window.liff?.isInClient?.()) liff.closeWindow();
+      } catch {
+        // 閉じられない環境ではシートを閉じるだけ
+      }
+    });
+    sheet.querySelector('[data-act="stay"]').addEventListener("click", hide);
+    sheet.addEventListener("click", (event) => {
+      if (event.target === sheet) hide();
+    });
+    document.body.append(sheet);
+    again.focus();
+  }
+
+  // ---- はじめて使う人への案内 ----
+
+  /**
+   * ツールごとに1回だけ、短い使い方を before の直前に出す。「わかった」で消え、その端末では二度と出さない。
+   * steps は1行ずつの説明（3つくらいまで）
+   */
+  function firstTip(key, steps, before) {
+    const storageKey = `line-share:tip:${key}`;
+    try {
+      if (localStorage.getItem(storageKey)) return;
+    } catch {
+      return; // 覚えられない環境では毎回出てしまうので出さない
+    }
+    if (!before?.parentNode) return;
+    const tip = document.createElement("section");
+    tip.className = "ls-tip";
+    tip.setAttribute("aria-label", "使い方");
+    const list = document.createElement("ol");
+    for (const step of steps) list.append(Object.assign(document.createElement("li"), { textContent: step }));
+    const ok = Object.assign(document.createElement("button"), { type: "button", className: "ls-tip-ok", textContent: "わかった" });
+    ok.addEventListener("click", () => {
+      tip.remove();
+      try {
+        localStorage.setItem(storageKey, "1");
+      } catch {
+        // 消すだけ
+      }
+    });
+    tip.append(Object.assign(document.createElement("p"), { className: "ls-tip-title", textContent: "💡 使い方" }), list, ok);
+    before.parentNode.insertBefore(tip, before);
+  }
+
+  // ---- 時間のかかる処理の進み具合 ----
+
+  /**
+   * label（例：「画像を保存しています」）に経過秒数を付けて、1秒ごとに show(text) を呼ぶ。
+   * slowAfter 秒を過ぎたら slowNote（なぜ時間がかかるか）を添える。返り値の関数を呼ぶと止まる
+   */
+  function progress(label, show, { slowAfter = 6, slowNote = "画像サーバーを起こしています。はじめは30秒ほどかかることがあります。" } = {}) {
+    const started = Date.now();
+    const tick = () => {
+      const sec = Math.floor((Date.now() - started) / 1000);
+      show(`${label}… ${sec}秒${sec >= slowAfter && slowNote ? `\n${slowNote}` : ""}`);
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }
+
+  window.LineShareUI = {
+    jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
+    afterSent, firstTip, progress
+  };
 })();
