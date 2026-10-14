@@ -715,3 +715,5 @@
 .sc-d.is-top span { bottom: 0; }
 .sc-d.is-bottom span { top: 0; }
 .sc-pk { color: inherit; font-size: 16px; }
+
+.sc-tap { margin: 0; color: #9ca3af; font-size: 10px; text-align: center; }

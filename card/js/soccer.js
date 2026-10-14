@@ -148,7 +148,7 @@ function renderPitchPreview(palette) {
     token.append(number, name);
     pitch.append(token);
   });
-  const parts = [pitch];
+  const parts = [pitch, Object.assign(document.createElement("p"), { className: "sc-tap", textContent: "ピッチをタップすると作戦盤が開きます" })];
   if (lineup.s) parts.push(Object.assign(document.createElement("p"), { className: "sc-subs", textContent: `控え：${lineup.s}` }));
   els.lineupArea.replaceChildren(...parts);
 }
@@ -340,7 +340,12 @@ function pitchFlex(lineup, palette) {
 /** スタメンの body に足す部品（ピッチと控え） */
 function lineupFlex(palette) {
   if (!state.lineup) return [];
-  const parts = [pitchFlex(state.lineup, palette)];
+  const pitch = pitchFlex(state.lineup, palette);
+  // ピッチをタップすると、同じ選手・フォーメーション・色のままサッカーの作戦盤が開く。
+  // LINE のリンクは 1000 文字までなので、収まらないときは作戦盤を開くだけにする
+  const full = soccerEditorUrl();
+  pitch.action = { type: "uri", label: "作戦盤を開く", uri: full.length <= 1000 ? full : SOCCER_EDITOR_URL };
+  const parts = [pitch, { type: "text", text: "ピッチをタップすると作戦盤が開きます", size: "xxs", color: "#9CA3AF", align: "center" }];
   if (state.lineup.s) parts.push({ type: "text", text: `控え：${state.lineup.s}`, size: "xs", color: "#6B7280", wrap: true });
   return parts;
 }
