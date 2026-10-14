@@ -28,6 +28,9 @@ window.LINE_SHARE_CONFIG = {
   // お支払いの確認・解約のページ（Stripe のカスタマーポータルのリンク）。空ならボタンを出さない
   billingPortalUrl: "",
 
+  // 利用状況とエラーを GAS に記録するか（個人がわかるものは送らない。shared/log.js）。false で記録しない
+  logging: true,
+
   // 送るカードに「Created by おくるん」を付けるか（false で全員から消える）
   showCredit: true,
 

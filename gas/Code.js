@@ -5,6 +5,7 @@
 //   { action: "upload", imageData, accessToken }   … 長く保存できるプランなら Google ドライブに保存し、公開 URL を返す
 //     （action がないものは upload として扱う。古いページとの互換）
 //   Stripe の Webhook（object: "event"）           … 支払い・解約をプランの一覧に書く
+//   { action: "log", events: [...] }               … 利用状況とエラーの記録（shared/log.js が送る。個人がわかるものは含まない）
 //
 // 役割の分け方
 //   システム管理者 … このコードのデプロイと Script Properties（下）
@@ -18,6 +19,8 @@
 //   PREMIUM_USERS     … 有償プランのユーザー（ユーザーIDの SHA-256。カンマか改行区切り）。シートを使う前からの一覧。今も有効
 //   KEEP_DAYS         … 画像を残す日数（毎日の掃除で、これより古いものをゴミ箱へ移す）
 //   STRIPE_SECRET_KEY … Stripe の秘密鍵（制限付きキーなら Events の読み取りだけで足りる）。空なら Stripe の知らせは受けない
+//   LOG_SHEET_ID      … 利用状況の記録（スプレッドシート。シート「events」＝細かい記録、「daily」＝日ごとの集計）
+//   LOG_KEEP_DAYS     … 細かい記録を残す日数（毎日の集計のあと、これより古い行を消す。集計は消さない）
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_KEEP_DAYS = 30;
@@ -26,6 +29,12 @@ const FOLDER_NAME = 'おくるカード画像';
 const SHEET_NAME = 'plans';
 // シート「plans」の列。1行＝1人。plan が premium で、expiresAt が空か未来なら有償
 const COLUMNS = ['userHash', 'plan', 'source', 'expiresAt', 'stripeCustomerId', 'stripeSubscriptionId', 'note', 'updatedAt'];
+// 利用状況の記録の列。events は1行＝1つの出来事、daily は1行＝1日・1道具・1種類の件数
+const LOG_COLUMNS = ['receivedAt', 'at', 'event', 'tool', 'kind', 'count', 'inClient', 'message', 'session'];
+const DAILY_COLUMNS = ['date', 'tool', 'event', 'kind', 'events', 'sessions', 'inClient'];
+const LOG_EVENTS = ['open', 'send', 'error'];
+const MAX_LOG_EVENTS = 50; // 1回に受け取る上限
+const DEFAULT_LOG_KEEP_DAYS = 30;
 
 // プランごとに使える機能（shared/plan.js の PLANS とそろえる）
 const PLANS = {
@@ -43,6 +52,7 @@ function doPost(e) {
     payload = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (payload.object === 'event' && /^evt_/.test(String(payload.id || ''))) return handleStripeEvent_(payload.id);
     if (payload.action === 'me') return jsonResponse_(me_(String(payload.accessToken || '')));
+    if (payload.action === 'log') return jsonResponse_(log_(payload.events));
     return jsonResponse_(upload_(payload));
   } catch (error) {
     console.error(error);
@@ -161,6 +171,78 @@ function handleStripeEvent_(eventId) {
   return jsonResponse_({ ok: true, type: event.type });
 }
 
+// ---- 利用状況の記録 ----
+// ページ（shared/log.js）が sendBeacon でまとめて送ってくる。中身は決まった列だけを短く切って書く（それ以外は捨てる）
+
+function log_(events) {
+  const id = PropertiesService.getScriptProperties().getProperty('LOG_SHEET_ID');
+  if (!id || !Array.isArray(events)) return { ok: false };
+  const now = new Date().toISOString();
+  const cut = function (value, max) { return String(value === undefined || value === null ? '' : value).slice(0, max); };
+  const rows = events.slice(0, MAX_LOG_EVENTS)
+    .filter(function (e) { return e && LOG_EVENTS.indexOf(e.event) !== -1; })
+    .map(function (e) {
+      return [now, cut(e.at, 30), e.event, cut(e.tool, 20), cut(e.kind, 20), Number(e.count) || '', e.inClient ? 1 : 0, cut(e.message, 200), cut(e.session, 12)];
+    });
+  if (!rows.length) return { ok: true, count: 0 };
+  const sheet = SpreadsheetApp.openById(id).getSheetByName('events');
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, LOG_COLUMNS.length).setValues(rows);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, count: rows.length };
+}
+
+/**
+ * 毎日（setup() が登録する）：まだ集計していない日の細かい記録を、日・道具・種類・形式ごとの件数にして daily に足し、
+ * LOG_KEEP_DAYS より古い細かい記録を消す（ログのローテーション）。集計（daily）は残る
+ */
+function rollupLogs() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('LOG_SHEET_ID');
+  if (!id) return;
+  const book = SpreadsheetApp.openById(id);
+  const events = book.getSheetByName('events');
+  const daily = book.getSheetByName('daily');
+  const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  const lastDone = props.getProperty('LOG_ROLLED_UP_TO') || '';
+  const keepDays = Number(props.getProperty('LOG_KEEP_DAYS')) || DEFAULT_LOG_KEEP_DAYS;
+  const cutoff = Utilities.formatDate(new Date(Date.now() - keepDays * 24 * 60 * 60 * 1000), 'Asia/Tokyo', 'yyyy-MM-dd');
+
+  const lastRow = events.getLastRow();
+  const values = lastRow >= 2 ? events.getRange(2, 1, lastRow - 1, LOG_COLUMNS.length).getValues() : [];
+  const dayOf = function (row) { return Utilities.formatDate(new Date(row[0]), 'Asia/Tokyo', 'yyyy-MM-dd'); };
+
+  // 集計：今日より前で、まだ集計していない日だけ
+  const groups = {};
+  values.forEach(function (row) {
+    const day = dayOf(row);
+    if (day >= today || day <= lastDone) return;
+    const key = [day, row[3], row[2], row[4]].join('\t');
+    const g = groups[key] || (groups[key] = { events: 0, sessions: {}, inClient: 0 });
+    g.events += 1;
+    if (row[8]) g.sessions[row[8]] = true;
+    if (row[6]) g.inClient += 1;
+  });
+  const out = Object.keys(groups).sort().map(function (key) {
+    const parts = key.split('\t');
+    const g = groups[key];
+    return [parts[0], parts[1], parts[2], parts[3], g.events, Object.keys(g.sessions).length, g.inClient];
+  });
+  if (out.length) daily.getRange(daily.getLastRow() + 1, 1, out.length, DAILY_COLUMNS.length).setValues(out);
+  const yesterday = Utilities.formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000), 'Asia/Tokyo', 'yyyy-MM-dd');
+  props.setProperty('LOG_ROLLED_UP_TO', yesterday);
+
+  // ローテーション：上から順（古い順）に書いているので、cutoff より前の行をまとめて消す
+  let old = 0;
+  while (old < values.length && dayOf(values[old]) < cutoff) old += 1;
+  if (old > 0) events.deleteRows(2, old);
+  console.log('rolled up ' + out.length + ' groups, deleted ' + old + ' rows older than ' + cutoff);
+}
+
 // ---- 画像の保存 ----
 
 function upload_(payload) {
@@ -270,16 +352,27 @@ function setup() {
   if (!props.getProperty('KEEP_DAYS')) props.setProperty('KEEP_DAYS', String(DEFAULT_KEEP_DAYS));
   if (props.getProperty('PREMIUM_USERS') === null) props.setProperty('PREMIUM_USERS', '');
   if (props.getProperty('STRIPE_SECRET_KEY') === null) props.setProperty('STRIPE_SECRET_KEY', '');
+  if (!props.getProperty('LOG_SHEET_ID')) {
+    const logBook = SpreadsheetApp.create('おくるん 利用状況');
+    logBook.getSheets()[0].setName('events').appendRow(LOG_COLUMNS);
+    logBook.insertSheet('daily').appendRow(DAILY_COLUMNS);
+    logBook.getSheets().forEach(function (sheet) { sheet.setFrozenRows(1); });
+    props.setProperty('LOG_SHEET_ID', logBook.getId());
+  }
+  if (!props.getProperty('LOG_KEEP_DAYS')) props.setProperty('LOG_KEEP_DAYS', String(DEFAULT_LOG_KEEP_DAYS));
 
+  // 毎日の処理（画像の掃除・記録の集計とローテーション）を登録し直す
   ScriptApp.getProjectTriggers()
     .filter(function (trigger) {
-      return trigger.getHandlerFunction() === 'cleanupOldImages';
+      return ['cleanupOldImages', 'rollupLogs'].indexOf(trigger.getHandlerFunction()) !== -1;
     })
     .forEach(function (trigger) {
       ScriptApp.deleteTrigger(trigger);
     });
   ScriptApp.newTrigger('cleanupOldImages').timeBased().everyDays(1).atHour(3).create();
+  ScriptApp.newTrigger('rollupLogs').timeBased().everyDays(1).atHour(4).create();
 
   console.log('folder: https://drive.google.com/drive/folders/' + props.getProperty('DRIVE_FOLDER_ID'));
   console.log('plans: https://docs.google.com/spreadsheets/d/' + props.getProperty('PLANS_SHEET_ID'));
+  console.log('logs: https://docs.google.com/spreadsheets/d/' + props.getProperty('LOG_SHEET_ID'));
 }
