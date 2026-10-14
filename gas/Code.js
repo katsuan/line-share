@@ -30,8 +30,11 @@ const SHEET_NAME = 'plans';
 // シート「plans」の列。1行＝1人。plan が premium で、expiresAt が空か未来なら有償
 const COLUMNS = ['userHash', 'plan', 'source', 'expiresAt', 'stripeCustomerId', 'stripeSubscriptionId', 'note', 'updatedAt'];
 // 利用状況の記録の列。events は1行＝1つの出来事、daily は1行＝1日・1道具・1種類の件数
-const LOG_COLUMNS = ['receivedAt', 'at', 'event', 'tool', 'kind', 'count', 'inClient', 'message', 'session'];
-const DAILY_COLUMNS = ['date', 'tool', 'event', 'kind', 'events', 'sessions', 'inClient'];
+// from＝流入口（どこから来たか）、prev・step＝足跡（直前のページ・そのタブで何ページ目か）
+const LOG_COLUMNS = ['receivedAt', 'at', 'event', 'tool', 'kind', 'count', 'inClient', 'message', 'session', 'from', 'prev', 'step'];
+const DAILY_COLUMNS = ['date', 'tool', 'event', 'kind', 'events', 'sessions', 'inClient', 'from'];
+// paths は1行＝1日・1つの移り方（prev → tool）の回数。prev が空なら、そのタブで最初に開いたページ（入口）
+const PATH_COLUMNS = ['date', 'from', 'prev', 'tool', 'count'];
 const LOG_EVENTS = ['open', 'send', 'error'];
 const MAX_LOG_EVENTS = 50; // 1回に受け取る上限
 const DEFAULT_LOG_KEEP_DAYS = 30;
@@ -182,10 +185,12 @@ function log_(events) {
   const rows = events.slice(0, MAX_LOG_EVENTS)
     .filter(function (e) { return e && LOG_EVENTS.indexOf(e.event) !== -1; })
     .map(function (e) {
-      return [now, cut(e.at, 30), e.event, cut(e.tool, 20), cut(e.kind, 20), Number(e.count) || '', e.inClient ? 1 : 0, cut(e.message, 200), cut(e.session, 12)];
+      return [now, cut(e.at, 30), e.event, cut(e.tool, 20), cut(e.kind, 20), Number(e.count) || '', e.inClient ? 1 : 0, cut(e.message, 200), cut(e.session, 12),
+        cut(e.from, 20), cut(e.prev, 20), Number(e.step) || ''];
     });
   if (!rows.length) return { ok: true, count: 0 };
   const sheet = SpreadsheetApp.openById(id).getSheetByName('events');
+  ensureHeader_(sheet, LOG_COLUMNS);
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
@@ -194,6 +199,19 @@ function log_(events) {
     lock.releaseLock();
   }
   return { ok: true, count: rows.length };
+}
+
+// 列を足したとき、見出しの行を今の列にそろえる
+function ensureHeader_(sheet, columns) {
+  if (sheet.getLastColumn() < columns.length) sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
+}
+
+function sheetOf_(book, name, columns) {
+  const sheet = book.getSheetByName(name) || book.insertSheet(name);
+  if (sheet.getLastRow() === 0) sheet.appendRow(columns);
+  ensureHeader_(sheet, columns);
+  sheet.setFrozenRows(1);
+  return sheet;
 }
 
 /**
@@ -205,8 +223,9 @@ function rollupLogs() {
   const id = props.getProperty('LOG_SHEET_ID');
   if (!id) return;
   const book = SpreadsheetApp.openById(id);
-  const events = book.getSheetByName('events');
-  const daily = book.getSheetByName('daily');
+  const events = sheetOf_(book, 'events', LOG_COLUMNS);
+  const daily = sheetOf_(book, 'daily', DAILY_COLUMNS);
+  const paths = sheetOf_(book, 'paths', PATH_COLUMNS);
   const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
   const lastDone = props.getProperty('LOG_ROLLED_UP_TO') || '';
   const keepDays = Number(props.getProperty('LOG_KEEP_DAYS')) || DEFAULT_LOG_KEEP_DAYS;
@@ -216,23 +235,34 @@ function rollupLogs() {
   const values = lastRow >= 2 ? events.getRange(2, 1, lastRow - 1, LOG_COLUMNS.length).getValues() : [];
   const dayOf = function (row) { return Utilities.formatDate(new Date(row[0]), 'Asia/Tokyo', 'yyyy-MM-dd'); };
 
-  // 集計：今日より前で、まだ集計していない日だけ
+  // 集計：今日より前で、まだ集計していない日だけ。流入口（from）ごとに分ける
   const groups = {};
+  const moves = {};
   values.forEach(function (row) {
     const day = dayOf(row);
     if (day >= today || day <= lastDone) return;
-    const key = [day, row[3], row[2], row[4]].join('\t');
+    const from = row[9] || '';
+    const key = [day, row[3], row[2], row[4], from].join('\t');
     const g = groups[key] || (groups[key] = { events: 0, sessions: {}, inClient: 0 });
     g.events += 1;
     if (row[8]) g.sessions[row[8]] = true;
     if (row[6]) g.inClient += 1;
+    // 足跡：開いたページごとに「直前のページ → このページ」を数える
+    if (row[2] === 'open') {
+      const move = [day, from, row[10] || '', row[3]].join('\t');
+      moves[move] = (moves[move] || 0) + 1;
+    }
   });
   const out = Object.keys(groups).sort().map(function (key) {
     const parts = key.split('\t');
     const g = groups[key];
-    return [parts[0], parts[1], parts[2], parts[3], g.events, Object.keys(g.sessions).length, g.inClient];
+    return [parts[0], parts[1], parts[2], parts[3], g.events, Object.keys(g.sessions).length, g.inClient, parts[4]];
   });
   if (out.length) daily.getRange(daily.getLastRow() + 1, 1, out.length, DAILY_COLUMNS.length).setValues(out);
+  const pathRows = Object.keys(moves).sort().map(function (key) {
+    return key.split('\t').concat([moves[key]]);
+  });
+  if (pathRows.length) paths.getRange(paths.getLastRow() + 1, 1, pathRows.length, PATH_COLUMNS.length).setValues(pathRows);
   const yesterday = Utilities.formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000), 'Asia/Tokyo', 'yyyy-MM-dd');
   props.setProperty('LOG_ROLLED_UP_TO', yesterday);
 
@@ -356,6 +386,7 @@ function setup() {
     const logBook = SpreadsheetApp.create('おくるん 利用状況');
     logBook.getSheets()[0].setName('events').appendRow(LOG_COLUMNS);
     logBook.insertSheet('daily').appendRow(DAILY_COLUMNS);
+    logBook.insertSheet('paths').appendRow(PATH_COLUMNS);
     logBook.getSheets().forEach(function (sheet) { sheet.setFrozenRows(1); });
     props.setProperty('LOG_SHEET_ID', logBook.getId());
   }

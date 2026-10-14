@@ -123,7 +123,8 @@
           size: "xxs",
           color: "#9AA0A6",
           align: "center",
-          action: { type: "uri", label: "おくるん", uri: topUrl() }
+          // from=credit：受け取ったカードから来た人を数える（shared/log.js）
+          action: { type: "uri", label: "おくるん", uri: `${topUrl()}?from=credit` }
         }
       ]
     };

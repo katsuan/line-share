@@ -1,12 +1,16 @@
 // 利用状況とエラーの記録（どの道具・形式が使われているか、LINE の中で何が起きているかを知るため）。
 // 記録するのは「開いた」「送った」「エラー」だけで、LINE のユーザーIDなど個人がわかるものは入れない。
+// どの記録にも、流入口（from：どこから来たか）と足跡（step：そのタブで何ページ目か・prev：直前のページ）を付ける。
+//   from はタブで最初に開いたページで決め、以後は引き継ぐ。リンクの ?from=home などの目印 → 直前のサイト → direct の順
 // いくつかためて、ページが隠れる・閉じるときに GAS（gas/ の action: "log"）へまとめて送る。
 // config.js の logging を false にすると何も送らない。
 //
 // 使い方: LineShareLog.track("send", { tool: "card", kind: "vote", count: 2 })
 (function () {
   const config = window.LINE_SHARE_CONFIG || {};
-  const enabled = config.logging !== false && Boolean(config.gasWebAppUrl);
+  // LINE で開くと、まず HOME に liff.state 付きで届き、そこから各ツールへ移る。この中継は数えない
+  const relaying = new URLSearchParams(location.search).has("liff.state");
+  const enabled = config.logging !== false && Boolean(config.gasWebAppUrl) && !relaying;
   const MAX_PER_PAGE = 40; // 1ページで送る上限（エラーが続いても送りすぎない）
   const FLUSH_AT = 10;
   const TOOL = location.pathname.replace(/\/(index\.html)?$/, "").split("/").filter(Boolean).pop() || "home";
@@ -15,19 +19,55 @@
   let sentCount = 0;
   const seenErrors = new Set();
 
-  // そのタブの間だけの番号（同じ人が何回開いたかを数えるためではなく、1回の利用の中の出来事をまとめるため）
-  const session = (() => {
+  const read = (key) => {
     try {
-      let id = sessionStorage.getItem("line-share:session");
-      if (!id) {
-        id = Math.random().toString(36).slice(2, 10);
-        sessionStorage.setItem("line-share:session", id);
-      }
-      return id;
+      return sessionStorage.getItem(key);
     } catch {
-      return "";
+      return null;
     }
+  };
+  const write = (key, value) => {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // 覚えられなくても、このページの記録はできる
+    }
+  };
+
+  // そのタブの間だけの番号（同じ人が何回開いたかを数えるためではなく、1回の利用の中の出来事をまとめるため）
+  const session = read("line-share:session") || Math.random().toString(36).slice(2, 10);
+  write("line-share:session", session);
+
+  // 流入口：最初のページで決めて、そのタブの間は引き継ぐ
+  const from = (() => {
+    const saved = read("line-share:from");
+    if (saved || relaying) return saved || "";
+    const tag = new URLSearchParams(location.search).get("from");
+    let value = tag ? tag.replace(/[^\w-]/g, "").slice(0, 20) : "";
+    if (!value && document.referrer) {
+      try {
+        const ref = new URL(document.referrer);
+        // 同じサイトの中の移動は流入口にしない。katsuan.github.io はほかのツール（countdown など）と同じホストなので、
+        // パスの先頭（リポジトリ名）まで同じときだけ同じサイトとみなす
+        const top = (url) => url.pathname.split("/")[1] || "";
+        const sameSite = ref.host === location.host && (location.host !== "katsuan.github.io" || top(ref) === top(location));
+        if (!sameSite) value = `${ref.host}/${top(ref)}`.replace(/\/$/, "").slice(0, 20);
+      } catch {
+        // 読めなければ direct
+      }
+    }
+    value ||= "direct";
+    write("line-share:from", value);
+    return value;
   })();
+
+  // 足跡：このタブで何ページ目か・直前のページ（LIFF の入口からの中継は数えない）
+  const prev = read("line-share:last-page") || "";
+  const step = Number(read("line-share:step") || 0) + (relaying ? 0 : 1);
+  if (!relaying) {
+    write("line-share:step", String(step));
+    write("line-share:last-page", TOOL);
+  }
 
   const inClient = () => {
     try {
@@ -47,7 +87,10 @@
       count: count === "" ? "" : Number(count) || 0,
       message: String(message).slice(0, 200),
       inClient: inClient(),
-      session
+      session,
+      from,
+      prev: event === "open" ? prev : "",
+      step: event === "open" ? step : ""
     });
     if (queue.length >= FLUSH_AT) flush();
   }
@@ -87,5 +130,5 @@
     track("open");
   }
 
-  window.LineShareLog = { track, flush, error: trackError };
+  window.LineShareLog = { track, flush, error: trackError, from };
 })();

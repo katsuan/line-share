@@ -143,7 +143,9 @@ Render のローカルディスクは永続ではないため、保存した画�
 - 記録するのは「開いた（open）」「送った（send：道具・形式・枚数）」「エラー（error：内容と場所）」だけ。LINE のユーザーIDなど個人がわかるものは送らない。`session` はそのタブの間だけの番号
 - ページは10件ためるか、ページが隠れる・閉じるときに sendBeacon でまとめて送る（1ページ40件まで。同じエラーは1回だけ）。`config.js` の `logging: false` で止まる
 - GAS はスプレッドシート「おくるん 利用状況」（`LOG_SHEET_ID`。setup が作る）のシート `events` に1行ずつ書く
-- 毎日4時台（`rollupLogs`）：前日までの記録を日・道具・種類・形式ごとの件数（`daily`：events・sessions・LINE の中で開いた数）にまとめ、`LOG_KEEP_DAYS`（初期値30日）より古い `events` の行を消す。`daily` は消さない
+- 流入口（`from`）：タブで最初に開いたページで決め、以後は引き継ぐ。リンクの目印（HOME の入口＝`home`、送ったカードの「Created by」＝`credit`、記念日・カウントダウン＝`countdown`、ジェンダーリビール＝`gender-reveal`）→ 直前のサイト → `direct` の順。`from` はカードの中身のパラメータとしては読まない
+- 足跡：開くたびに `step`（そのタブで何ページ目か）と `prev`（直前のページ）を付ける。LINE で開いたときの HOME 経由の中継（`liff.state`）は数えない
+- 毎日4時台（`rollupLogs`）：前日までの記録を、日・道具・種類・形式・流入口ごとの件数（`daily`：events・sessions・LINE の中で開いた数・from）と、ページの移り方の回数（`paths`：date・from・prev → tool・count。prev が空ならそのタブの入口）にまとめ、`LOG_KEEP_DAYS`（初期値30日）より古い `events` の行を消す。`daily`・`paths` は消さない
 
 **Stripe（有償プランの支払い）**
 
