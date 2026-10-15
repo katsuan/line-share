@@ -1,11 +1,11 @@
 {
   "title": "ほかのツール",
   "items": [
-    { "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "キロっく", "en": "kiloQ", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/" },
-    { "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "en": "SAQSEN", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/" },
-    { "icon": "🍅", "appIcon": "https://katsuan.github.io/pomodoro/icon.svg", "name": "ぽもくる", "en": "PomoQ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
+    { "key": "kiloq", "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "キロっく", "en": "kiloQ", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/", "color": "#C96A2D", "image": "https://katsuan.github.io/line-workout-share/ogp.png", "lead": "筋トレの記録を、LINE にカードで送れる", "intro": "種目・重さ・回数を入れるだけ。推定 1RM も出て、よくやるメニューは保存しておけます。" },
+    { "key": "saqsen", "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "en": "SAQSEN", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/", "color": "#2E8B4A", "image": "https://katsuan.github.io/soccer/ogp.png", "lead": "スタメン・作戦・試合結果を、LINE にカードで送れる", "intro": "選手をピッチに並べて作戦盤に。スタメン発表や試合結果も、カードにしてチームに送れます。" },
+    { "key": "pomoq", "icon": "🍅", "appIcon": "https://katsuan.github.io/pomodoro/icon.svg", "name": "ぽもくる", "en": "PomoQ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/", "color": "#4D4D4D", "image": "https://katsuan.github.io/pomodoro/ogp.png", "lead": "集中と休憩を、くるくるくり返すタイマー", "intro": "時計の時刻に合わせて、作業 25 分・休憩 5 分をくり返すポモドーロタイマーです。" },
     { "icon": "👾", "name": "オセロ", "desc": "LINEの友だちと2人で対戦", "url": "https://katsuan.github.io/line-p2p-othello/" },
-    { "icon": "⏳", "appIcon": "https://katsuan.github.io/countdown/icon.svg", "name": "くろのす", "en": "Qronos", "desc": "記念日まであと何日？今日で何日目？を送る", "url": "https://katsuan.github.io/countdown/create.html" },
-    { "icon": "🐣", "appIcon": "https://katsuan.github.io/gender-reveal/icon.svg", "name": "ジェンダーリビール", "en": "BabyQ", "desc": "赤ちゃんの性別をプレゼント演出で発表", "url": "https://katsuan.github.io/gender-reveal/create.html" }
+    { "key": "qronos", "icon": "⏳", "appIcon": "https://katsuan.github.io/countdown/icon.svg", "name": "くろのす", "en": "Qronos", "desc": "記念日まであと何日？今日で何日目？を送る", "url": "https://katsuan.github.io/countdown/create.html", "color": "#6C47FF", "image": "https://katsuan.github.io/countdown/ogp.png", "lead": "記念日まで「あと何日？」をいつでも", "intro": "誕生日・記念日・旅行の日までを数えるページを作って、LINE にカードで送れます。" },
+    { "key": "babyq", "icon": "🐣", "appIcon": "https://katsuan.github.io/gender-reveal/icon.svg", "name": "ジェンダーリビール", "en": "BabyQ", "desc": "赤ちゃんの性別をプレゼント演出で発表", "url": "https://katsuan.github.io/gender-reveal/create.html", "color": "#9B7FD1", "image": "https://katsuan.github.io/gender-reveal/ogp-create.png", "lead": "赤ちゃんの性別を、プレゼントを開けて発表", "intro": "性別を選ぶだけで、家族に送れるドキドキの発表ページができます。" }
   ]
 }
