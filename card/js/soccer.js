@@ -89,6 +89,25 @@ function soccerEditorUrl() {
   return SOCCER_EDITOR_URL;
 }
 
+// ---- サッカーの道具へのリンク（スタメンのピッチ・試合結果をタップしたとき） ----
+// リンクを付けるかどうかはここだけで決める。あとで有償プランの「ツールへのリンクを外す」を足すときは、
+// shared/plan.js と gas/Code.js の PLANS に hideToolLink を足し、カードの設定（state.hideToolLink）を作れば、
+// ここが空を返してリンクと「タップすると…」の案内が消える
+const TOOL_LINK_FEATURE = "hideToolLink";
+const TOOL_TAP_HINT = { lineup: "ピッチをタップすると作戦盤が開きます", match: "タップすると作戦盤が開きます" };
+
+function soccerToolLinkShown() {
+  return !(state.hideToolLink && window.LineSharePlan?.has?.(TOOL_LINK_FEATURE));
+}
+
+// 部品に付けるリンク（付けないときは null）
+function soccerToolAction(uri) {
+  return soccerToolLinkShown() ? { type: "uri", label: "作戦盤を開く", uri } : null;
+}
+
+const toolTapHintEl = (kind) => (soccerToolLinkShown() ? [Object.assign(document.createElement("p"), { className: "sc-tap", textContent: TOOL_TAP_HINT[kind] })] : []);
+const toolTapHintFlex = (kind) => (soccerToolLinkShown() ? [{ type: "text", text: TOOL_TAP_HINT[kind], size: "xxs", color: "#9CA3AF", align: "center" }] : []);
+
 const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360);
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
@@ -149,7 +168,7 @@ function renderPitchPreview(palette) {
     if (isKeeper(lineup, index)) token.append(Object.assign(document.createElement("i"), { className: "sc-gk", textContent: "🧤" }));
     pitch.append(token);
   });
-  const parts = [pitch, Object.assign(document.createElement("p"), { className: "sc-tap", textContent: "ピッチをタップすると作戦盤が開きます" })];
+  const parts = [pitch, ...toolTapHintEl("lineup")];
   if (lineup.s) parts.push(Object.assign(document.createElement("p"), { className: "sc-subs", textContent: `控え：${lineup.s}` }));
   els.lineupArea.replaceChildren(...parts);
 }
@@ -192,7 +211,7 @@ function renderMatchPreview(palette) {
     ...goalLines(match).map((g) => Object.assign(document.createElement("li"), { className: g.side === "t" ? "is-them" : "", textContent: g.text }))
   );
   box.querySelector(".sc-mvp").textContent = match.mvp ? `🏅 MVP ${match.mvp}` : "";
-  els.matchArea.replaceChildren(box);
+  els.matchArea.replaceChildren(box, ...toolTapHintEl("match"));
 }
 
 const hasPair = (a, b) => a !== "" && b !== "";
@@ -377,8 +396,9 @@ function lineupFlex(palette) {
   // ピッチをタップすると、同じ選手・フォーメーション・色のままサッカーの作戦盤が開く。
   // LINE のリンクは 1000 文字までなので、収まらないときは作戦盤を開くだけにする
   const full = soccerEditorUrl();
-  pitch.action = { type: "uri", label: "作戦盤を開く", uri: full.length <= 1000 ? full : SOCCER_EDITOR_URL };
-  const parts = [pitch, { type: "text", text: "ピッチをタップすると作戦盤が開きます", size: "xxs", color: "#9CA3AF", align: "center" }];
+  const action = soccerToolAction(full.length <= 1000 ? full : SOCCER_EDITOR_URL);
+  if (action) pitch.action = action;
+  const parts = [pitch, ...toolTapHintFlex("lineup")];
   if (state.lineup.s) parts.push({ type: "text", text: `控え：${state.lineup.s}`, size: "xs", color: "#6B7280", wrap: true });
   return parts;
 }
@@ -420,5 +440,7 @@ function matchFlex(palette) {
     });
   }
   if (match.mvp) parts.push({ type: "text", text: `🏅 MVP ${match.mvp}`, size: "sm", weight: "bold", color: "#111827", align: "center", margin: "md" });
-  return parts;
+  // 結果のところ全体をタップすると、サッカーの道具（作戦盤）が開く。結果の中身は渡さない（直したり流用したりはしない想定）
+  const action = soccerToolAction(SOCCER_EDITOR_URL);
+  return [{ type: "box", layout: "vertical", spacing: "sm", contents: parts, ...(action ? { action } : {}) }, ...toolTapHintFlex("match")];
 }
