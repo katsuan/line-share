@@ -6,7 +6,7 @@
 //   <div data-tool-share></div>   … ボタンを置く場所（なければページの最後に置く）
 //   <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="kiloq" defer></script>
 //
-// 紹介の中身（名前・英字・色・画像・説明・URL）は data/hub-links.json の items（key が data-tool と同じもの）から読む。
+// 紹介の中身（名前・英字・色・OGP 画像・説明・URL）は data/hub-links.json の items（key が data-tool と同じもの）から読む。
 // HOME の「ほかのツール」と同じ1か所で直せる。どのツールも katsuan.github.io の下にあるので、そのまま読める。
 (function () {
   "use strict";
@@ -35,7 +35,7 @@
       actionUrl: tool.url,
       from: `${toolKey}-intro` // おくるん側で、どのツールの紹介から来たかを数える（流入口）
     });
-    if (tool.image) params.set("imageUrl", tool.image);
+    if (tool.ogp) params.set("imageUrl", tool.ogp);
     return `${CARD_URL}?${params}`;
   }
 
