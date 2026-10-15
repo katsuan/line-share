@@ -395,6 +395,14 @@
         text-align: center;
       }
 
+      /* ツールのアイコン画像（絵文字の代わり。絵文字と同じ幅の列に収める） */
+      .hub-link-app-icon {
+        display: block;
+        width: 30px;
+        height: 30px;
+        margin: 0 auto;
+      }
+
       .hub-link-name {
         display: block;
         font-size: 15px;
@@ -512,7 +520,7 @@
         const loadJson = (path) =>
           fetch(path, { cache: "no-cache" }).then((response) => (response.ok ? response.json() : Promise.reject(response.status)));
 
-        // row: { url, icon（絵文字）か image（画像の URL）, name, desc }
+        // row: { url, icon（絵文字）か appIcon（ツールのアイコン画像。絵文字と同じ大きさ）か image（大きめの画像の URL）, name, desc }
         function createRow(row) {
           const li = document.createElement("li");
           const link = document.createElement("a");
@@ -532,6 +540,20 @@
               fallback.className = "hub-link-icon";
               fallback.setAttribute("aria-hidden", "true");
               fallback.textContent = row.fallbackIcon || "😀";
+              mark.replaceWith(fallback);
+            });
+          } else if (row.appIcon) {
+            mark = document.createElement("img");
+            mark.className = "hub-link-app-icon";
+            mark.src = row.appIcon;
+            mark.alt = "";
+            mark.loading = "lazy";
+            // 読めないときは絵文字にする
+            mark.addEventListener("error", () => {
+              const fallback = document.createElement("span");
+              fallback.className = "hub-link-icon";
+              fallback.setAttribute("aria-hidden", "true");
+              fallback.textContent = row.icon || "🔗";
               mark.replaceWith(fallback);
             });
           } else {
