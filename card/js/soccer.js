@@ -36,7 +36,8 @@ const clampNum = (value, min, max) => Math.min(max, Math.max(min, Math.round(Num
 function sanitizeLineup(source) {
   if (!source || typeof source !== "object" || !Array.isArray(source.pl)) return null;
   const mode = source.m === "futsal" ? "futsal" : "soccer";
-  const players = source.pl.slice(0, mode === "futsal" ? 5 : 11).map((p) => ({
+  // 人数は変則（8人制・退場で10人・フットサルの交代込みなど）もあるので、どちらのピッチも 11 人まで
+  const players = source.pl.slice(0, 11).map((p) => ({
     number: cutText(Array.isArray(p) ? p[0] : "", 3),
     name: cutText(Array.isArray(p) ? p[1] : "", 8),
     x: clampNum(Array.isArray(p) ? p[2] : 50, 0, 100),
