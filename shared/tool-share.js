@@ -1,4 +1,4 @@
-// ほかのツール（さくせん盤・キロっく・ぽもくる・くろのす・ジェンダーリビール）に置く「📤 ○○を紹介する」の窓口。
+// ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -16,8 +16,17 @@
   if (!toolKey) return;
 
   const BASE = new URL("..", script.src); // https://katsuan.github.io/line-share/
-  const LIFF_ID = "2009927876-DioOJd0z"; // おくるんの LIFF（config.js の liffId と同じ）
-  const CARD_URL = `https://liff.line.me/${LIFF_ID}/card/`;
+
+  // おくるんのカードの入口（shared/oqrn.js）。ツールがまだ読んでいなければ、ここで読む
+  const oqrnReady = window.OQRN
+    ? Promise.resolve()
+    : new Promise((resolve, reject) => {
+        const tag = document.createElement("script");
+        tag.src = new URL("shared/oqrn.js", BASE).href;
+        tag.onload = resolve;
+        tag.onerror = reject;
+        document.head.appendChild(tag);
+      });
 
   // おくるんのお知らせカードを、ツールの紹介の中身を入れた状態で開く URL
   function cardUrl(tool) {
@@ -36,7 +45,7 @@
       from: `${toolKey}-intro` // おくるん側で、どのツールの紹介から来たかを数える（流入口）
     });
     if (tool.ogp) params.set("imageUrl", tool.ogp);
-    return `${CARD_URL}?${params}`;
+    return window.OQRN.cardUrl(params);
   }
 
   function injectStyle(color) {
@@ -144,8 +153,8 @@
     });
   }
 
-  fetch(new URL("data/hub-links.json", BASE), { cache: "no-cache" })
-    .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+  Promise.all([fetch(new URL("data/hub-links.json", BASE), { cache: "no-cache" }), oqrnReady])
+    .then(([response]) => (response.ok ? response.json() : Promise.reject(response.status)))
     .then((data) => {
       const tool = (data.items || []).find((item) => item && item.key === toolKey);
       if (!tool || !tool.url) return;
