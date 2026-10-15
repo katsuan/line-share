@@ -3,9 +3,9 @@
   "items": [
     { "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "キロっく", "en": "kiloQ", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/" },
     { "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "en": "SAQSEN", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/" },
-    { "icon": "🍅", "name": "ポモドーロ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
+    { "icon": "🍅", "appIcon": "https://katsuan.github.io/pomodoro/icon.svg", "name": "ぽもくる", "en": "PomoQ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
     { "icon": "👾", "name": "オセロ", "desc": "LINEの友だちと2人で対戦", "url": "https://katsuan.github.io/line-p2p-othello/" },
-    { "icon": "⏳", "name": "記念日・カウントダウン", "desc": "あと何日？今日で何日目？をLINEで送る", "url": "https://katsuan.github.io/countdown/create.html" },
-    { "icon": "🐣", "name": "ジェンダーリビール", "desc": "赤ちゃんの性別をプレゼント演出で発表", "url": "https://katsuan.github.io/gender-reveal/create.html" }
+    { "icon": "⏳", "appIcon": "https://katsuan.github.io/countdown/icon.svg", "name": "くろのす", "en": "Qronos", "desc": "記念日まであと何日？今日で何日目？を送る", "url": "https://katsuan.github.io/countdown/create.html" },
+    { "icon": "🐣", "appIcon": "https://katsuan.github.io/gender-reveal/icon.svg", "name": "ジェンダーリビール", "en": "BabyQ", "desc": "赤ちゃんの性別をプレゼント演出で発表", "url": "https://katsuan.github.io/gender-reveal/create.html" }
   ]
 }
