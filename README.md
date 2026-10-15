@@ -178,6 +178,7 @@ python3 tools/stamp.py
 |---|---|
 | `data/line-emoji.json` | トップの「LINE絵文字」。`title`・`lead`、`items`（`id`＝LINE STORE の URL の `product/` のあと、`name`、`desc`）、`author`（`id`＝`author/` のあと、`name`）。リンクと画像は ID から作る（`url`・`image` を書くとそちらを使う） |
 | `data/hub-links.json` | トップの「ほかのツール」。`title`、`items`（`icon`・`name`・`desc`・`url`。`appIcon` にツールのアイコン画像の URL を入れると絵文字の代わりに出す。読めないときは `icon`。`en` に英字の名前を入れると、名前の右に「さくせん盤 〜SAQSEN〜」のように小さく添える。`ogp` は共有画像。`ogp` があるツールはタップするとまず画像と説明のカード（「○○を開く」）を出す。紹介カードの写真にも使う、`key`・`color`・`lead`・`intro` は下の紹介の窓口が使う） |
+| `shared/oqrn.js` | ほかのツール（さくせん盤・くろのす・ジェンダーリビール・くじ）から、おくるんのお知らせカードを開く入口。LIFF ID とカードの URL はここ1か所（config.js の liffId と同じ値）。`OQRN.cardUrl({ … })` で中身を入れたカードの URL を作る。各ツールは自分の script より前に `<script src="https://katsuan.github.io/line-share/shared/oqrn.js">` で読む |
 | `shared/tool-share.js` | ほかのツールに置く「📤 ○○を紹介する」の窓口。`<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="<key>" defer>` と `<div data-tool-share></div>`（置き場所。なければページの最後）で使う。押すとシートで「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。カードはお知らせカード（`/card/`）に、`data/hub-links.json` の同じ `key` の中身（名前・英字・ツールの色・OGP 画像・説明・URL）を渡して作る。流入口は `from=<key>-intro`
 | `data/templates.json` | テンプレートと候補。`card`＝お知らせカードのテンプレート（`key`・`label`・`icon`・`description`・`status`・`state`。`"{top}"` はおくるんのトップの URL に置き換わる）、`place.presets`＝場所のテンプレート、`place.badges`＝バッジの候補、`text`＝文字・手書きの「よく使う文字」 |
 
@@ -193,6 +194,8 @@ python3 tools/ogp.py     # shared/ogp.png（リンク共有時の画像・お知
 ```
 
 macOS のヒラギノ角ゴシック、ロゴの字形に Jua（SIL Open Font License 1.1。`~/Library/Fonts/Jua.ttf`）、Pillow・fontTools を使います。
+
+`tools/brandkit.py` は、Q のツール（ぽもくる・くろのす・ジェンダーリビール・ひっくり・くじ）のアイコン・ロゴ・OGP を描く共通のスクリプト。各ツールの `tools/icon.py` が、となり（`~/GitHub/line-share`）のこのファイルを読む（`tools/brandkit_path.py`）。直すのはここだけでよい。
 
 ## ローカルでの確認
 
