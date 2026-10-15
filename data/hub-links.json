@@ -1,7 +1,7 @@
 {
   "title": "ほかのツール",
   "items": [
-    { "icon": "🏋️", "name": "ワークアウト共有", "desc": "トレーニング内容をまとめてLINEで送る", "url": "https://katsuan.github.io/line-workout-share/" },
+    { "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "きろく", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/" },
     { "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/" },
     { "icon": "🍅", "name": "ポモドーロ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
     { "icon": "👾", "name": "オセロ", "desc": "LINEの友だちと2人で対戦", "url": "https://katsuan.github.io/line-p2p-othello/" },
