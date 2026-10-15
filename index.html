@@ -126,12 +126,12 @@
       .hub-logo {
         display: block;
         width: auto;
-        height: 20px;
+        height: 26px; /* 名前の字の高さにそろえる */
         margin-left: 2px;
       }
 
-      /* とても狭い画面（320px など）では、シェアが押しつぶされないよう英字のロゴを省く */
-      @media (max-width: 350px) {
+      /* 狭い画面（360px 以下）では、シェアが押しつぶされないよう英字のロゴを省く */
+      @media (max-width: 370px) {
         .hub-logo {
           display: none;
         }
@@ -476,7 +476,7 @@
   <body>
     <main id="hub" class="ls-page">
       <div class="hub-head">
-        <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="66" height="20" /></h1>
+        <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="86" height="26" /></h1>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
       </div>
       <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
