@@ -9,7 +9,6 @@
 //           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
 const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
-const GK_COLOR = "#F5A524";
 const PITCH_COLOR = "#2E8B4A";
 const LINE_COLOR = "#FFFFFFAA";
 
@@ -94,14 +93,14 @@ const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360);
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
 
-// 選手の丸の色（チームの色。GK は見分けやすいオレンジ、チームがオレンジ系なら黒）と、その上の背番号の色
+// 選手の丸の色（チームの色。GK も同じ色で、丸の右下に 🧤 を付けて見分ける）と、その上の背番号の色
 const isLightColor = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
 };
 function tokenColors(lineup, index, palette) {
   const team = lineup.c || palette.start;
-  const fill = isKeeper(lineup, index) ? (["#f97316", GK_COLOR.toLowerCase()].includes(team.toLowerCase()) ? "#1F2937" : GK_COLOR) : team;
+  const fill = team;
   const light = isLightColor(fill);
   return { fill, text: light ? "#23302A" : "#FFFFFF", border: light ? "#23302A" : "#FFFFFF" };
 }
@@ -147,6 +146,7 @@ function renderPitchPreview(palette) {
     const name = document.createElement("small");
     name.textContent = p.name || "";
     token.append(number, name);
+    if (isKeeper(lineup, index)) token.append(Object.assign(document.createElement("i"), { className: "sc-gk", textContent: "🧤" }));
     pitch.append(token);
   });
   const parts = [pitch, Object.assign(document.createElement("p"), { className: "sc-tap", textContent: "ピッチをタップすると作戦盤が開きます" })];
@@ -313,18 +313,7 @@ function pitchFlex(lineup, palette) {
     offsetTop: `${Math.round(Math.min(height - 40, Math.max(0, (p.y / 100) * height - 18)))}px`,
     alignItems: "center",
     contents: [
-      {
-        type: "box",
-        layout: "vertical",
-        width: "24px",
-        height: "24px",
-        cornerRadius: "12px",
-        backgroundColor: tokenColors(lineup, index, palette).fill,
-        borderWidth: "1px",
-        borderColor: tokenColors(lineup, index, palette).border,
-        justifyContent: "center",
-        contents: [{ type: "text", text: p.number || " ", size: "xxs", color: tokenColors(lineup, index, palette).text, weight: "bold", align: "center" }]
-      },
+      isKeeper(lineup, index) ? keeperFlex(tokenFlex(lineup, index, p, palette)) : tokenFlex(lineup, index, p, palette),
       { type: "text", text: p.name || " ", size: "xxs", color: "#FFFFFF", weight: "bold", align: "center", margin: "xs" }
     ]
   }));
@@ -335,6 +324,49 @@ function pitchFlex(lineup, palette) {
     backgroundColor: PITCH_COLOR,
     cornerRadius: "12px",
     contents: [...lines, ...players]
+  };
+}
+
+// 選手の丸（背番号）
+function tokenFlex(lineup, index, p, palette) {
+  const colors = tokenColors(lineup, index, palette);
+  return {
+    type: "box",
+    layout: "vertical",
+    width: "24px",
+    height: "24px",
+    cornerRadius: "12px",
+    backgroundColor: colors.fill,
+    borderWidth: "1px",
+    borderColor: colors.border,
+    justifyContent: "center",
+    contents: [{ type: "text", text: p.number || " ", size: "xxs", color: colors.text, weight: "bold", align: "center" }]
+  };
+}
+
+// GK：丸の右下に白い丸の 🧤。入れ物からはみ出すと切れるので、丸より少し広い入れ物に重ねる
+function keeperFlex(token) {
+  return {
+    type: "box",
+    layout: "vertical",
+    width: "38px",
+    height: "28px",
+    contents: [
+      Object.assign(token, { position: "absolute", offsetStart: "7px", offsetTop: "0px" }),
+      {
+        type: "box",
+        layout: "vertical",
+        position: "absolute",
+        offsetStart: "23px",
+        offsetTop: "13px",
+        width: "15px",
+        height: "15px",
+        cornerRadius: "8px",
+        backgroundColor: "#FFFFFF",
+        justifyContent: "center",
+        contents: [{ type: "text", text: "🧤", size: "xxs", align: "center" }]
+      }
+    ]
   };
 }
 
