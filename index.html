@@ -47,6 +47,8 @@
 
       /* 右上のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
       .hub-share {
+        flex: 0 0 auto;
+        white-space: nowrap;
         display: inline-flex;
         align-items: center;
         gap: 4px;
@@ -86,17 +88,30 @@
         font-weight: 500;
       }
 
-      /* ロゴ（OQRN）の横に読み方を添える。初めての人にも「おくるん」と読めるように */
+      /* 見出しは、ほかのツール（さくせん盤・キロっくなど）と同じく アイコン＋名前、横に小さく英字のロゴ（OQRN） */
+      .hub-icon {
+        display: block;
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+      }
+
+      .hub-name {
+        white-space: nowrap;
+      }
+
       .hub-logo {
         display: block;
         width: auto;
-        height: 34px;
+        height: 20px;
+        margin-left: 2px;
       }
 
-      .hub-reading {
-        color: var(--ls-subtext);
-        font-size: 15px;
-        font-weight: 700;
+      /* とても狭い画面（320px など）では、シェアが押しつぶされないよう英字のロゴを省く */
+      @media (max-width: 350px) {
+        .hub-logo {
+          display: none;
+        }
       }
 
       .hub-lead strong {
@@ -438,7 +453,7 @@
   <body>
     <main id="hub" class="ls-page">
       <div class="hub-head">
-        <h1 class="hub-title"><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="113" height="34" /><span class="hub-reading">おくるん</span></h1>
+        <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="66" height="20" /></h1>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
       </div>
       <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
