@@ -94,7 +94,7 @@ function soccerEditorUrl() {
 // shared/plan.js と gas/Code.js の PLANS に hideToolLink を足し、カードの設定（state.hideToolLink）を作れば、
 // ここが空を返してリンクと「タップすると…」の案内が消える
 const TOOL_LINK_FEATURE = "hideToolLink";
-const TOOL_NAME = "さくせん盤"; // SAQSEN by おくるん
+const TOOL_NAME = "さくせん盤"; // SAQSEN
 const TOOL_TAP_HINT = { lineup: `ピッチをタップすると ${TOOL_NAME} が開きます`, match: `タップすると ${TOOL_NAME} が開きます` };
 
 function soccerToolLinkShown() {
