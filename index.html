@@ -68,6 +68,29 @@
         gap: 8px;
       }
 
+      /* ほかのツールをタップしたときのカード：共有画像（OGP）・名前・説明と「開く」 */
+      .tool-ogp {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1200 / 630;
+        object-fit: cover;
+        border-radius: var(--ls-radius-md);
+        background: var(--ls-line);
+      }
+
+      .tool-lead {
+        margin: -4px 0 0;
+        color: var(--ls-subtext);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .tool-open {
+        text-align: center;
+        text-decoration: none;
+      }
+
       .share-option {
         display: grid;
         gap: 2px;
@@ -518,6 +541,17 @@
       </div>
     </div>
 
+    <!-- ほかのツールをタップしたときのカード（下のスクリプトが中身を入れる） -->
+    <div id="toolSheet" class="ls-sheet" hidden>
+      <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="toolTitle">
+        <img id="toolOgp" class="tool-ogp" alt="" width="1200" height="630" />
+        <p id="toolTitle" class="ls-sheet-title"></p>
+        <p id="toolLead" class="tool-lead"></p>
+        <a id="toolOpen" class="ls-button is-primary is-block tool-open" href="#"></a>
+        <button id="toolClose" class="ls-sheet-cancel" type="button">閉じる</button>
+      </div>
+    </div>
+
     <script>
       // https://liff.line.me/<LIFF ID>/plan/ のようなリンクは、まずこのトップに liff.state 付きで届く。
       // liff.init() が該当ツールのページへ転送する。
@@ -608,9 +642,49 @@
           arrow.setAttribute("aria-hidden", "true");
           arrow.textContent = "↗";
           link.append(mark, text, arrow);
+          // 共有画像（ogp）があるツールは、いきなり開かずに、まず画像と説明のカードを出す（そこから「開く」）
+          if (row.ogp) {
+            link.addEventListener("click", (event) => {
+              event.preventDefault();
+              openToolSheet(row, link);
+            });
+          }
           li.append(link);
           return li;
         }
+
+        // ほかのツールのカード：共有画像・名前（英字）・説明と「○○を開く」
+        const toolSheet = document.getElementById("toolSheet");
+        let toolOpener = null;
+        function openToolSheet(row, opener) {
+          toolOpener = opener;
+          const ogp = document.getElementById("toolOgp");
+          ogp.src = row.ogp;
+          ogp.alt = `${row.name}の紹介画像`;
+          document.getElementById("toolTitle").textContent = row.en ? `${row.name} 〜${row.en}〜` : row.name;
+          const lead = document.getElementById("toolLead");
+          // 見出しの一文（lead）と説明（intro）を「。」でつなぐ
+          lead.textContent = [row.lead, row.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + (row.lead || row.intro ? "。" : "") || row.desc || "";
+          const open = document.getElementById("toolOpen");
+          open.href = row.url;
+          open.textContent = `${row.name}を開く ↗`;
+          // 「開く」はツールの色（紹介カードと同じ）
+          open.style.background = row.color || "";
+          open.style.borderColor = row.color || "";
+          toolSheet.hidden = false;
+          open.focus();
+        }
+        function closeToolSheet() {
+          toolSheet.hidden = true;
+          toolOpener?.focus();
+        }
+        document.getElementById("toolClose").addEventListener("click", closeToolSheet);
+        toolSheet.addEventListener("click", (event) => {
+          if (event.target === toolSheet) closeToolSheet();
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !toolSheet.hidden) closeToolSheet();
+        });
 
         function fill({ section, title, lead, list }, data, rows) {
           if (!rows.length) return;
