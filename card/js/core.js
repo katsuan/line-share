@@ -26,7 +26,7 @@ const KINDS = {
   checklist: { label: "✅ チェックリスト", title: "チェックリスト", item: "項目", min: 1, max: 20, list: true },
   ticket: { label: "🎫 チケット", title: "チケット" },
   coupon: { label: "🎟️ クーポン", title: "クーポン" },
-  // サッカーの道具（別のツール）から渡されたときだけ使う形式。形式の切り替えには、その形式のカードのときだけ出す
+  // さくせん盤（別のツール）から渡されたときだけ使う形式。形式の切り替えには、その形式のカードのときだけ出す
   lineup: { label: "⚽ スタメン", title: "スタメン", external: true },
   match: { label: "🏆 試合結果", title: "試合結果", external: true }
 };
