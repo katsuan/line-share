@@ -1,8 +1,8 @@
 {
   "title": "ほかのツール",
   "items": [
-    { "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "きろく", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/" },
-    { "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/" },
+    { "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "キロっく", "en": "kiloQ", "desc": "筋トレの種目・重さ・回数を記録して送る", "url": "https://katsuan.github.io/line-workout-share/" },
+    { "icon": "⚽", "appIcon": "https://katsuan.github.io/soccer/icon.svg", "name": "さくせん盤", "en": "SAQSEN", "desc": "サッカーのスタメン・作戦・結果を送る", "url": "https://katsuan.github.io/soccer/" },
     { "icon": "🍅", "name": "ポモドーロ", "desc": "集中と休憩をくり返すタイマー", "url": "https://katsuan.github.io/pomodoro/" },
     { "icon": "👾", "name": "オセロ", "desc": "LINEの友だちと2人で対戦", "url": "https://katsuan.github.io/line-p2p-othello/" },
     { "icon": "⏳", "name": "記念日・カウントダウン", "desc": "あと何日？今日で何日目？をLINEで送る", "url": "https://katsuan.github.io/countdown/create.html" },
