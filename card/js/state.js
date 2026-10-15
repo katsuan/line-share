@@ -67,7 +67,7 @@ function getQueryState() {
     badges: params.getAll("badge"),
     buttons: [],
     kind: get("kind"),
-    // サッカーの道具から渡される中身（?kind=lineup|match&data=…）
+    // さくせん盤（サッカーのツール）から渡される中身（?kind=lineup|match&data=…）
     lineup: get("kind") === "lineup" ? decodeSoccerData(get("data")) : null,
     match: get("kind") === "match" ? decodeSoccerData(get("data")) : null,
     items: params.getAll("item")

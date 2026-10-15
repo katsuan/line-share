@@ -1,7 +1,7 @@
 // お知らせカード：サッカー・フットサルの形式（スタメン・試合結果）。
-// 作るのは別のツール（サッカーの道具。SOCCER_EDITOR_URL）で、ここへは ?kind=lineup|match&data=<JSON を base64url> で渡される。
+// 作るのは別のツール（さくせん盤。SOCCER_EDITOR_URL）で、ここへは ?kind=lineup|match&data=<JSON を base64url> で渡される。
 // ここでは中身を確かめて（数・長さ・位置の範囲）、ピッチの図・スコアをプレビューと送るカード（Flex）にする。
-// 選手の配置などを直すときは「配置を直す」で同じ中身のままサッカーの道具に戻る。
+// 選手の配置などを直すときは「さくせん盤で直す」で同じ中身のままさくせん盤に戻る。
 //
 // data の形（キーは短くしてリンクを短くする）
 //   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
@@ -82,19 +82,20 @@ function matchToData(match) {
   return { ...match, g: match.g.map((g) => [g.side, g.min, g.name]) };
 }
 
-/** サッカーの道具に、今の中身のまま戻るリンク */
+/** さくせん盤に、今の中身のまま戻るリンク */
 function soccerEditorUrl() {
   if (state.kind === "lineup" && state.lineup) return `${SOCCER_EDITOR_URL}?tab=lineup&data=${encodeSoccerData(lineupToData(state.lineup))}`;
   if (state.kind === "match" && state.match) return `${SOCCER_EDITOR_URL}?tab=result&data=${encodeSoccerData(matchToData(state.match))}`;
   return SOCCER_EDITOR_URL;
 }
 
-// ---- サッカーの道具へのリンク（スタメンのピッチ・試合結果をタップしたとき） ----
+// ---- さくせん盤へのリンク（スタメンのピッチ・試合結果をタップしたとき） ----
 // リンクを付けるかどうかはここだけで決める。あとで有償プランの「ツールへのリンクを外す」を足すときは、
 // shared/plan.js と gas/Code.js の PLANS に hideToolLink を足し、カードの設定（state.hideToolLink）を作れば、
 // ここが空を返してリンクと「タップすると…」の案内が消える
 const TOOL_LINK_FEATURE = "hideToolLink";
-const TOOL_TAP_HINT = { lineup: "ピッチをタップすると作戦盤が開きます", match: "タップすると作戦盤が開きます" };
+const TOOL_NAME = "さくせん盤"; // SAQSEN by おくるん
+const TOOL_TAP_HINT = { lineup: `ピッチをタップすると ${TOOL_NAME} が開きます`, match: `タップすると ${TOOL_NAME} が開きます` };
 
 function soccerToolLinkShown() {
   return !(state.hideToolLink && window.LineSharePlan?.has?.(TOOL_LINK_FEATURE));
@@ -102,7 +103,7 @@ function soccerToolLinkShown() {
 
 // 部品に付けるリンク（付けないときは null）
 function soccerToolAction(uri) {
-  return soccerToolLinkShown() ? { type: "uri", label: "作戦盤を開く", uri } : null;
+  return soccerToolLinkShown() ? { type: "uri", label: `${TOOL_NAME}を開く`, uri } : null;
 }
 
 const toolTapHintEl = (kind) => (soccerToolLinkShown() ? [Object.assign(document.createElement("p"), { className: "sc-tap", textContent: TOOL_TAP_HINT[kind] })] : []);
@@ -138,7 +139,7 @@ function renderSoccerPreview(palette) {
 function renderPitchPreview(palette) {
   const lineup = state.lineup;
   if (!lineup) {
-    els.lineupArea.replaceChildren(Object.assign(document.createElement("p"), { className: "sc-empty", textContent: "サッカーの道具で選手を並べてから開いてください。" }));
+    els.lineupArea.replaceChildren(Object.assign(document.createElement("p"), { className: "sc-empty", textContent: `${TOOL_NAME}で選手を並べてから開いてください。` }));
     return;
   }
   const pitch = document.createElement("div");
@@ -176,7 +177,7 @@ function renderPitchPreview(palette) {
 function renderMatchPreview(palette) {
   const match = state.match;
   if (!match) {
-    els.matchArea.replaceChildren(Object.assign(document.createElement("p"), { className: "sc-empty", textContent: "サッカーの道具で結果を入れてから開いてください。" }));
+    els.matchArea.replaceChildren(Object.assign(document.createElement("p"), { className: "sc-empty", textContent: `${TOOL_NAME}で結果を入れてから開いてください。` }));
     return;
   }
   const sides = matchSides(match, palette);
@@ -394,7 +395,7 @@ function lineupFlex(palette) {
   if (!state.lineup) return [];
   const pitch = pitchFlex(state.lineup, palette);
   // ピッチをタップすると、同じ選手・フォーメーション・色のままサッカーの作戦盤が開く。
-  // LINE のリンクは 1000 文字までなので、収まらないときは作戦盤を開くだけにする
+  // LINE のリンクは 1000 文字までなので、収まらないときはさくせん盤を開くだけにする
   const full = soccerEditorUrl();
   const action = soccerToolAction(full.length <= 1000 ? full : SOCCER_EDITOR_URL);
   if (action) pitch.action = action;
@@ -440,7 +441,7 @@ function matchFlex(palette) {
     });
   }
   if (match.mvp) parts.push({ type: "text", text: `🏅 MVP ${match.mvp}`, size: "sm", weight: "bold", color: "#111827", align: "center", margin: "md" });
-  // 結果のところ全体をタップすると、サッカーの道具（作戦盤）が開く。結果の中身は渡さない（直したり流用したりはしない想定）
+  // 結果のところ全体をタップすると、さくせん盤が開く。結果の中身は渡さない（直したり流用したりはしない想定）
   const action = soccerToolAction(SOCCER_EDITOR_URL);
   return [{ type: "box", layout: "vertical", spacing: "sm", contents: parts, ...(action ? { action } : {}) }, ...toolTapHintFlex("match")];
 }
