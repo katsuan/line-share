@@ -409,6 +409,14 @@
         font-weight: 700;
       }
 
+      .hub-link-en {
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
       .hub-link-desc {
         display: block;
         color: var(--ls-subtext);
@@ -520,7 +528,8 @@
         const loadJson = (path) =>
           fetch(path, { cache: "no-cache" }).then((response) => (response.ok ? response.json() : Promise.reject(response.status)));
 
-        // row: { url, icon（絵文字）か appIcon（ツールのアイコン画像。絵文字と同じ大きさ）か image（大きめの画像の URL）, name, desc }
+        // row: { url, icon（絵文字）か appIcon（ツールのアイコン画像。絵文字と同じ大きさ）か image（大きめの画像の URL）, name, en, desc }
+        //   en：英字の名前（おくるん＝OQRN のように名前に英字表記があるツール）。名前の右に「〜kiloQ〜」と小さく添える
         function createRow(row) {
           const li = document.createElement("li");
           const link = document.createElement("a");
@@ -566,6 +575,12 @@
           const name = document.createElement("span");
           name.className = "hub-link-name";
           name.textContent = row.name || "";
+          if (row.en) {
+            const en = document.createElement("span");
+            en.className = "hub-link-en";
+            en.textContent = "〜" + row.en + "〜";
+            name.append(" ", en);
+          }
           text.append(name);
           if (row.desc) {
             const desc = document.createElement("span");
