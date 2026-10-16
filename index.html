@@ -79,6 +79,14 @@
         background: var(--ls-line);
       }
 
+      /* キャッチコピー（hub-links.json の copy）。ツールの色で、名前のすぐ下に */
+      .tool-copy {
+        margin: -6px 0 0;
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.5;
+      }
+
       .tool-lead {
         margin: -4px 0 0;
         color: var(--ls-subtext);
@@ -546,6 +554,7 @@
       <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="toolTitle">
         <img id="toolOgp" class="tool-ogp" alt="" width="1200" height="630" />
         <p id="toolTitle" class="ls-sheet-title"></p>
+        <p id="toolCopy" class="tool-copy" hidden></p>
         <p id="toolLead" class="tool-lead"></p>
         <a id="toolOpen" class="ls-button is-primary is-block tool-open" href="#"></a>
         <button id="toolClose" class="ls-sheet-cancel" type="button">閉じる</button>
@@ -662,6 +671,10 @@
           ogp.src = row.ogp;
           ogp.alt = `${row.name}の紹介画像`;
           document.getElementById("toolTitle").textContent = row.en ? `${row.name} 〜${row.en}〜` : row.name;
+          const copy = document.getElementById("toolCopy");
+          copy.textContent = row.copy || "";
+          copy.hidden = !row.copy;
+          copy.style.color = row.color || "";
           const lead = document.getElementById("toolLead");
           // 見出しの一文（lead）と説明（intro）を「。」でつなぐ
           lead.textContent = [row.lead, row.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + (row.lead || row.intro ? "。" : "") || row.desc || "";

@@ -6,7 +6,7 @@
 //   <div data-tool-share></div>   … ボタンを置く場所（なければページの最後に置く）
 //   <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="kiloq" defer></script>
 //
-// 紹介の中身（名前・英字・色・OGP 画像・説明・URL）は data/hub-links.json の items（key が data-tool と同じもの）から読む。
+// 紹介の中身（名前・英字・キャッチコピー・色・OGP 画像・説明・URL）は data/hub-links.json の items（key が data-tool と同じもの）から読む。
 // HOME の「ほかのツール」と同じ1か所で直せる。どのツールも katsuan.github.io の下にあるので、そのまま読める。
 (function () {
   "use strict";
@@ -35,8 +35,9 @@
       headerTitle: tool.name,
       date: tool.en ? `〜${tool.en}〜` : "",
       showDate: tool.en ? "true" : "false",
-      title: tool.lead || tool.desc || "",
-      detail: tool.intro || "",
+      // 見出しはキャッチコピー（なければ一文の説明）。説明は本文へ
+      title: tool.copy || tool.lead || tool.desc || "",
+      detail: (tool.copy ? [tool.lead, tool.intro] : [tool.intro]).filter(Boolean).join("\n"),
       theme: "custom",
       customColor: tool.color || "#6C47FF",
       showAction: "true",
@@ -64,7 +65,7 @@
       .oqrn-sheet[hidden] { display: none; }
       .oqrn-sheet-card {
         display: grid; gap: 10px; width: min(100%, 440px); padding: 20px; border-radius: 22px;
-        background: #fff; color: #23211c; font-family: inherit; text-align: left;
+        background: #fff; color: #23211c; font-family: inherit; font-size: 15px; line-height: 1.5; text-align: left; /* 置いた先のページの文字の大きさを受け継がない（ぽもくるは画面基準の大きな字） */
       }
       .oqrn-sheet-title { margin: 0; font-size: 17px; font-weight: 800; }
       .oqrn-sheet-option {
@@ -76,7 +77,7 @@
       .oqrn-sheet-option small { color: #6b6860; font-size: 13px; font-weight: 500; }
       .oqrn-sheet-status { min-height: 1em; margin: 0; color: #6b6860; font-size: 13px; }
       .oqrn-sheet-close {
-        min-height: 44px; border: 0; background: transparent; color: #6b6860; font: inherit; font-weight: 700; cursor: pointer;
+        min-height: 44px; border: 0; background: transparent; color: #6b6860; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
       }
     `;
     document.head.appendChild(style);
