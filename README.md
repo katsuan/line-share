@@ -195,7 +195,7 @@ python3 tools/ogp.py     # shared/ogp.png（リンク共有時の画像・お知
 
 macOS のヒラギノ角ゴシック、ロゴの字形に Jua（SIL Open Font License 1.1。`~/Library/Fonts/Jua.ttf`）、Pillow・fontTools を使います。
 
-`tools/brandkit.py` は、Q のツール（ぽもくる・くろのす・ジェンダーリビール・ひっくり・くじ）のアイコン・ロゴ・OGP を描く共通のスクリプト。各ツールの `tools/icon.py` が、となり（`~/GitHub/line-share`）のこのファイルを読む（`tools/brandkit_path.py`）。直すのはここだけでよい。
+`tools/brandkit.py` は、Q のツール（ぽもくる・くろのす・ジェンダーリビール・ひっくり・くじ）のアイコン・ロゴ・OGP を描く共通のスクリプト。各ツールの `tools/icon.py` が、となり（`~/GitHub/q-oqrn`。ローカルのフォルダ名）のこのファイルを読む（`tools/brandkit_path.py`）。直すのはここだけでよい。
 
 ## ローカルでの確認
 
