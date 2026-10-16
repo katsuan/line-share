@@ -21,7 +21,7 @@ let mode = "";
 let inClient = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  for (const id of ["replyText", "replyNote", "status", "copyButton", "sendButton", "choiceArea", "choiceTitle", "choices"]) {
+  for (const id of ["replyText", "replyNote", "status", "outsideHelp", "copyButton", "sendButton", "choiceArea", "choiceTitle", "choices"]) {
     els[id] = document.getElementById(id);
   }
   const params = new URLSearchParams(location.search);
@@ -89,6 +89,12 @@ async function prepare() {
   if (!ready || !liff.isInClient()) {
     setStatus("LINEアプリのトークから開くと送れます。ここではコピーだけできます。");
     els.replyNote.hidden = true;
+    // ブラウザで開いたとき：同じ候補のまま LINE アプリで開き直せるようにする（返事はトークを選ぶので、ログインでは送れない）
+    const helped = window.LineShareLiff.outsideHelp(els.outsideHelp, {
+      appUrl: () => window.LineShareLiff.appUrl(`/reply/${location.search}`),
+      canLogin: false
+    });
+    if (helped) setStatus("ここではコピーだけできます。");
     return;
   }
   inClient = true;

@@ -179,6 +179,15 @@ async function initLiff() {
     setStatus(MESSAGES[reason] || MESSAGES.failed, true);
   }
   updateShareButtonState();
+  // LINE の外で開いて送り先を選べないとき：ログインして送るか、LINE アプリで開き直す（作っていた中身は持っていく）
+  if (!ready || !window.LineShareLiff.canShare()) {
+    window.LineShareLiff.outsideHelp(els.outsideHelp, {
+      appUrl: carriedDeckUrl,
+      loginUrl: loginReturnUrl,
+      beforeLogin: keepDeckForLogin,
+      canLogin: ready
+    });
+  }
 }
 
 function jumpToSection(id, focusTarget) {

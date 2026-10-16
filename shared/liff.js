@@ -91,5 +91,66 @@
     return Boolean(result) && (!result.status || result.status === "success");
   }
 
-  window.LineShareLiff = { init, canShare, share, MESSAGES };
+  // ---- LINE の外で開いたとき（送り先選びが使えないとき）の案内 ----
+  // ブラウザで開いたときは「このブラウザのまま LINE でログインする」か「LINE アプリで開き直す」のどちらかで送れるようにする。
+  // （キロっくと同じ考え方。LINE アプリの中で送れないときはログインでは直らないので、案内は出さない）
+
+  function environment() {
+    try {
+      return { inClient: Boolean(window.liff?.isInClient?.()), loggedIn: Boolean(window.liff?.isLoggedIn?.()) };
+    } catch {
+      return { inClient: false, loggedIn: false };
+    }
+  }
+
+  // LINE アプリで開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
+  function appUrl(path = "") {
+    const liffId = window.LINE_SHARE_CONFIG?.liffId;
+    return liffId ? `https://liff.line.me/${liffId}${path}` : "";
+  }
+
+  /**
+   * 送るボタンの上などに案内を出す。
+   *   host        案内を入れる要素
+   *   appUrl()    LINE アプリで開く URL（押した瞬間の中身で作る）
+   *   loginUrl()  ログインのあとに戻る URL（省略時は今のページ）
+   *   beforeLogin() ログインの行き来の前に、入力中の中身を残す
+   *   canLogin    LIFF の準備ができたときだけ true（準備できないとログインも始められない）
+   * LINE アプリの中で開いているときは何も出さず false を返す
+   */
+  function outsideHelp(host, { appUrl: getAppUrl, loginUrl, beforeLogin, canLogin = true } = {}) {
+    const env = environment();
+    if (!host || env.inClient) return false;
+    host.className = "ls-outside";
+    host.hidden = false;
+    host.innerHTML =
+      '<p class="ls-outside-text">LINE の外で開いています。送るには、どちらかから：</p>' +
+      '<div class="ls-outside-actions">' +
+      '<button type="button" class="ls-outside-button" data-outside-login>🔑 ログインして送る</button>' +
+      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINE アプリで開く</a>' +
+      "</div>";
+    const loginButton = host.querySelector("[data-outside-login]");
+    const appLink = host.querySelector("[data-outside-app]");
+    loginButton.hidden = !canLogin || env.loggedIn;
+    if (loginButton.hidden) host.querySelector(".ls-outside-text").textContent = "LINE の外で開いています。LINE アプリで開くと送れます：";
+    loginButton.addEventListener("click", () => {
+      beforeLogin?.();
+      try {
+        liff.login({ redirectUri: loginUrl ? loginUrl() : returnUrl() });
+      } catch (error) {
+        console.error(error);
+      }
+    });
+    appLink.href = getAppUrl?.() || appUrl();
+    appLink.addEventListener("click", (event) => {
+      // 押した瞬間の中身で作り直す（開いたあとに入力した分も持っていく）
+      const url = getAppUrl?.() || appUrl();
+      if (!url) return;
+      event.preventDefault();
+      location.href = url;
+    });
+    return true;
+  }
+
+  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, MESSAGES };
 })();
