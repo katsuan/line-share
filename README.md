@@ -74,6 +74,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 - `billingPortalUrl`: お支払いの確認・解約のリンク（Stripe カスタマーポータル）。空ならボタンを出さない
 - `showCredit`: 送るカードに「Created by おくるん」を付けるか（`false` で全員から消える）
 - `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
+- `ownerUsers`: 作成者（ユーザーIDの SHA-256。値の確かめ方は上と同じ）。トップの「シェア」に「🗂 全ツールのカードを送る」が出て、おくるんとほかのツール（`data/hub-links.json` の `ogp` があるもの）の紹介カードを、横に並べて1通（カルーセル。12枚まで）で送れる
 
 ### Created by を自分だけ消す
 
