@@ -14,7 +14,7 @@
   "deco": True を付けた図形はアイコンだけに描き、ロゴの Q には入れない（まわりの飾り）
 
 このファイルは line-share の tools/ に1つだけ置き、pomodoro・countdown・gender-reveal・line-p2p-othello・qji の tools/icon.py が
-となりの line-share（~/GitHub/line-share）から読む（tools/brandkit_path.py）。直すのはここだけでよい。
+となりのおくるん（~/GitHub/q-oqrn。GitHub のリポジトリ名は line-share）から読む（tools/brandkit_path.py）。直すのはここだけでよい。
 Pillow・fontTools・Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf）・macOS のヒラギノ角ゴシックが必要。
 """
 import math
