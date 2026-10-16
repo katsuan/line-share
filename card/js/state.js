@@ -81,7 +81,8 @@ function getQueryState() {
 
   // template は形式の選択だけなので、カードの中身のパラメータには数えない
   // template（形式の選択）・from（流入口の目印）・credit（Created by の切り替え）はカードの中身ではないので数えない
-  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && !["template", "from", "credit"].includes(key));
+  // deck（LINE の外から持ってきた中身。storage.js の takeCarriedDeck が読む）も中身のパラメータではない
+  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && !["template", "from", "credit", "deck"].includes(key));
   if (!hasAny) return null;
 
   [actionUrl, source.imageActionUrl].filter(Boolean).forEach((url) => queryUrls.add(url.trim()));

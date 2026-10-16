@@ -1161,3 +1161,55 @@ html[data-credit="off"] .ls-credit {
 body.is-typing .ls-to-preview {
   display: none;
 }
+
+/* LINE の外で開いたときの案内（shared/liff.js の outsideHelp。送るボタンの上に出す） */
+.ls-outside {
+  display: grid;
+  gap: 6px;
+}
+
+.ls-outside[hidden] {
+  display: none;
+}
+
+.ls-outside-text {
+  margin: 0;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ls-outside-actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.ls-outside-button {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 6px 8px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ls-outside-button[hidden] {
+  display: none;
+}
+
+.ls-outside-button.is-app {
+  border-color: transparent;
+  background: #06c755;
+  color: #fff;
+}

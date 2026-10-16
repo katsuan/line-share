@@ -14,7 +14,7 @@ async function init() {
     "presetGrid", "templateList", "templateNameInput", "saveTemplateButton",
     "lookMeta", "photoMeta", "linkMeta",
     "dateRow", "detailRow", "bubbleSizeRange", "bubbleSizeLabel",
-    "copyJsonButton", "resetButton", "shareButton", "status",
+    "copyJsonButton", "resetButton", "shareButton", "status", "outsideHelp",
     "cardTabs", "cardAddButton", "cardRemoveButton", "cardStage", "peekPrev", "peekNext",
     "kindChips", "itemsArea", "itemAddButton", "doneButton",
     "ticketArea", "routeFrom", "routeFromSub", "routeTo", "routeToSub", "pairsArea", "pairAddButton",
@@ -26,11 +26,13 @@ async function init() {
   });
   els.pageTitle = document.querySelector(".ls-topbar .ls-title");
 
-  const queryState = getQueryState();
+  // LINE の外から持ってきた中身（ログインの行き来・LINE アプリで開き直し）がいちばん先
+  const carried = takeCarriedDeck();
+  const queryState = carried ? null : getQueryState();
   startedWithQuery = Boolean(queryState);
   const saved = loadJson(LAST_SENT_KEY);
   // 編集中の下書きがあれば続きから（リンクで中身を渡されたとき・形式を選んで開いたときは使わない）
-  const draft = queryState || START_TEMPLATE ? null : loadDraft();
+  const draft = carried || (queryState || START_TEMPLATE ? null : loadDraft());
   // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか。
   // 形式（テンプレート）を選んで開いたときは、まっさらな1枚にしてテンプレートの読み込みを待つ（種類だけ先に合わせる）
   cards = queryState
@@ -66,7 +68,9 @@ async function init() {
     if (document.visibilityState === "hidden") saveDraftNow();
   });
   window.addEventListener("pagehide", saveDraftNow);
-  if (draft) {
+  if (carried) {
+    window.LineShareUI.toast("作っていたカードを戻しました");
+  } else if (draft) {
     window.LineShareUI.toast("前回の続きから開きました", {
       actionLabel: "新しく作る",
       onAction: () => {
