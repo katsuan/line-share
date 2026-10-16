@@ -20,13 +20,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610152214" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610170000" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610152214"></script>
-    <script src="./shared/log.js?v=202610152214"></script>
-    <script src="./shared/credit.js?v=202610152214"></script>
-    <script src="./shared/plan.js?v=202610152214"></script>
-    <script src="./shared/liff.js?v=202610152214"></script>
+    <script src="./config.js?v=202610170000"></script>
+    <script src="./shared/log.js?v=202610170000"></script>
+    <script src="./shared/credit.js?v=202610170000"></script>
+    <script src="./shared/plan.js?v=202610170000"></script>
+    <script src="./shared/liff.js?v=202610170000"></script>
     <style>
       .hub-head {
         display: flex;
@@ -543,6 +543,8 @@
         <div class="share-options">
           <button id="shareCard" class="share-option" type="button">🪧 LINEにカードで送る<small>紹介カードを、選んだ友だち・グループに送ります</small></button>
           <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
+          <!-- 作成者（config.js の ownerUsers）だけに出す -->
+          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんとほかのツールの紹介カードを、横に並べて1通で送ります</small></button>
         </div>
         <p id="shareStatus" class="ls-hint" role="status"></p>
         <button id="shareClose" class="ls-sheet-cancel" type="button">閉じる</button>
@@ -750,7 +752,33 @@
           setStatus("");
           sheet.hidden = false;
           $("shareCard").focus();
+          revealOwner();
         };
+
+        // LINE とつないで（ログインはさせない）、作成者なら「全ツールのカードを送る」を出す
+        async function revealOwner() {
+          if (!$("shareAll").hidden) return;
+          const { ready } = await window.LineShareLiff.init({ login: "none" });
+          if (ready && (await window.LineShareLiff.isOwner())) $("shareAll").hidden = false;
+        }
+
+        // 送れる状態にする。LINE の外でログインしていないときは、ログインしてこのページに戻る（戻ったらもう一度押す）
+        async function readyToSend() {
+          setStatus(window.LineShareLiff.MESSAGES.connecting);
+          const { ready, reason } = await window.LineShareLiff.init({ login: "none" });
+          if (!ready) {
+            setStatus(window.LineShareLiff.MESSAGES[reason] || window.LineShareLiff.MESSAGES.failed);
+            return false;
+          }
+          if (window.LineShareLiff.canShare()) return true;
+          const env = window.LineShareLiff.environment();
+          if (!env.inClient && !env.loggedIn && window.LineShareLiff.login()) {
+            setStatus("LINE のログインに移ります…");
+            return false;
+          }
+          setStatus(window.LineShareLiff.MESSAGES.notInLine);
+          return false;
+        }
         const close = () => {
           sheet.hidden = true;
           $("shareOpen").focus();
@@ -800,18 +828,73 @@
           return window.LineShareCredit?.withCredit(message) ?? message;
         }
 
+        // ---- 全ツールのカード（作成者だけ）。おくるん＋ほかのツール（hub-links.json の紹介の中身があるもの）をカルーセル1通に ----
+        const MAX_BUBBLES = 12; // カルーセルに入るカードの数の上限（LINE の決まり）
+
+        // ツールの色を白に寄せた色（見出しのグラデーションの終わり）
+        function lighten(hex, amount = 0.38) {
+          const n = parseInt(String(hex).replace("#", ""), 16);
+          const mix = (c) => Math.round(c + (255 - c) * amount);
+          return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => mix(c).toString(16).padStart(2, "0")).join("").toUpperCase();
+        }
+
+        // お知らせカードの紹介（tool-share.js）と同じ中身を、1枚のバブルに
+        function toolBubble(tool) {
+          const color = tool.color || "#6C47FF";
+          return {
+            type: "bubble",
+            header: {
+              type: "box",
+              layout: "vertical",
+              background: { type: "linearGradient", angle: "135deg", startColor: color, endColor: lighten(color) },
+              paddingAll: "16px",
+              contents: [
+                { type: "text", text: tool.name, color: "#FFFFFF", weight: "bold", size: "lg" },
+                { type: "text", text: tool.en ? `〜${tool.en}〜` : " ", color: "#FFFFFF", size: "xs", margin: "sm" }
+              ]
+            },
+            hero: { type: "image", url: tool.ogp, size: "full", aspectRatio: "40:21", aspectMode: "cover", action: { type: "uri", uri: tool.url } },
+            body: {
+              type: "box",
+              layout: "vertical",
+              spacing: "md",
+              contents: [
+                { type: "text", text: tool.copy || tool.lead || tool.name, weight: "bold", size: "md", wrap: true, color },
+                { type: "text", text: [tool.lead, tool.intro].filter(Boolean).join("\n") || tool.desc || " ", size: "sm", color: "#6B6860", wrap: true }
+              ]
+            },
+            footer: {
+              type: "box",
+              layout: "vertical",
+              contents: [{ type: "button", style: "primary", color, action: { type: "uri", label: `${tool.name}を開く`.slice(0, 40), uri: tool.url } }]
+            }
+          };
+        }
+
+        async function allToolsMessage() {
+          const response = await fetch("./data/hub-links.json", { cache: "no-cache" });
+          const data = response.ok ? await response.json() : {};
+          const tools = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name && item.ogp);
+          const bubbles = [introCard().contents, ...tools.map(toolBubble)].slice(0, MAX_BUBBLES);
+          return { type: "flex", altText: "おくるんのツールたち｜つくって、おくるん💬", contents: { type: "carousel", contents: bubbles } };
+        }
+
+        async function shareAll() {
+          if (!(await window.LineShareLiff.isOwner())) return;
+          if (!(await readyToSend())) return;
+          try {
+            const message = await allToolsMessage();
+            const result = await liff.shareTargetPicker([message], { isMultiple: true });
+            setStatus(result ? `${message.contents.contents.length}枚のカードを送りました。` : "送るのをやめました。");
+            if (result) window.LineShareLog?.track("send", { kind: "intro-all", count: message.contents.contents.length });
+          } catch (error) {
+            console.error(error);
+            setStatus("送れませんでした。時間をおいてもう一度お試しください。");
+          }
+        }
+
         async function shareCard() {
-          setStatus(window.LineShareLiff.MESSAGES.connecting);
-          // LINE の外ではログインしてからこのページに戻る（戻ったらもう一度押す）
-          const { ready, reason } = await window.LineShareLiff.init({ login: "redirect" });
-          if (!ready) {
-            if (reason !== "redirecting") setStatus(window.LineShareLiff.MESSAGES.failed);
-            return;
-          }
-          if (!window.LineShareLiff.canShare()) {
-            setStatus(window.LineShareLiff.MESSAGES.notInLine);
-            return;
-          }
+          if (!(await readyToSend())) return;
           try {
             const result = await liff.shareTargetPicker([introCard()], { isMultiple: true });
             setStatus(result ? "送りました。" : "送るのをやめました。");
@@ -845,6 +928,7 @@
         $("shareClose").addEventListener("click", close);
         $("shareCard").addEventListener("click", shareCard);
         $("shareLink").addEventListener("click", shareLink);
+        $("shareAll").addEventListener("click", shareAll);
         sheet.addEventListener("click", (event) => {
           if (event.target === sheet) close();
         });

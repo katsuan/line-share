@@ -17,6 +17,7 @@
   };
 
   let pending = null;
+  let userHash = null; // ログイン中のユーザーIDの SHA-256（Promise）。作成者かどうかを見るのに使う
   const TIMEOUT_MS = 10000;
 
   function init({ login = "none" } = {}) {
@@ -58,6 +59,7 @@
   function checkUser() {
     if (!liff.isLoggedIn()) return;
     const hash = liff.getProfile().then(({ userId }) => sha256(userId));
+    userHash = hash;
     window.LineSharePlan?.checkUser(hash);
     hash.then((value) => window.LineShareCredit?.checkUser(value)).catch((error) => console.error(error));
   }
@@ -89,6 +91,28 @@
     if (!canShare()) throw new Error(MESSAGES.notInLine);
     const result = await liff.shareTargetPicker(messages, { isMultiple: true });
     return Boolean(result) && (!result.status || result.status === "success");
+  }
+
+  // 作成者（config.js の ownerUsers）か。ログインしていないとき・確かめられないときは false
+  async function isOwner() {
+    const owners = window.LINE_SHARE_CONFIG?.ownerUsers;
+    if (!userHash || !Array.isArray(owners) || !owners.length) return false;
+    try {
+      return owners.includes(await userHash);
+    } catch {
+      return false;
+    }
+  }
+
+  // このブラウザのまま LINE でログインし、今のページに戻る
+  function login() {
+    try {
+      liff.login({ redirectUri: returnUrl() });
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   // ---- LINE の外で開いたとき（送り先選びが使えないとき）の案内 ----
@@ -152,5 +176,5 @@
     return true;
   }
 
-  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, MESSAGES };
+  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, isOwner, login, MESSAGES };
 })();
