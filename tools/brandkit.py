@@ -337,7 +337,8 @@ class Brand:
 
     # ---- OGP（1200×630。左にアイコン、右に名前・英字・説明） ----
 
-    def write_ogp(self, path, shapes, name, en, lines, decorate=None, name_size=104, en_fills=None, en_plates=None):
+    def write_ogp(self, path, shapes, name, en, lines, decorate=None, name_size=104, en_fills=None, en_plates=None, copy=None):
+        """copy はキャッチコピー（おくるんの「つくって、おくるん」と同じ役目）。英字の下に大きめに入れ、説明（lines）はその下に小さく"""
         W, H, S = 1200, 630, 2
         big = (W * S, H * S)
         img = self.gradient_image(*big).convert("RGBA")
@@ -376,6 +377,15 @@ class Brand:
             color = en_fills[i] if en_fills and en_fills[i] else (255, 255, 255)
             d.text((places[i], 322 * S), ch, font=jua, fill=color + (255,), anchor="ls")
             cx += d.textlength(ch, font=jua) + 10 * S
-        for i, line in enumerate(lines):
-            d.text((x, (410 + 56 * i) * S), line, font=hira(6, 40), fill=(255, 255, 255), anchor="ls")
+        if copy:
+            # 右はしに収まる大きさにする（長いコピーは少し小さく）
+            size = 46
+            while size > 30 and d.textlength(copy, font=hira(8, size)) > (W - 490 - 50) * S:
+                size -= 1
+            d.text((x, 412 * S), copy, font=hira(8, size), fill=(255, 255, 255), anchor="ls")
+            for i, line in enumerate(lines):
+                d.text((x, (474 + 44 * i) * S), line, font=hira(6, 30), fill=(255, 255, 255, 215), anchor="ls")
+        else:
+            for i, line in enumerate(lines):
+                d.text((x, (410 + 56 * i) * S), line, font=hira(6, 40), fill=(255, 255, 255), anchor="ls")
         img.resize((W, H), Image.LANCZOS).convert("RGB").save(path, optimize=True)
