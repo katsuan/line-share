@@ -20,13 +20,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610192203" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610192210" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610192203"></script>
-    <script src="./shared/log.js?v=202610192203"></script>
-    <script src="./shared/credit.js?v=202610192203"></script>
-    <script src="./shared/plan.js?v=202610192203"></script>
-    <script src="./shared/liff.js?v=202610192203"></script>
+    <script src="./config.js?v=202610192210"></script>
+    <script src="./shared/log.js?v=202610192210"></script>
+    <script src="./shared/credit.js?v=202610192210"></script>
+    <script src="./shared/plan.js?v=202610192210"></script>
+    <script src="./shared/liff.js?v=202610192210"></script>
     <style>
       .hub-head {
         display: flex;
@@ -526,6 +526,8 @@
            読めないときや空のときは欄ごと隠す） -->
       <section id="hubMore" class="hub-more" aria-labelledby="hubMoreTitle" hidden>
         <h2 id="hubMoreTitle" class="hub-more-title"></h2>
+        <!-- 名前（コネクト 〜ConneQt〜＝Connect＋Q）だけでは伝わらないので、補足の1行（data/hub-links.json の lead） -->
+        <p id="hubMoreLead" class="hub-emoji-lead" hidden></p>
         <ul id="hubMoreList" class="hub-links"></ul>
       </section>
 
@@ -732,7 +734,7 @@
         loadJson("./data/hub-links.json")
           .then((data) => {
             const rows = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name);
-            fill({ section: "hubMore", title: "hubMoreTitle", list: "hubMoreList" }, { title: "ほかのツール", ...data }, rows);
+            fill({ section: "hubMore", title: "hubMoreTitle", lead: "hubMoreLead", list: "hubMoreList" }, { title: "ほかのツール", ...data }, rows);
           })
           .catch((error) => console.error("ほかのツールを読み込めませんでした", error));
       })();

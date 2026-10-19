@@ -1,6 +1,6 @@
 // ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
-// その下に「Qるっと 〜QURUTTO〜」（Q のツールのなかま：おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
+// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み：おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -57,6 +57,7 @@
       .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
       .oqrn-family { display: grid; justify-items: center; gap: 6px; font-family: inherit; line-height: 1.4; }
       .oqrn-family-label { margin: 0; color: #8a877e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
+      .oqrn-family-sub { margin: -4px 0 2px; color: #8a877e; font-size: 11px; }
       .oqrn-family-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
       .oqrn-family-list button { display: block; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 9px; background: none; cursor: pointer; }
       .oqrn-family-list img { display: block; width: 32px; height: 32px; }
@@ -154,14 +155,18 @@
     };
   }
 
-  // 「Qるっと」（Q のツールのなかまの名前。「ぐるっと」ひと回り）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
+  // 「コネクト 〜ConneQt〜」（Q のツールをつなぐ仕組みの名前）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
   function familyRow(tool, others) {
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
-    nav.setAttribute("aria-label", "Qるっと（Q のツールのなかま）");
+    nav.setAttribute("aria-label", "コネクト（ConneQt）：Qらしのツールを、ひとつなぎ");
     const label = document.createElement("p");
     label.className = "oqrn-family-label";
-    label.textContent = "Qるっと 〜QURUTTO〜";
+    label.textContent = "コネクト 〜ConneQt〜";
+    // 名前だけでは伝わらないので、補足の1行
+    const sub = document.createElement("p");
+    sub.className = "oqrn-family-sub";
+    sub.textContent = "Qらし（暮らし）のツールを、ひとつなぎ";
     const list = document.createElement("ul");
     list.className = "oqrn-family-list";
     const oqrn = Object.assign({}, OQRN_ITEM, {
@@ -186,7 +191,7 @@
       li.appendChild(button);
       list.appendChild(li);
     });
-    nav.append(label, list);
+    nav.append(label, sub, list);
     return nav;
   }
 
