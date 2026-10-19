@@ -1,5 +1,5 @@
 {
-  "title": "ほかのツール",
+  "title": "Qるっと 〜QURUTTO〜",
   "items": [
     { "key": "kiloq", "icon": "🏋️", "appIcon": "https://katsuan.github.io/line-workout-share/icon.svg", "name": "キロっく", "en": "kiloQ", "copy": "キロを刻んで、記録を積もう", "desc": "筋トレの記録をカードで送る", "url": "https://liff.line.me/2009927582-2isjfmkk", "color": "#C96A2D", "ogp": "https://katsuan.github.io/line-workout-share/ogp.png?v=20261019", "lead": "筋トレの記録を、LINE にカードで送れる", "intro": "種目・重さ・回数を入れるだけ。推定 1RM も出て、よくやるメニューは保存しておけます。" },
     { "key": "qji", "icon": "🎟️", "appIcon": "https://katsuan.github.io/qji/icon.svg", "name": "くじ", "en": "Qji", "copy": "迷ったら、くじで決めよう", "desc": "くじ・あみだ・お題を決める", "url": "https://katsuan.github.io/qji/", "color": "#E23E4A", "ogp": "https://katsuan.github.io/qji/ogp.png?v=20261019", "lead": "当番・順番・お題・罰ゲームを、その場で公平に", "intro": "くじ引き・あみだくじ・ルーレット・数字・会話のお題・罰ゲームを決めて、結果を LINE にカードで送れます。" },

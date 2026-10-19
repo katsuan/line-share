@@ -1,6 +1,6 @@
 // ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
-// その下に「Q のなかま」（おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
+// その下に「Qるっと 〜QURUTTO〜」（Q のツールのなかま：おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -154,14 +154,14 @@
     };
   }
 
-  // 「Q のなかま」：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
+  // 「Qるっと」（Q のツールのなかまの名前。「ぐるっと」ひと回り）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
   function familyRow(tool, others) {
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
-    nav.setAttribute("aria-label", "Q のなかま");
+    nav.setAttribute("aria-label", "Qるっと（Q のツールのなかま）");
     const label = document.createElement("p");
     label.className = "oqrn-family-label";
-    label.textContent = "Q のなかま";
+    label.textContent = "Qるっと 〜QURUTTO〜";
     const list = document.createElement("ul");
     list.className = "oqrn-family-list";
     const oqrn = Object.assign({}, OQRN_ITEM, {
