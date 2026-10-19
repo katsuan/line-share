@@ -17,7 +17,8 @@ function isHttpsUrl(value) {
 
 function isAllowedHost(url) {
   try {
-    const { hostname } = new URL(url);
+    const { hostname, pathname } = new URL(url);
+    if (hostname === "liff.line.me") return ALLOWED_LIFF_IDS.includes(pathname.split("/")[1] || "");
     return ALLOWED_ACTION_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
   } catch {
     return false;

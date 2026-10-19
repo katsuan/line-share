@@ -10,6 +10,8 @@ const DRAFT_KEY = "line-share:card-draft";
 
 // クエリから渡されたリンクは、ここにあるドメイン以外は送信時に外す
 const ALLOWED_ACTION_HOSTS = ["katsuan.github.io"];
+// liff.line.me は、自分たちの LIFF アプリ（おくるん・config.js の trustedLiffIds）だけ通す（ほかの人の LIFF は通さない）
+const ALLOWED_LIFF_IDS = [config.liffId, ...(Array.isArray(config.trustedLiffIds) ? config.trustedLiffIds : [])].filter(Boolean);
 const ACTION_PROTOCOLS = ["https:", "http:", "line:", "tel:", "mailto:"];
 
 // LINE Flex Message の bubble.size（小さい順）。指定しないときの LINE の標準は mega
