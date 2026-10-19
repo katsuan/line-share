@@ -20,13 +20,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610192213" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610192215" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610192213"></script>
-    <script src="./shared/log.js?v=202610192213"></script>
-    <script src="./shared/credit.js?v=202610192213"></script>
-    <script src="./shared/plan.js?v=202610192213"></script>
-    <script src="./shared/liff.js?v=202610192213"></script>
+    <script src="./config.js?v=202610192215"></script>
+    <script src="./shared/log.js?v=202610192215"></script>
+    <script src="./shared/credit.js?v=202610192215"></script>
+    <script src="./shared/plan.js?v=202610192215"></script>
+    <script src="./shared/liff.js?v=202610192215"></script>
     <style>
       .hub-head {
         display: flex;
@@ -466,6 +466,11 @@
         font-weight: 700;
       }
 
+      /* 英字の名前の「Q」（ツールの色。js の withBrandQ） */
+      .hub-brand-q {
+        font-weight: 900;
+      }
+
       .hub-link-en {
         color: var(--ls-subtext);
         font-size: 12px;
@@ -603,6 +608,22 @@
 
         // row: { url, icon（絵文字）か appIcon（ツールのアイコン画像。絵文字と同じ大きさ）か image（大きめの画像の URL）, name, en, desc }
         //   en：英字の名前（おくるん＝OQRN のように名前に英字表記があるツール）。名前の右に「〜kiloQ〜」と小さく添える
+        // 英字の名前の「Q」だけをツールの色で塗る（kiloQ・Qji・SAQSEN など。Q がブランドのしるし）。
+        // ツールの色が濃い灰色などで目立たないときは、hub-links.json の qColor（ぽもくるはアイコンの黄色）
+        function withBrandQ(text, color) {
+          return String(text)
+            .split(/(Q)/)
+            .filter(Boolean)
+            .map((part) => {
+              if (part !== "Q" || !color) return document.createTextNode(part);
+              const q = document.createElement("span");
+              q.className = "hub-brand-q";
+              q.style.color = color;
+              q.textContent = "Q";
+              return q;
+            });
+        }
+
         function createRow(row) {
           const li = document.createElement("li");
           const link = document.createElement("a");
@@ -651,7 +672,7 @@
           if (row.en) {
             const en = document.createElement("span");
             en.className = "hub-link-en";
-            en.textContent = "〜" + row.en + "〜";
+            en.append("〜", ...withBrandQ(row.en, row.qColor || row.color), "〜");
             name.append(" ", en);
           }
           text.append(name);
@@ -685,7 +706,7 @@
           const ogp = document.getElementById("toolOgp");
           ogp.src = row.ogp;
           ogp.alt = `${row.name}の紹介画像`;
-          document.getElementById("toolTitle").textContent = row.en ? `${row.name} 〜${row.en}〜` : row.name;
+          document.getElementById("toolTitle").replaceChildren(...(row.en ? [`${row.name} 〜`, ...withBrandQ(row.en, row.qColor || row.color), "〜"] : [row.name]));
           const copy = document.getElementById("toolCopy");
           copy.textContent = row.copy || "";
           copy.hidden = !row.copy;
@@ -735,7 +756,8 @@
 
         function fill({ section, title, lead, list }, data, rows) {
           if (!rows.length) return;
-          document.getElementById(title).textContent = data.title || "";
+          // 見出しの「Q」（コネクト 〜ConneQt〜）はおくるんの紫（data.color）
+          document.getElementById(title).replaceChildren(...withBrandQ(data.title || "", data.color));
           if (lead && data.lead) {
             document.getElementById(lead).replaceChildren(...withRuby(data.lead));
             document.getElementById(lead).hidden = false;
