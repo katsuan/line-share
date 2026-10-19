@@ -34,6 +34,14 @@ window.LINE_SHARE_CONFIG = {
   // 送るカードに「Created by おくるん」を付けるか（false で全員から消える）
   showCredit: true,
 
+  // 自分たちのほかの LIFF アプリ（キロっく・ひっくり・くるかな）。お知らせカードはリンクで渡されたボタンのうち、
+  // katsuan.github.io と、liff.line.me のこの ID（とおくるん自身の liffId）だけを送れるリンクとして通す
+  trustedLiffIds: [
+    "2009927582-2isjfmkk", // キロっく
+    "2009927876-PcLT1IYA", // ひっくり
+    "2009927582-qytzPvoy" // くるかな
+  ],
+
   // 作成者（ユーザーIDの SHA-256）。トップのシェアに「全ツールのカードを送る」が出る（?credit=whoami でハッシュを確かめられる）
   ownerUsers: [
     "24f2d88d2332937479e0e0275c2f8713d029cdf4a7fe788a136178b456e5b519" // katsuan
