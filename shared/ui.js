@@ -313,9 +313,10 @@
    *   続けて別のトークにも送る … resend() で同じものをもう一度送る（送り先を選ぶ画面が開く）
    *   閉じる                   … LINE の中ならツールを閉じてトークに戻る
    *   もう少し作る             … シートだけ閉じて、そのまま編集を続ける
+   *   ○○に戻る                … back（{ label, url }）を渡したときだけ。ほかのツールから来たときに、元のツールへ戻る
    * resend は送れたら true を返す関数（LineShareLiff.share と同じ形）
    */
-  function afterSent({ resend, title = "送りました" } = {}) {
+  function afterSent({ resend, title = "送りました", back = null } = {}) {
     document.querySelector(".ls-sheet.is-after-sent")?.remove();
     let count = 1;
     const sheet = document.createElement("div");
@@ -326,6 +327,7 @@
         <p class="ls-hint after-sent-note" aria-live="polite"></p>
         <div class="after-sent-actions">
           <button class="ls-button is-primary" type="button" data-act="again">続けて別のトークにも送る</button>
+          <a class="ls-button" data-act="back" hidden></a>
           <button class="ls-button" type="button" data-act="close">閉じる</button>
         </div>
         <button class="ls-sheet-cancel" type="button" data-act="stay">もう少し作る</button>
@@ -340,6 +342,12 @@
     update();
     const hide = () => sheet.remove();
     again.hidden = typeof resend !== "function";
+    const backLink = sheet.querySelector('[data-act="back"]');
+    if (back?.url) {
+      backLink.href = back.url;
+      backLink.textContent = `↩ ${back.label}`;
+      backLink.hidden = false;
+    }
     again.addEventListener("click", async () => {
       again.disabled = true;
       try {

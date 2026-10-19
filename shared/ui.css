@@ -1061,6 +1061,16 @@ html[data-credit="off"] .ls-credit {
   gap: 8px;
 }
 
+/* 「○○に戻る」（ほかのツールから来たときだけ出す） */
+.after-sent-actions a.ls-button {
+  text-align: center;
+  text-decoration: none;
+}
+
+.after-sent-actions [hidden] {
+  display: none;
+}
+
 .after-sent-note {
   margin: -4px 0 0;
 }
