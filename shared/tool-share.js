@@ -57,7 +57,8 @@
       .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
       .oqrn-family { display: grid; justify-items: center; gap: 6px; font-family: inherit; line-height: 1.4; }
       .oqrn-family-label { margin: 0; color: #8a877e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
-      .oqrn-family-sub { margin: -4px 0 2px; color: #8a877e; font-size: 11px; }
+      .oqrn-family-sub { margin: -2px 0 2px; color: #8a877e; font-size: 11px; line-height: 1.9; }
+      .oqrn-family-sub rt { font-size: 8px; font-weight: 700; }
       .oqrn-family-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
       .oqrn-family-list button { display: block; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 9px; background: none; cursor: pointer; }
       .oqrn-family-list img { display: block; width: 32px; height: 32px; }
@@ -156,17 +157,36 @@
   }
 
   // 「コネクト 〜ConneQt〜」（Q のツールをつなぐ仕組みの名前）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
-  function familyRow(tool, others) {
+  // 「｜Qらし《くらし》」の形をルビにする（data/hub-links.json の lead。HTML は入れない）
+  function withRuby(text) {
+    const parts = [];
+    const pattern = /｜([^《]+)《([^》]+)》/g;
+    let last = 0;
+    let match;
+    while ((match = pattern.exec(text))) {
+      if (match.index > last) parts.push(document.createTextNode(text.slice(last, match.index)));
+      const ruby = document.createElement("ruby");
+      const rt = document.createElement("rt");
+      rt.textContent = match[2];
+      ruby.append(match[1], rt);
+      parts.push(ruby);
+      last = pattern.lastIndex;
+    }
+    if (last < text.length) parts.push(document.createTextNode(text.slice(last)));
+    return parts;
+  }
+
+  function familyRow(tool, others, lead) {
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
-    nav.setAttribute("aria-label", "コネクト（ConneQt）：Qらしのツールを、ひとつなぎ");
+    nav.setAttribute("aria-label", "コネクト（ConneQt）");
     const label = document.createElement("p");
     label.className = "oqrn-family-label";
     label.textContent = "コネクト 〜ConneQt〜";
     // 名前だけでは伝わらないので、補足の1行
     const sub = document.createElement("p");
     sub.className = "oqrn-family-sub";
-    sub.textContent = "Qらし（暮らし）のツールを、ひとつなぎ";
+    sub.replaceChildren(...withRuby(lead || "｜Qらし《くらし》を、ひとつなぎ"));
     const list = document.createElement("ul");
     list.className = "oqrn-family-list";
     const oqrn = Object.assign({}, OQRN_ITEM, {
@@ -195,7 +215,7 @@
     return nav;
   }
 
-  function build(tool, others = []) {
+  function build(tool, others = [], lead = "") {
     injectStyle(tool.color || "#6C47FF");
 
     let host = document.querySelector("[data-tool-share]");
@@ -210,7 +230,7 @@
     open.setAttribute("aria-haspopup", "dialog");
     open.textContent = `📤 ${tool.name}を紹介する`;
     host.appendChild(open);
-    host.appendChild(familyRow(tool, others));
+    host.appendChild(familyRow(tool, others, lead));
 
     const sheet = document.createElement("div");
     sheet.className = "oqrn-sheet";
@@ -274,8 +294,8 @@
       const tool = items.find((item) => item.key === toolKey);
       if (!tool) return;
       const others = items.filter((item) => item.key !== toolKey);
-      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => build(tool, others));
-      else build(tool, others);
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => build(tool, others, data.lead));
+      else build(tool, others, data.lead);
     })
     .catch((error) => console.error("紹介の中身を読み込めませんでした", error));
 })();
