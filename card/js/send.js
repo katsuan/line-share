@@ -71,6 +71,34 @@ function updateShareButtonState() {
   setStatus(message || "送ったあとは直せません。", Boolean(message) && hasTriedShare);
 }
 
+// ---- 来た元のツール（?from=）。送ったあとのシートに「○○に戻る」を出す ----
+// from はツールごとの流入口の目印（さくせん盤＝soccer、くろのす＝countdown、紹介カード＝<key>-intro など）。
+// 戻り先は、来たページ（document.referrer）がそのツールのページならそこ、なければ data/hub-links.json の url
+const FROM_TOOLS = { soccer: "saqsen", countdown: "qronos", "gender-reveal": "babyq", workout: "kiloq" };
+let backTarget = null;
+
+async function loadBackTarget() {
+  const from = new URLSearchParams(location.search).get("from") || "";
+  const key = FROM_TOOLS[from] || from.replace(/-intro$/, "");
+  if (!key || key === "home") return;
+  try {
+    const data = await fetch("../data/hub-links.json", { cache: "no-cache" }).then((response) => response.json());
+    const tool = (data.items || []).find((item) => item.key === key);
+    if (!tool?.url) return;
+    let url = tool.url;
+    try {
+      const ref = new URL(document.referrer);
+      const base = new URL(tool.url);
+      if (ref.host === base.host && ref.pathname.startsWith(base.pathname.replace(/[^/]*$/, ""))) url = ref.href;
+    } catch {
+      // 来たページがわからないときは、ツールの入口へ
+    }
+    backTarget = { label: `${tool.name}に戻る`, url };
+  } catch (error) {
+    console.warn(error);
+  }
+}
+
 function setStatus(message, isError = false) {
   els.status.textContent = message || "";
   els.status.classList.toggle("is-error", isError);
@@ -111,7 +139,7 @@ async function share() {
     renderTemplates(); // テンプレートの「前回送った内容」を今送ったものにする
     setStatus(window.LineShareLiff.MESSAGES.sent);
     // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
-    window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
+    window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages), back: backTarget });
   } catch (error) {
     console.error(error);
     setStatus(window.LineShareLiff.MESSAGES.sendFailed, true);
@@ -168,6 +196,7 @@ async function initLiff() {
     setStatus("LIFF ID が未設定です（リポジトリ直下の config.js）。カードの作成とJSONコピーは使えます。", true);
     return;
   }
+  loadBackTarget();
   // LIFF の準備は shared/liff.js。ログインはさせず、送るときに LINE アプリ内か確かめる
   const { MESSAGES } = window.LineShareLiff;
   setStatus(MESSAGES.connecting);

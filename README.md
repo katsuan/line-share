@@ -196,6 +196,8 @@ python3 tools/ogp.py     # shared/ogp.png（リンク共有時の画像・お知
 
 macOS のヒラギノ角ゴシック、ロゴの字形に Jua（SIL Open Font License 1.1。`~/Library/Fonts/Jua.ttf`）、Pillow・fontTools を使います。
 
+`tools/qstamp.py` は、Q のツール（キロっく・くじ・ひっくり・ぽもくるなど）が公開する前に通す共通のスクリプト。読み込む JS・CSS（モジュールの import と CSS の @import も）に `?v=<UTC の年月日時分>` を付け直し、LINE の中のブラウザに古いファイルが残って画面が真っ白になるのを防ぐ。各ツールのフォルダで `python3 ../q-oqrn/tools/qstamp.py index.html` のように使う（おくるん自身は `tools/stamp.py`）。
+
 `tools/brandkit.py` は、Q のツール（ぽもくる・くろのす・ジェンダーリビール・ひっくり・くじ）のアイコン・ロゴ・OGP を描く共通のスクリプト。各ツールの `tools/icon.py` が、となり（`~/GitHub/q-oqrn`。ローカルのフォルダ名）のこのファイルを読む（`tools/brandkit_path.py`）。直すのはここだけでよい。
 
 ## ローカルでの確認
