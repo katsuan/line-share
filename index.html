@@ -20,13 +20,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610192210" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610192213" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610192210"></script>
-    <script src="./shared/log.js?v=202610192210"></script>
-    <script src="./shared/credit.js?v=202610192210"></script>
-    <script src="./shared/plan.js?v=202610192210"></script>
-    <script src="./shared/liff.js?v=202610192210"></script>
+    <script src="./config.js?v=202610192213"></script>
+    <script src="./shared/log.js?v=202610192213"></script>
+    <script src="./shared/credit.js?v=202610192213"></script>
+    <script src="./shared/plan.js?v=202610192213"></script>
+    <script src="./shared/liff.js?v=202610192213"></script>
     <style>
       .hub-head {
         display: flex;
@@ -379,6 +379,17 @@
         font-size: 13px;
       }
 
+      /* コネクトの補足の行の「Qらし」に振る「くらし」 */
+      .hub-emoji-lead rt {
+        font-size: 9px;
+        font-weight: 700;
+      }
+
+      #hubMoreLead {
+        margin-top: -2px;
+        line-height: 1.9;
+      }
+
       .hub-link.has-thumb {
         grid-template-columns: 44px minmax(0, 1fr) auto;
       }
@@ -703,11 +714,30 @@
           if (event.key === "Escape" && !toolSheet.hidden) closeToolSheet();
         });
 
+        // 「｜Qらし《くらし》」の形（青空文庫と同じ書き方）をルビにする。ほかはそのまま文字（HTML は入れない）
+        function withRuby(text) {
+          const parts = [];
+          const pattern = /｜([^《]+)《([^》]+)》/g;
+          let last = 0;
+          let match;
+          while ((match = pattern.exec(text))) {
+            if (match.index > last) parts.push(document.createTextNode(text.slice(last, match.index)));
+            const ruby = document.createElement("ruby");
+            const rt = document.createElement("rt");
+            rt.textContent = match[2];
+            ruby.append(match[1], rt);
+            parts.push(ruby);
+            last = pattern.lastIndex;
+          }
+          if (last < text.length) parts.push(document.createTextNode(text.slice(last)));
+          return parts;
+        }
+
         function fill({ section, title, lead, list }, data, rows) {
           if (!rows.length) return;
           document.getElementById(title).textContent = data.title || "";
           if (lead && data.lead) {
-            document.getElementById(lead).textContent = data.lead;
+            document.getElementById(lead).replaceChildren(...withRuby(data.lead));
             document.getElementById(lead).hidden = false;
           }
           document.getElementById(list).replaceChildren(...rows.map(createRow));
