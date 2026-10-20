@@ -4,7 +4,8 @@
 // 選手の配置などを直すときは「さくせん盤で直す」で同じ中身のままさくせん盤に戻る。
 //
 // data の形（キーは短くしてリンクを短くする）
-//   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
+//   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...],
+//             op: 相手（pl と同じ形。さくせん盤で相手を出しているときだけ）, oc: 相手の色 }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
 //   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp,
 //             as: [[名前, 数], ...]（アシスト）, cd: [[ "y"|"r", 名前, 数 ], ...]（カード）, sb: [[分, 出た選手, 入った選手], ...]（交代） }
 //           as・cd・sb はさくせん盤の選手の印・交代から（なければ省く）
@@ -38,15 +39,20 @@ function sanitizeLineup(source) {
   if (!source || typeof source !== "object" || !Array.isArray(source.pl)) return null;
   const mode = source.m === "futsal" ? "futsal" : "soccer";
   // 人数は変則（8人制・退場で10人・練習試合で12人以上など）もあるので、どちらのピッチも 16 人まで（さくせん盤と同じ）
-  const players = source.pl.slice(0, 16).map((p) => ({
+  const toPlayers = (list) => (Array.isArray(list) ? list : []).slice(0, 16).map((p) => ({
     number: cutText(Array.isArray(p) ? p[0] : "", 3),
     name: cutText(Array.isArray(p) ? p[1] : "", 8),
     x: clampNum(Array.isArray(p) ? p[2] : 50, 0, 100),
     y: clampNum(Array.isArray(p) ? p[3] : 50, 0, 100)
   }));
+  const players = toPlayers(source.pl);
   if (!players.length) return null;
-  const color = /^#[0-9a-f]{6}$/i.test(source.c || "") ? source.c.toLowerCase() : "";
-  return { m: mode, f: cutText(source.f, 10), t: cutText(source.t, 20), o: cutText(source.o, 20), s: cutText(source.s, 80), c: color, pl: players };
+  const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || "") ? v.toLowerCase() : "");
+  const opp = toPlayers(source.op);
+  return {
+    m: mode, f: cutText(source.f, 10), t: cutText(source.t, 20), o: cutText(source.o, 20), s: cutText(source.s, 80), c: hex(source.c), pl: players,
+    ...(opp.length ? { op: opp, oc: hex(source.oc) || "#ffffff" } : {})
+  };
 }
 
 /** 試合結果の中身を確かめる。おかしなものは null */
@@ -88,7 +94,13 @@ const cardsText = (match) => (match.cd?.length ? match.cd.map(([kind, name, n]) 
 
 // 保存・送り直しのときは、プレビュー用に整えた形から data の形に戻す
 function lineupToData(lineup) {
-  return { ...lineup, pl: lineup.pl.map((p) => [p.number, p.name, p.x, p.y]) };
+  const toData = (list) => list.map((p) => [p.number, p.name, p.x, p.y]);
+  return { ...lineup, pl: toData(lineup.pl), ...(lineup.op ? { op: toData(lineup.op) } : {}) };
+}
+
+// ピッチに描く選手：相手（いれば。下に重ねる）→ 自チーム。それぞれの丸の色
+function pitchTeams(lineup, palette) {
+  return [...(lineup.op ? [{ list: lineup.op, color: lineup.oc }] : []), { list: lineup.pl, color: lineup.c || palette.start }];
 }
 
 function matchToData(match) {
@@ -131,9 +143,8 @@ const isLightColor = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
 };
-function tokenColors(lineup, index, palette) {
-  const team = lineup.c || palette.start;
-  const fill = team;
+function tokenColors(lineup, index, palette, color) {
+  const fill = color || lineup.c || palette.start;
   const light = isLightColor(fill);
   return { fill, text: light ? "#23302A" : "#FFFFFF", border: light ? "#23302A" : "#FFFFFF" };
 }
@@ -164,7 +175,7 @@ function renderPitchPreview(palette) {
     ? '<i class="sc-line is-border"></i><i class="sc-line is-half"></i><i class="sc-line is-circle"></i><i class="sc-d is-top"><span></span></i><i class="sc-d is-bottom"><span></span></i>'
     : '<i class="sc-line is-border"></i><i class="sc-line is-half"></i><i class="sc-line is-circle"></i><i class="sc-line is-box-top"></i><i class="sc-line is-box-bottom"></i>';
   const width = tokenWidth(lineup);
-  lineup.pl.forEach((p, index) => {
+  pitchTeams(lineup, palette).forEach(({ list, color }) => list.forEach((p, index) => {
     const token = document.createElement("span");
     token.className = "sc-token";
     token.style.width = `${width}%`;
@@ -172,7 +183,7 @@ function renderPitchPreview(palette) {
     token.style.top = `${Math.min(pitchHeight(lineup) - 40, Math.max(0, (p.y / 100) * pitchHeight(lineup) - 18))}px`;
     const number = document.createElement("b");
     number.textContent = p.number || "";
-    const colors = tokenColors(lineup, index, palette);
+    const colors = tokenColors(lineup, index, palette, color);
     number.style.background = colors.fill;
     number.style.color = colors.text;
     number.style.borderColor = colors.border;
@@ -181,7 +192,7 @@ function renderPitchPreview(palette) {
     token.append(number, name);
     if (isKeeper(lineup, index)) token.append(Object.assign(document.createElement("i"), { className: "sc-gk", textContent: "🧤" }));
     pitch.append(token);
-  });
+  }));
   const parts = [pitch, ...toolTapHintEl("lineup")];
   if (lineup.s) parts.push(Object.assign(document.createElement("p"), { className: "sc-subs", textContent: `控え：${lineup.s}` }));
   els.lineupArea.replaceChildren(...parts);
@@ -343,7 +354,7 @@ function pitchFlex(lineup, palette) {
       absBox({ offsetTop: "83%", offsetStart: "28%", width: "44%", height: "13%", borderWidth: "2px", borderColor: LINE_COLOR })
     ])
   ];
-  const players = lineup.pl.map((p, index) => ({
+  const players = pitchTeams(lineup, palette).flatMap(({ list, color }) => list.map((p, index) => ({
     type: "box",
     layout: "vertical",
     position: "absolute",
@@ -352,10 +363,10 @@ function pitchFlex(lineup, palette) {
     offsetTop: `${Math.round(Math.min(height - 40, Math.max(0, (p.y / 100) * height - 18)))}px`,
     alignItems: "center",
     contents: [
-      isKeeper(lineup, index) ? keeperFlex(tokenFlex(lineup, index, p, palette)) : tokenFlex(lineup, index, p, palette),
+      isKeeper(lineup, index) ? keeperFlex(tokenFlex(lineup, index, p, palette, color)) : tokenFlex(lineup, index, p, palette, color),
       { type: "text", text: p.name || " ", size: "xxs", color: "#FFFFFF", weight: "bold", align: "center", margin: "xs" }
     ]
-  }));
+  })));
   return {
     type: "box",
     layout: "vertical",
@@ -367,8 +378,8 @@ function pitchFlex(lineup, palette) {
 }
 
 // 選手の丸（背番号）
-function tokenFlex(lineup, index, p, palette) {
-  const colors = tokenColors(lineup, index, palette);
+function tokenFlex(lineup, index, p, palette, color) {
+  const colors = tokenColors(lineup, index, palette, color);
   return {
     type: "box",
     layout: "vertical",
