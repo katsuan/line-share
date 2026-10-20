@@ -265,16 +265,18 @@ function badgeFlex(result) {
     layout: "horizontal",
     justifyContent: "center",
     contents: [
+      // flex: 0 で文字の幅だけの札にする（横の箱の中の部品は、何もしないと幅いっぱいに広がり、文字が左に寄る）
       {
         type: "box",
         layout: "vertical",
+        flex: 0,
         cornerRadius: "999px",
         backgroundColor: result.color,
         paddingStart: "12px",
         paddingEnd: "12px",
         paddingTop: "2px",
         paddingBottom: "2px",
-        contents: [{ type: "text", text: result.label, size: "xxs", color: "#FFFFFF", weight: "bold" }]
+        contents: [{ type: "text", text: result.label, size: "xxs", color: "#FFFFFF", weight: "bold", align: "center" }]
       }
     ]
   };
