@@ -1,5 +1,5 @@
 // LINE に送る Flex Message の組み立て。色は styles.css のトークンと揃える。
-import { headerFlex } from "./header.js?v=202610202342";
+import { headerFlex } from "./header.js?v=202610210035";
 const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",

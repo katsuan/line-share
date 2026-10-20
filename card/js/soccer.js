@@ -6,7 +6,8 @@
 // data の形（キーは短くしてリンクを短くする）
 //   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
 //   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp,
-//             as: [[名前, 数], ...]（アシスト）, cd: [[ "y"|"r", 名前, 数 ], ...]（カード） }   as・cd はさくせん盤の選手の印から（なければ省く）
+//             as: [[名前, 数], ...]（アシスト）, cd: [[ "y"|"r", 名前, 数 ], ...]（カード）, sb: [[分, 出た選手, 入った選手], ...]（交代） }
+//           as・cd・sb はさくせん盤の選手の印・交代から（なければ省く）
 //           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
 const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
@@ -74,12 +75,15 @@ function sanitizeMatch(source) {
     as: (Array.isArray(source.as) ? source.as : []).slice(0, 16).map((a) => [cutText(a?.[0], 12), clampNum(a?.[1], 1, 9)]).filter(([name]) => name),
     cd: (Array.isArray(source.cd) ? source.cd : []).slice(0, 16)
       .map((c) => [c?.[0] === "r" ? "r" : "y", cutText(c?.[1], 12), c?.[0] === "r" ? 1 : clampNum(c?.[2], 1, 2)])
-      .filter(([, name]) => name)
+      .filter(([, name]) => name),
+    sb: (Array.isArray(source.sb) ? source.sb : []).slice(0, 30).map((s) => [cutText(s?.[0], 4), cutText(s?.[1], 12), cutText(s?.[2], 12)]).filter(([, o, i]) => o || i)
   };
 }
 
 // アシスト・カードの行（文字）。なければ空
 const assistText = (match) => (match.as?.length ? `👟 アシスト ${match.as.map(([name, n]) => (n > 1 ? `${name}×${n}` : name)).join("・")}` : "");
+// 交代の行（「🔄 60' たなか → すずき」を改行でつなぐ）。なければ空
+const subsText = (match) => (match.sb?.length ? match.sb.map(([min, out, inn]) => `🔄 ${min ? `${min}' ` : ""}${out || "?"} → ${inn || "?"}`).join("\n") : "");
 const cardsText = (match) => (match.cd?.length ? match.cd.map(([kind, name, n]) => `${(kind === "r" ? "🟥" : "🟨").repeat(n)} ${name}`).join("　") : "");
 
 // 保存・送り直しのときは、プレビュー用に整えた形から data の形に戻す
@@ -221,7 +225,7 @@ function renderMatchPreview(palette) {
     ...goalLines(match).map((g) => Object.assign(document.createElement("li"), { className: g.side === "t" ? "is-them" : "", textContent: g.text }))
   );
   // 得点の下に アシスト → カード の順（afterend で足すので逆から）
-  [cardsText(match), assistText(match)].filter(Boolean).forEach((text) =>
+  [subsText(match), cardsText(match), assistText(match)].filter(Boolean).forEach((text) =>
     box.querySelector(".sc-goal-list").insertAdjacentElement("afterend", Object.assign(document.createElement("p"), { className: "sc-extra", textContent: text }))
   );
   box.querySelector(".sc-mvp").textContent = match.mvp ? `🏅 MVP ${match.mvp}` : "";
@@ -457,7 +461,7 @@ function matchFlex(palette) {
     });
   }
   // アシスト・カード（さくせん盤の印から。あるときだけ）
-  const extras = [assistText(match), cardsText(match)].filter(Boolean);
+  const extras = [assistText(match), cardsText(match), subsText(match)].filter(Boolean);
   if (extras.length) {
     if (!goals.length) parts.push({ type: "separator", margin: "md" });
     extras.forEach((text, i) => parts.push({ type: "text", text, size: "xs", color: "#4B5563", wrap: true, ...(i === 0 ? { margin: "md" } : {}) }));
