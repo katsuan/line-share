@@ -704,6 +704,7 @@
   color: #4b5563;
   font-size: 12px;
   text-align: left;
+  white-space: pre-line; /* 交代は1行に1つ */
 }
 
 .sc-edit {
