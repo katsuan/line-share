@@ -28,7 +28,8 @@ async function init() {
 
   // LINE の外から持ってきた中身（ログインの行き来・LINE アプリで開き直し）がいちばん先
   const carried = takeCarriedDeck();
-  const queryState = carried ? null : getQueryState();
+  const queryStates = carried ? [] : getQueryStates();
+  const queryState = queryStates[0] || null;
   startedWithQuery = Boolean(queryState);
   const saved = loadJson(LAST_SENT_KEY);
   // 編集中の下書きがあれば続きから（リンクで中身を渡されたとき・形式を選んで開いたときは使わない）
@@ -36,7 +37,7 @@ async function init() {
   // 前に送った内容は、複数枚（{ cards }）か、1枚だけの古い形のどちらか。
   // 形式（テンプレート）を選んで開いたときは、まっさらな1枚にしてテンプレートの読み込みを待つ（種類だけ先に合わせる）
   cards = queryState
-    ? [hydrate(queryState)]
+    ? queryStates.map(hydrate)
     : START_TEMPLATE
       ? [hydrate({ ...BLANK_STATE, kind: KINDS[START_TEMPLATE] ? START_TEMPLATE : "notice" })]
     : draft

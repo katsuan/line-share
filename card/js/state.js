@@ -47,8 +47,17 @@ function pick(source, keys, cast) {
   return result;
 }
 
-function getQueryState() {
+// リンクで渡されたカード（1枚目＋ card パラメータの2枚目から）。なければ空
+// card には、そのカードのパラメータ（kind=match&data=… など）をまるごと入れる（さくせん盤のメンバー＋試合結果など）
+function getQueryStates() {
   const params = new URLSearchParams(location.search);
+  const first = getQueryState(params);
+  if (!first) return [];
+  const rest = params.getAll("card").map((text) => getQueryState(new URLSearchParams(text))).filter(Boolean);
+  return [first, ...rest].slice(0, MAX_CARDS);
+}
+
+function getQueryState(params = new URLSearchParams(location.search)) {
   const get = (...keys) => keys.map((key) => params.get(key)).find((value) => value != null) ?? "";
   const isOff = (key, fallback) => ["0", "false", "off"].includes(String(params.get(key) ?? fallback).toLowerCase());
 
@@ -82,7 +91,8 @@ function getQueryState() {
   // template は形式の選択だけなので、カードの中身のパラメータには数えない
   // template（形式の選択）・from（流入口の目印）・credit（Created by の切り替え）はカードの中身ではないので数えない
   // deck（LINE の外から持ってきた中身。storage.js の takeCarriedDeck が読む）も中身のパラメータではない
-  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && !["template", "from", "credit", "deck"].includes(key));
+  // card（2枚目からのカード。getQueryStates が読む）も、この1枚の中身ではない
+  const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && !["template", "from", "credit", "deck", "card"].includes(key));
   if (!hasAny) return null;
 
   [actionUrl, source.imageActionUrl].filter(Boolean).forEach((url) => queryUrls.add(url.trim()));
