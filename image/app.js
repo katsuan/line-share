@@ -1,7 +1,7 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610202312";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610202312";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610202325";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610202325";
 
 const config = window.LINE_SHARE_CONFIG || {};
 
