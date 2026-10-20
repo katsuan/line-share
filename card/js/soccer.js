@@ -122,7 +122,7 @@ const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360);
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
 
-// 選手の丸の色（チームの色。GK も同じ色で、丸の右下に 🧤 を付けて見分ける）と、その上の背番号の色
+// 選手の丸の色（チームの色。GK も同じ色で、丸の左下に 🧤 を付けて見分ける）と、その上の背番号の色
 const isLightColor = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
@@ -377,20 +377,21 @@ function tokenFlex(lineup, index, p, palette) {
   };
 }
 
-// GK：丸の右下に白い丸の 🧤。入れ物からはみ出すと切れるので、丸より少し広い入れ物に重ねる
+// GK：丸の左下に白い丸の 🧤（さくせん盤と同じ。右下は得点・カードの印の場所）。
+// 入れ物からはみ出すと切れるので、丸が真ん中に来る広さ（左右に 14px ずつ）の入れ物に重ねる
 function keeperFlex(token) {
   return {
     type: "box",
     layout: "vertical",
-    width: "38px",
+    width: "52px",
     height: "28px",
     contents: [
-      Object.assign(token, { position: "absolute", offsetStart: "7px", offsetTop: "0px" }),
+      Object.assign(token, { position: "absolute", offsetStart: "14px", offsetTop: "0px" }),
       {
         type: "box",
         layout: "vertical",
         position: "absolute",
-        offsetStart: "23px",
+        offsetStart: "1px",
         offsetTop: "13px",
         width: "15px",
         height: "15px",

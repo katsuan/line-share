@@ -727,5 +727,5 @@
 
 .sc-tap { margin: 0; color: #9ca3af; font-size: 10px; text-align: center; }
 
-/* GK：チームと同じ色の丸の右下に 🧤（作戦盤と同じ） */
-.sc-token .sc-gk { position: absolute; top: 13px; left: calc(50% + 4px); display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: #fff; font-size: 9px; font-style: normal; line-height: 1; }
+/* GK：チームと同じ色の丸の左下に 🧤（作戦盤と同じ） */
+.sc-token .sc-gk { position: absolute; top: 13px; right: calc(50% + 4px); display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: #fff; font-size: 9px; font-style: normal; line-height: 1; }
