@@ -5,7 +5,8 @@
 //
 // data の形（キーは短くしてリンクを短くする）
 //   lineup: { m: "futsal"|"soccer", f: "1-2-1", t: チーム, o: 相手, s: 控え, c: チームの色（#rrggbb。なければカードの色）, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（ピッチの左上から。上が攻める向き）
-//   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp }
+//   match:  { t: チーム, o: 相手, us, th（最終スコア。延長を含む）, hu・ht（前半）, su・st（後半）, eu・et（延長）, pu・pt（PK）, g: [[ "u"|"t", 分, 名前 ], ...], mvp,
+//             as: [[名前, 数], ...]（アシスト）, cd: [[ "y"|"r", 名前, 数 ], ...]（カード） }   as・cd はさくせん盤の選手の印から（なければ省く）
 //           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
 const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
@@ -35,8 +36,8 @@ const clampNum = (value, min, max) => Math.min(max, Math.max(min, Math.round(Num
 function sanitizeLineup(source) {
   if (!source || typeof source !== "object" || !Array.isArray(source.pl)) return null;
   const mode = source.m === "futsal" ? "futsal" : "soccer";
-  // 人数は変則（8人制・退場で10人・フットサルの交代込みなど）もあるので、どちらのピッチも 11 人まで
-  const players = source.pl.slice(0, 11).map((p) => ({
+  // 人数は変則（8人制・退場で10人・練習試合で12人以上など）もあるので、どちらのピッチも 16 人まで（さくせん盤と同じ）
+  const players = source.pl.slice(0, 16).map((p) => ({
     number: cutText(Array.isArray(p) ? p[0] : "", 3),
     name: cutText(Array.isArray(p) ? p[1] : "", 8),
     x: clampNum(Array.isArray(p) ? p[2] : 50, 0, 100),
@@ -69,9 +70,17 @@ function sanitizeMatch(source) {
       min: cutText(g?.[1], 4),
       name: cutText(g?.[2], 12)
     })),
-    mvp: cutText(source.mvp, 12)
+    mvp: cutText(source.mvp, 12),
+    as: (Array.isArray(source.as) ? source.as : []).slice(0, 16).map((a) => [cutText(a?.[0], 12), clampNum(a?.[1], 1, 9)]).filter(([name]) => name),
+    cd: (Array.isArray(source.cd) ? source.cd : []).slice(0, 16)
+      .map((c) => [c?.[0] === "r" ? "r" : "y", cutText(c?.[1], 12), c?.[0] === "r" ? 1 : clampNum(c?.[2], 1, 2)])
+      .filter(([, name]) => name)
   };
 }
+
+// アシスト・カードの行（文字）。なければ空
+const assistText = (match) => (match.as?.length ? `👟 アシスト ${match.as.map(([name, n]) => (n > 1 ? `${name}×${n}` : name)).join("・")}` : "");
+const cardsText = (match) => (match.cd?.length ? match.cd.map(([kind, name, n]) => `${(kind === "r" ? "🟥" : "🟨").repeat(n)} ${name}`).join("　") : "");
 
 // 保存・送り直しのときは、プレビュー用に整えた形から data の形に戻す
 function lineupToData(lineup) {
@@ -210,6 +219,10 @@ function renderMatchPreview(palette) {
   if (pkText(match)) box.querySelector(".sc-score").insertAdjacentElement("afterend", Object.assign(document.createElement("b"), { className: "sc-pk", textContent: pkText(match), style: `color: ${palette.start}` }));
   box.querySelector(".sc-goal-list").replaceChildren(
     ...goalLines(match).map((g) => Object.assign(document.createElement("li"), { className: g.side === "t" ? "is-them" : "", textContent: g.text }))
+  );
+  // 得点の下に アシスト → カード の順（afterend で足すので逆から）
+  [cardsText(match), assistText(match)].filter(Boolean).forEach((text) =>
+    box.querySelector(".sc-goal-list").insertAdjacentElement("afterend", Object.assign(document.createElement("p"), { className: "sc-extra", textContent: text }))
   );
   box.querySelector(".sc-mvp").textContent = match.mvp ? `🏅 MVP ${match.mvp}` : "";
   els.matchArea.replaceChildren(box, ...toolTapHintEl("match"));
@@ -439,6 +452,12 @@ function matchFlex(palette) {
       margin: "md",
       contents: goals.map((g) => ({ type: "text", text: g.text, size: "sm", color: g.side === "t" ? "#6B7280" : "#111827", align: g.side === "t" ? "end" : "start", wrap: true }))
     });
+  }
+  // アシスト・カード（さくせん盤の印から。あるときだけ）
+  const extras = [assistText(match), cardsText(match)].filter(Boolean);
+  if (extras.length) {
+    if (!goals.length) parts.push({ type: "separator", margin: "md" });
+    extras.forEach((text, i) => parts.push({ type: "text", text, size: "xs", color: "#4B5563", wrap: true, ...(i === 0 ? { margin: "md" } : {}) }));
   }
   if (match.mvp) parts.push({ type: "text", text: `🏅 MVP ${match.mvp}`, size: "sm", weight: "bold", color: "#111827", align: "center", margin: "md" });
   // 結果のところ全体をタップすると、さくせん盤が開く。結果の中身は渡さない（直したり流用したりはしない想定）
