@@ -607,14 +607,22 @@
   font-size: 10px;
 }
 
+/* 名前：白線と重なっても読めるよう、半透明の濃い札に入れる（さくせん盤の盤と同じ） */
 .sc-token small {
   max-width: 100%;
   overflow: hidden;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(16, 36, 24, 0.72);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.sc-token small:empty {
+  visibility: hidden;
 }
 
 .sc-subs,

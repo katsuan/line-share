@@ -134,7 +134,8 @@ function soccerToolAction(uri) {
 const toolTapHintEl = (kind) => (soccerToolLinkShown() ? [Object.assign(document.createElement("p"), { className: "sc-tap", textContent: TOOL_TAP_HINT[kind] })] : []);
 const toolTapHintFlex = (kind) => (soccerToolLinkShown() ? [{ type: "text", text: TOOL_TAP_HINT[kind], size: "xxs", color: "#9CA3AF", align: "center" }] : []);
 
-const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360);
+// 相手も描くとき（2チーム分）は縦に長くして、選手どうし・名前が重ならないようにする
+const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360) + (lineup.op ? (lineup.m === "futsal" ? 80 : 120) : 0);
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
 
@@ -364,7 +365,7 @@ function pitchFlex(lineup, palette) {
     alignItems: "center",
     contents: [
       isKeeper(lineup, index) ? keeperFlex(tokenFlex(lineup, index, p, palette, color)) : tokenFlex(lineup, index, p, palette, color),
-      { type: "text", text: p.name || " ", size: "xxs", color: "#FFFFFF", weight: "bold", align: "center", margin: "xs" }
+      nameFlex(p.name)
     ]
   })));
   return {
@@ -374,6 +375,22 @@ function pitchFlex(lineup, palette) {
     backgroundColor: PITCH_COLOR,
     cornerRadius: "12px",
     contents: [...lines, ...players]
+  };
+}
+
+// 選手の名前：白線と重なっても読めるよう、半透明の濃い札に入れる（さくせん盤の盤と同じ）。名前がなければ高さだけ残す
+function nameFlex(name) {
+  if (!name) return { type: "text", text: " ", size: "xxs", margin: "xs" };
+  return {
+    type: "box",
+    layout: "vertical",
+    flex: 0,
+    margin: "xs",
+    backgroundColor: "#102418B8",
+    cornerRadius: "999px",
+    paddingStart: "4px",
+    paddingEnd: "4px",
+    contents: [{ type: "text", text: name, size: "xxs", color: "#FFFFFF", weight: "bold", align: "center" }]
   };
 }
 
