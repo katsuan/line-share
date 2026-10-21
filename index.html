@@ -20,13 +20,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610210830" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610212149" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610210830"></script>
-    <script src="./shared/log.js?v=202610210830"></script>
-    <script src="./shared/credit.js?v=202610210830"></script>
-    <script src="./shared/plan.js?v=202610210830"></script>
-    <script src="./shared/liff.js?v=202610210830"></script>
+    <script src="./config.js?v=202610212149"></script>
+    <script src="./shared/log.js?v=202610212149"></script>
+    <script src="./shared/credit.js?v=202610212149"></script>
+    <script src="./shared/plan.js?v=202610212149"></script>
+    <script src="./shared/liff.js?v=202610212149"></script>
     <style>
       .hub-head {
         display: flex;
@@ -45,7 +45,20 @@
         font-weight: 800;
       }
 
-      /* 右上のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
+      /* キャッチコピーの行：左にコピーと説明、右にシェア */
+      .hub-lead-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin: -10px 4px 16px;
+      }
+
+      .hub-lead-row .hub-lead {
+        margin: 0;
+      }
+
+      /* キャッチコピーの右のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
       .hub-share {
         flex: 0 0 auto;
         white-space: nowrap;
@@ -119,7 +132,7 @@
         font-weight: 500;
       }
 
-      /* 見出しは、ほかのツール（さくせん盤・キロっくなど）と同じく アイコン＋名前、横に小さく英字のロゴ（OQRN） */
+      /* 見出しは、ほかのツール（さくせん盤・キロっくなど）と同じく 左にアイコン＋名前、右に横長のロゴ（OQRN） */
       .hub-icon {
         display: block;
         flex: 0 0 auto;
@@ -133,16 +146,9 @@
 
       .hub-logo {
         display: block;
+        flex: 0 0 auto;
         width: auto;
-        height: 26px; /* 名前の字の高さにそろえる */
-        margin-left: 2px;
-      }
-
-      /* 狭い画面（360px 以下）では、シェアが押しつぶされないよう英字のロゴを省く */
-      @media (max-width: 370px) {
-        .hub-logo {
-          display: none;
-        }
+        height: 30px; /* アイコン＋名前の行に合わせる */
       }
 
       .hub-lead strong {
@@ -499,11 +505,16 @@
   </head>
   <body>
     <main id="hub" class="ls-page">
+      <!-- 見出しは1行：アイコン＋名前（左）と、横長のロゴ（右）。ほかのツール（さくせん盤・ろくがなど）と同じ形 -->
       <div class="hub-head">
-        <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="86" height="26" /></h1>
+        <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span></h1>
+        <img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="99" height="30" />
+      </div>
+      <!-- キャッチコピーと説明。シェアはその右 -->
+      <div class="hub-lead-row">
+        <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
       </div>
-      <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
       <ul class="hub-tools">
         <li>
           <a class="hub-tool is-featured" href="./card/?from=home">
