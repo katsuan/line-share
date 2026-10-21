@@ -283,7 +283,7 @@
 
 .bubble-items[data-kind="vote"] .bubble-item-input {
   text-align: center;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -294,7 +294,7 @@
 .bubble-item-input {
   flex: 1;
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 /* チェックリストの「✅ 準備できた」ボタン（文言はそのまま書き換えられる） */
@@ -416,7 +416,7 @@
 
 .coupon-field input {
   color: #111827;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   text-align: center;
 }

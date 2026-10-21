@@ -52,6 +52,11 @@
   display: none !important;
 }
 
+/* iPhone・LINE の中のブラウザで、キーボードが出て画面がずれたとき、ページの外（黒）が見えないよう、ページそのものにも背景の色 */
+html {
+  background-color: var(--ls-bg);
+}
+
 body {
   margin: 0;
   font-family: var(--ls-font);
@@ -871,9 +876,7 @@ input[type="time"].ls-input {
   z-index: 40;
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--ls-line);
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: #ffffff;
   box-shadow: 0 -8px 24px rgba(20, 20, 18, 0.08);
   transition: transform 0.18s ease;
 }
