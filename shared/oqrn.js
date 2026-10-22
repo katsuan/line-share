@@ -12,7 +12,8 @@
 
   function cardUrl(params) {
     const query = params instanceof URLSearchParams ? params : new URLSearchParams(params || {});
-    return `${CARD}?${query}`;
+    // 空白は「+」ではなく %20 で書く（liff.line.me を通ると「+」がそのまま残り、カードに「+」が出るため）
+    return `${CARD}?${String(query).replace(/\+/g, "%20")}`;
   }
 
   window.OQRN = Object.freeze({

@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610230122";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610230122";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610230122";
+import { app } from "./common.js?v=202610231900";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610231900";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610231900";
 
 const TABS = ["map", "calendar"];
 
@@ -33,6 +33,8 @@ async function initializeLiff_() {
   try {
     const { ready } = await window.LineShareLiff.init({ login: "redirect" });
     app.liffReady = ready;
+    // LINE の準備ができても、送り先選びが使えない開き方がある（そのときは送るボタンを出さない）
+    app.canSend = ready && window.LineShareLiff.canShare();
   } finally {
     refreshMapTab();
     refreshCalendarTab();
@@ -97,7 +99,7 @@ function bindSendBar_() {
     barButton.disabled = source.disabled;
     barButton.textContent = source.textContent;
     // 送れないのに理由が空のときは、何を入れれば送れるかを出す（LINE とつながっていないときは、そのことを先に）
-    const hint = source.disabled && !message.textContent.trim() ? (app.liffReady ? EMPTY_HINTS[activeTab_()] : window.LineShareLiff.MESSAGES.notInLine) : "";
+    const hint = source.disabled && !message.textContent.trim() ? (app.canSend ? EMPTY_HINTS[activeTab_()] : window.LineShareLiff.MESSAGES.notInLine) : "";
     barMessage.textContent = hint || message.textContent;
     // 送れない間は「次に何を入れるか」の案内なので赤くしない（送ろうとして失敗したときだけ赤）
     barMessage.className = source.disabled ? "ls-status" : `ls-status ${message.className.replace("message", "")}`;
