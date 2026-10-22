@@ -253,7 +253,9 @@ class Brand:
         """word の "Q" の位置に、アイコンの図形 mark を置く。mark_center・mark_radius はアイコンの中の Q の輪の中心と外側の半径
         （字の高さ＝輪の直径になるよう縮める）。輪の外に出るしっぽの分だけ、次の字を右へずらす。
         fills は字ごとの色（word と同じ長さの並び。(r, g, b) か None＝白。Q の位置は使わない）。
-        plates は字の後ろに敷く丸い板（[(字の位置の並び, (r, g, b)), ...]。ひっくりの黒い石・白い石など）"""
+        plates は字の後ろに敷く丸い板（[(字の位置の並び, (r, g, b)), ...]。ひっくりの黒い石・白い石など）
+        Q が2つ以上あるとき、mark に図形の並びのリスト（[図形1, 図形2, ...]）を渡すと、n 番目の Q に n 番目の形を置く
+        （すくすく：1つ目はふたばの芽、2つ目はメジャー。輪の中心・半径はどれも同じにしておく）"""
         from fontTools.pens.boundsPen import BoundsPen
         from fontTools.pens.svgPathPen import SVGPathPen
         from fontTools.pens.transformPen import TransformPen
@@ -273,22 +275,28 @@ class Brand:
         gap = h * 0.09
         thin = h * 0.05  # 字のふちを背景の色でなぞって少し細く見せる幅
         k = (h / 2) / mark_radius
-        mark = [sh for sh in mark if not sh.get("deco")]
+        marks = mark if mark and isinstance(mark[0], list) else [mark]
+        marks = [[sh for sh in m if not sh.get("deco")] for m in marks]
+        mark_of = lambda n: marks[min(n, len(marks) - 1)]  # noqa: E731
+
+        def extent(m):
+            """図形の外形（しっぽを含む。輪の中心からの範囲、縮めたあと）"""
+            bx0, by0, bx1, by1 = shapes_bounds(m)
+            return (bx0 - mark_center[0]) * k, (by0 - mark_center[1]) * k, (bx1 - mark_center[0]) * k, (by1 - mark_center[1]) * k
+
         # 図形の外形（しっぽを含む。輪の中心からの範囲）
-        bx0, by0, bx1, by1 = shapes_bounds(mark)
-        mx0, my0 = (bx0 - mark_center[0]) * k, (by0 - mark_center[1]) * k
-        mx1, my1 = (bx1 - mark_center[0]) * k, (by1 - mark_center[1]) * k
         plate_of = {i: n for n, (indices, _) in enumerate(plates or []) for i in indices}
         plate_px, plate_py = h * 0.3, h * 0.16  # 板の、字のまわりの余白（横・縦）
         spans = {}  # 板ごとの字の左右のはし
-        paths, x, q = [], 0.0, None
+        paths, x, qs = [], 0.0, []  # qs：Q を置く位置（SuQSuQ のように2つあることも）
         for i, char in enumerate(word):
             plate = plate_of.get(i)
             if plate is not None and plate_of.get(i - 1) != plate:
                 x += plate_px  # 板に入るところは、板の余白の分だけあける
             if char == "Q":
+                mx0, _, mx1, _ = extent(mark_of(len(qs)))
                 cx = x - mx0
-                q = (cx, h / 2)
+                qs.append((cx, h / 2))
                 x = cx + mx1 + gap
                 continue
             b = bounds(char)
@@ -307,21 +315,24 @@ class Brand:
                 x += plate_px  # 板から出るところも、板の余白の分だけあける
         right = x - gap
         pad_x, pad_y = h * 0.55, h * 0.42
-        y_top = min(0, q[1] + my0)
-        y_bottom = max(h, q[1] + my1)
+        y_top = min([0] + [qy + extent(mark_of(n))[1] for n, (_, qy) in enumerate(qs)])
+        y_bottom = max([h] + [qy + extent(mark_of(n))[3] for n, (_, qy) in enumerate(qs)])
         x0, y0 = -pad_x, y_top - pad_y
         width, height = right + pad_x * 2, (y_bottom - y_top) + pad_y * 2
-        mark_g = (
-            f'<g transform="translate({num(q[0])} {num(q[1])}) scale({k:.5f}) translate({num(-mark_center[0])} {num(-mark_center[1])})">'
-            + self.shapes_svg(mark, gid="gm")
-            + "</g>"
-        )
-        # Q の中の「背景の色」は縮めた座標で塗るので、同じグラデーションをその座標に直したもの（gm）を使う
-        inner = lambda px, py: ((px - q[0]) / k + mark_center[0], (py - q[1]) / k + mark_center[1])  # noqa: E731
-        ix0, iy0 = inner(x0, y0)
+        # Q の中の「背景の色」は縮めた座標で塗るので、同じグラデーションをその座標に直したもの（gm, gm1…）を使う
+        mark_g, grads = "", ""
+        for n, (qx, qy) in enumerate(qs):
+            gid = "gm" if n == 0 else f"gm{n}"
+            mark_g += (
+                f'<g transform="translate({num(qx)} {num(qy)}) scale({k:.5f}) translate({num(-mark_center[0])} {num(-mark_center[1])})">'
+                + self.shapes_svg(mark_of(n), gid=gid)
+                + "</g>"
+            )
+            ix0, iy0 = (x0 - qx) / k + mark_center[0], (y0 - qy) / k + mark_center[1]
+            grads += self.gradient_svg(ix0, iy0, width / k, height / k, gid=gid)
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{num(x0)} {num(y0)} {num(width)} {num(height)}" role="img" aria-label="{label}">'
-            f"<defs>{self.gradient_svg(x0, y0, width, height)}{self.gradient_svg(ix0, iy0, width / k, height / k, gid='gm')}</defs>"
+            f"<defs>{self.gradient_svg(x0, y0, width, height)}{grads}</defs>"
             f'<rect x="{num(x0)}" y="{num(y0)}" width="{num(width)}" height="{num(height)}" rx="{num(h * 0.3)}" fill="url(#g)"/>'
             + "".join(
                 f'<rect x="{num(lo - plate_px)}" y="{num(-plate_py)}" width="{num(hi - lo + plate_px * 2)}" height="{num(h + plate_py * 2)}" '
