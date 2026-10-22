@@ -391,6 +391,7 @@ input[type="time"].ls-input {
 }
 
 .ls-chip[aria-pressed="true"],
+.ls-chip[aria-checked="true"],
 .ls-chip.is-active,
 .ls-chip:has(input:checked) {
   border-color: var(--ls-accent);

@@ -76,7 +76,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `ls-brand`・`ls-brand-name`・`ls-brand-icon`・`ls-brand-logo`・`ls-brand-copy` | 見出しの行（アイコン＋名前、右にロゴ、下にひとこと） |
 | `ls-panel`・`ls-panel-head`・`ls-panel-title`・`ls-hint` | 白いカードと見出し・説明 |
 | `ls-tabs`・`ls-tab`（`aria-selected`） | 切りかえ |
-| `ls-chips`・`ls-chip`（`aria-pressed` か `is-active`、中に radio・checkbox も可）・`is-small` | 選ぶもの |
+| `ls-chips`・`ls-chip`（`aria-pressed`・`aria-checked`（`role="radio"` のとき）か `is-active`、中に radio・checkbox も可）・`is-small` | 選ぶもの |
 | `ls-field`・`ls-label`・`ls-input`・`ls-row` | 入力欄（16px 以上、iPhone で寄らない） |
 | `ls-button`（`is-primary`・`is-danger`・`is-block`）・`ls-icon-button`・`ls-actions` | ボタン |
 | `ls-folds`・`ls-fold`（`<details>`）・`ls-fold-icon`・`ls-fold-meta`・`ls-fold-body` | 開閉する設定 |
