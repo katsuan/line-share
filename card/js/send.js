@@ -71,6 +71,40 @@ function updateShareButtonState() {
   setStatus(message || "送ったあとは直せません。", Boolean(message) && hasTriedShare);
 }
 
+// ---- 記録用の文字（?sendText=）。カードの後ろに、文字のメッセージを1通足して送る ----
+// LINE のボットには Flex（カード）の中身が届かないので、ボットに記録させたいツール（しょくじなど）が、読みとれる文字を一緒に渡す。
+// 送る前に中身を見せ、チェックを外せば送らない
+// LINE の外で「ログインして送る」と、パラメータなしで戻ってくるので、ログインの前に sessionStorage に残したものも読む（storage.js の keepDeckForLogin）
+const SEND_TEXT_KEY = "oqrn:card-send-text";
+const SEND_TEXT = (() => {
+  const fromUrl = new URLSearchParams(location.search).get("sendText") || "";
+  let kept = "";
+  try {
+    kept = sessionStorage.getItem(SEND_TEXT_KEY) || "";
+    sessionStorage.removeItem(SEND_TEXT_KEY);
+  } catch {
+    // 残せない端末では URL のものだけ
+  }
+  return (fromUrl || kept).trim().slice(0, 2000);
+})();
+
+// 送るときに使う記録用の文字（チェックを外していれば空）
+function activeSendText() {
+  return SEND_TEXT && document.getElementById("sendTextToggle")?.checked ? SEND_TEXT : "";
+}
+
+function initSendText() {
+  const row = document.getElementById("sendTextRow");
+  if (!row || !SEND_TEXT) return;
+  document.getElementById("sendTextPreview").textContent = SEND_TEXT;
+  row.hidden = false;
+}
+
+function sendTextMessages() {
+  const text = activeSendText();
+  return text ? [{ type: "text", text }] : [];
+}
+
 // ---- 来た元のツール（?from=）。送ったあとのシートに「○○に戻る」を出す ----
 // from はツールごとの流入口の目印（さくせん盤＝soccer、くろのす＝countdown、紹介カード＝<key>-intro など）。
 // 戻り先は、来たページ（document.referrer）がそのツールのページならそこ、なければ data/hub-links.json の url
@@ -126,7 +160,7 @@ async function share() {
 
   try {
     setStatus("共有先を開いています…");
-    const messages = [buildDeckMessage()];
+    const messages = [buildDeckMessage(), ...sendTextMessages()];
     if (!(await window.LineShareLiff.share(messages))) {
       setStatus(window.LineShareLiff.MESSAGES.canceled);
       return;
@@ -197,6 +231,7 @@ async function initLiff() {
     return;
   }
   loadBackTarget();
+  initSendText();
   // LIFF の準備は shared/liff.js。ログインはさせず、送るときに LINE アプリ内か確かめる
   const { MESSAGES } = window.LineShareLiff;
   setStatus(MESSAGES.connecting);

@@ -738,3 +738,9 @@
 
 /* GK：チームと同じ色の丸の左下に 🧤（作戦盤と同じ） */
 .sc-token .sc-gk { position: absolute; top: 13px; right: calc(50% + 4px); display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: #fff; font-size: 9px; font-style: normal; line-height: 1; }
+
+/* 記録用の文字（?sendText=）：送るバーの中に、チェックと中身（小さく・数行まで） */
+.send-text { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 1px dashed var(--ls-line); border-radius: 12px; background: #fafaf7; font-size: 13px; cursor: pointer; }
+.send-text input { flex: 0 0 auto; width: 18px; height: 18px; margin: 1px 0 0; }
+.send-text span { display: grid; gap: 2px; min-width: 0; }
+.send-text small { display: -webkit-box; overflow: hidden; color: var(--ls-subtext); font-size: 12px; line-height: 1.45; white-space: pre-wrap; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
