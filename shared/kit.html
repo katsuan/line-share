@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Q キットの見本</title>
+<!-- 部品の見本（README の「Q キット」）。検索には出さない -->
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="ui.css" />
+<style>
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .demo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  code { font-size: 12px; }
+</style>
+</head>
+<body>
+<main class="ls-page ls-stack">
+  <header class="ls-brand">
+    <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="30" height="30" />Q キット</h1>
+    <img class="ls-brand-logo" src="logo.svg" alt="OQRN" width="85" height="28" />
+  </header>
+  <p class="ls-brand-copy">ツールの色を変えて、部品の見え方を確かめる見本</p>
+
+  <section class="ls-panel">
+    <div class="ls-panel-head"><h2 class="ls-panel-title">🎨 ツールの色</h2></div>
+    <div id="accents" class="swatch-row" role="radiogroup" aria-label="ツールの色"></div>
+    <p class="ls-hint">各ツールでは <code>:root { --ls-accent: … }</code> か <code>LineShareUI.setAccent("#…")</code>。</p>
+  </section>
+
+  <div class="ls-tabs" role="tablist" aria-label="見本">
+    <button class="ls-tab" type="button" role="tab" aria-selected="true">📝 記録</button>
+    <button class="ls-tab" type="button" role="tab" aria-selected="false">📈 ふりかえり</button>
+  </div>
+
+  <section class="ls-panel">
+    <div class="ls-panel-head"><h2 class="ls-panel-title">入力・チップ・ボタン</h2></div>
+    <div class="ls-chips" role="radiogroup" aria-label="いつ">
+      <button class="ls-chip" type="button" aria-pressed="false">朝</button>
+      <button class="ls-chip" type="button" aria-pressed="true">昼</button>
+      <button class="ls-chip" type="button" aria-pressed="false">夜</button>
+      <button class="ls-chip" type="button" aria-pressed="false">間食</button>
+    </div>
+    <label class="ls-field"><span class="ls-label">食べたもの</span><input class="ls-input" placeholder="例：カレーライス" /></label>
+    <div class="ls-actions">
+      <button class="ls-button is-primary" type="button" id="toastButton">トーストを出す</button>
+      <button class="ls-button" type="button" id="sheetButton">シートを出す</button>
+    </div>
+  </section>
+
+  <div class="ls-folds">
+    <details class="ls-fold" open>
+      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>開閉 <span class="ls-fold-meta">2件</span></summary>
+      <div class="ls-fold-body"><p class="ls-hint">中身。見出しの右の小さな表示は、空なら「なし」。</p></div>
+    </details>
+  </div>
+
+  <section class="ls-panel">
+    <div class="ls-panel-head"><h2 class="ls-panel-title">空のとき・読みこみ中</h2></div>
+    <div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🍙</span>まだ記録がありません<button class="ls-button is-primary" type="button">＋ 記録する</button></div>
+    <div class="demo-row"><span class="ls-skeleton"></span><span class="ls-skeleton"></span><span class="ls-skeleton"></span></div>
+  </section>
+</main>
+
+<div id="sheet" class="ls-sheet" hidden>
+  <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <p id="sheetTitle" class="ls-sheet-title">下から出るシート</p>
+    <p class="ls-hint">確かめや、選ぶものが多いときに。</p>
+    <div class="ls-sheet-actions">
+      <button class="ls-button is-primary" type="button" data-close>OK</button>
+      <button class="ls-sheet-cancel" type="button" data-close>閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script src="ui.js" defer></script>
+<script>
+  // Q のツールの色（data/hub-links.json の color と同じもの）と、おくるんの色の並び
+  const TOOL_COLORS = [
+    ["おくるん", "#6c47ff"], ["しょくじ", "#ec8a16"], ["キロっく", "#c96a2d"], ["食事記録", "#c8553d"],
+    ["さくせん盤", "#1f8a4c"], ["くろのす", "#2563eb"], ["ジェンダーリビール", "#e5487a"]
+  ];
+  window.addEventListener("DOMContentLoaded", () => {
+    const box = document.getElementById("accents");
+    TOOL_COLORS.forEach(([name, hex], index) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "ls-chip";
+      chip.textContent = name;
+      chip.setAttribute("aria-pressed", String(index === 0));
+      chip.addEventListener("click", () => {
+        LineShareUI.setAccent(hex);
+        box.querySelectorAll(".ls-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip)));
+      });
+      box.append(chip);
+    });
+    document.querySelectorAll(".ls-chips .ls-chip").forEach((chip) =>
+      chip.addEventListener("click", () => chip.parentElement.querySelectorAll(".ls-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip))))
+    );
+    document.getElementById("toastButton").addEventListener("click", () =>
+      LineShareUI.toast("カレーライス を記録しました", { actionLabel: "取り消す", onAction: () => LineShareUI.toast("取り消しました") })
+    );
+    const sheet = document.getElementById("sheet");
+    document.getElementById("sheetButton").addEventListener("click", () => (sheet.hidden = false));
+    sheet.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => (sheet.hidden = true)));
+  });
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610221431";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610221431";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610221431";
+import { app } from "./common.js?v=202610221906";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610221906";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610221906";
 
 const TABS = ["map", "calendar"];
 

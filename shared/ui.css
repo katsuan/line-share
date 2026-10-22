@@ -1226,3 +1226,89 @@ body.is-typing .ls-to-preview {
   background: #06c755;
   color: #fff;
 }
+
+/* ==== Q のツールの共通部品（Q キット） ====
+ * ほかの Q のツールも https://katsuan.github.io/line-share/shared/ui.css を読み、
+ * :root の --ls-accent など（README の「Q キット」）を自分の色に変えるだけで、同じ見た目の部品を使える。
+ * クラス名と変数名は、読んでいるツールがあるので変えない（足すのはよい）。
+ */
+
+/* 見出しの行：アイコン＋名前（左）とロゴ（右）、下にひとこと */
+.ls-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--ls-tap);
+}
+
+.ls-brand-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ls-brand-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+}
+
+.ls-brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  height: 28px;
+}
+
+.ls-brand-copy {
+  margin: -4px 0 0;
+  color: var(--ls-accent-ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* まだ何もないとき：一言と、次にすること（ボタン）を中央に */
+.ls-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  color: var(--ls-subtext);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.ls-empty-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* 読みこみ中：中身と同じ大きさの箱をうすく光らせる（中身が出ても位置がずれない） */
+.ls-skeleton {
+  display: block;
+  min-height: 48px;
+  border-radius: var(--ls-radius-md);
+  background: linear-gradient(90deg, var(--ls-surface-sub) 25%, var(--ls-surface) 50%, var(--ls-surface-sub) 75%);
+  background-size: 200% 100%;
+  animation: ls-skeleton 1.2s linear infinite;
+}
+
+@keyframes ls-skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-skeleton {
+    animation: none;
+  }
+}
