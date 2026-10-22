@@ -1,86 +1,18 @@
-// 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。
+// 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。画面・手書きの操作・送信・送った画像。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610221431";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610221431";
+// 決まった値は constants.js、描く処理は draw.js、送るメッセージの組み立ては message.js。
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610221906";
+import { addSent, deleteSent, listSent } from "./history.js?v=202610221906";
+
+import {
+  ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
+  LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
+} from "./constants.js?v=202610221906";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610221906";
+import { buildMessage } from "./message.js?v=202610221906";
 
 const config = window.LINE_SHARE_CONFIG || {};
-
-const LONG_SIDE = 480; // 静止画の長い辺
-const ANIMATION_LONG_SIDE = 240; // 動く画像は 300KB に収めるため小さめに作る
-const BASE = 480; // 太さなどの数値は「短い辺 = 480px」を基準にした px
-
-// 画像の形（横:縦）
-const SHAPES = [
-  { label: "正方形", value: "1:1" },
-  { label: "横長", value: "4:3" },
-  { label: "ワイド", value: "16:9" },
-  { label: "縦長", value: "3:4" }
-];
-const EDGE_MARGIN = 10;
-const PREFS_KEY = "line-share:image-prefs";
-
-const FONTS = [
-  { label: "ゴシック", value: "'Hiragino Sans', 'Noto Sans JP', sans-serif" },
-  { label: "丸ゴシック", value: "'Hiragino Maru Gothic ProN', 'M PLUS Rounded 1c', 'Hiragino Sans', sans-serif" },
-  { label: "明朝", value: "'Hiragino Mincho ProN', 'Yu Mincho', serif" },
-  { label: "英字太め", value: "'Arial Black', 'Hiragino Sans', sans-serif" },
-  // 手書き風（Google Fonts、SIL OFL）。太さが1種類なので weight を合わせる（太字にすると字がつぶれる）
-  { label: "手書き風", value: "'Yomogi', 'Hiragino Maru Gothic ProN', sans-serif", weight: 400, webFont: "Yomogi" },
-  { label: "ペン字風", value: "'Klee One', 'Hiragino Mincho ProN', serif", weight: 600, webFont: "Klee One" }
-];
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）
-// 色は2行に分ける。1行目は基本の色（黒・白など）、2行目は全ツール共通の並び
-// （shared/ui.js の PALETTE：紫・青・緑・橙・赤）で、最後に「ほかの色」
-const BLACK = "#18222f";
-const WHITE = "#ffffff";
-const HUES = window.LineShareUI.PALETTE.map((color) => color.solid.toLowerCase());
-const BASIC_COLORS = [BLACK, WHITE];
-// スライダーで選べる太さの範囲（3段階のボタンはこの中のよく使う値）
-const PEN_SIZE_MIN = 2;
-const PEN_SIZE_MAX = 40;
-const PEN_SIZES = [
-  { label: "細い", value: 6 },
-  { label: "ふつう", value: 12 },
-  { label: "太い", value: 22 }
-];
-const OUTLINES = [
-  { label: "なし", value: "none" },
-  { label: "白", value: "white" },
-  { label: "黒", value: "black" },
-  { label: "白黒", value: "double" }
-];
-// 「ほかの色」で選べる縁の色（一重の縁取りになる）
-const OUTLINE_COLORS = HUES;
-// LINE のカード（bubble）の大きさ。小さい順
-const BUBBLE_SIZES = ["nano", "micro", "deca", "hecto", "kilo", "mega", "giga"];
-const OUTLINE_WIDTHS = [
-  { label: "細い", value: 4 },
-  { label: "ふつう", value: 7 },
-  { label: "太い", value: 11 }
-];
-// 背景は 1行目が 透明・白・黒、2行目が薄い色（同じ並び）
-const BASIC_BACKGROUNDS = [null, WHITE, BLACK];
-const BACKGROUNDS = window.LineShareUI.PALETTE.map((color) => color.soft.toLowerCase());
-
-const DEFAULT_PREFS = {
-  mode: "text",
-  text: "OK",
-  font: FONTS[0].value,
-  textColor: HUES[0],
-  penColor: BLACK,
-  penSize: PEN_SIZES[1].value,
-  outline: "double",
-  // outline が "custom" のときの縁の色
-  outlineColor: OUTLINE_COLORS[0],
-  outlineWidth: OUTLINE_WIDTHS[1].value,
-  background: null,
-  motion: "none",
-  shape: "1:1",
-  // 送り方。画像は透過できるが動かない、カードは動くが背景が白くなる（今の LINE の表示）
-  sendMode: "image",
-  // カードで送るときの LINE のカードの大きさ。標準は mega だが、スタンプを大きく見せるため最初は giga
-  bubbleSize: "giga"
-};
 
 const state = {
   ...structuredClone(DEFAULT_PREFS),
@@ -128,123 +60,14 @@ document.addEventListener("DOMContentLoaded", () => {
   initLiff_();
 });
 
-// ---- 描画 ----
-
-// 長い辺を longSide にしたときの幅と高さ
-function dims_(longSide) {
-  const [w, h] = state.shape.split(":").map(Number);
-  return w >= h
-    ? { width: longSide, height: Math.round((longSide * h) / w) }
-    : { width: Math.round((longSide * w) / h), height: longSide };
-}
-
-/**
- * 文字と手書きを重ね、縁取りまでかけた1枚（動きをかける前）を作る。
- */
-function buildLayer(width, height) {
-  const scale = Math.min(width, height) / BASE;
-  const content = renderContent_(width, height, scale);
-  const layer = document.createElement("canvas");
-  layer.width = width;
-  layer.height = height;
-  const layerCtx = layer.getContext("2d");
-
-  const ring = state.outline === "none" ? 0 : Math.max(1, Math.round(state.outlineWidth * scale));
-  if (state.outline === "double") {
-    drawOutline_(layerCtx, content, ring * 2, WHITE);
-    drawOutline_(layerCtx, content, ring, BLACK);
-  } else if (ring > 0) {
-    drawOutline_(layerCtx, content, ring, outlineColor_());
-  }
-  layerCtx.drawImage(content, 0, 0);
-  return layer;
-}
-
-function outlineColor_() {
-  if (state.outline === "custom") return state.outlineColor;
-  return state.outline === "white" ? WHITE : BLACK;
-}
-
-/**
- * 背景を敷き、動きの変形をかけて layer を ctx に描く。
- */
-function compose(ctx, width, height, layer, transform = {}) {
-  ctx.clearRect(0, 0, width, height);
-  if (state.background) {
-    ctx.fillStyle = state.background;
-    ctx.fillRect(0, 0, width, height);
-  }
-
-  const { offsetX = 0, offsetY = 0, scale: zoom = 1, rotation = 0, wrapX = false } = transform;
-  for (const tileX of wrapX ? [-width, 0, width] : [0]) {
-    ctx.save();
-    ctx.translate(width / 2 + offsetX + tileX, height / 2 + offsetY);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(zoom, zoom);
-    ctx.translate(-width / 2, -height / 2);
-    ctx.drawImage(layer, 0, 0);
-    ctx.restore();
-  }
-}
-
-function renderContent_(width, height, scale) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-
-  const text = state.text.trim();
-  if (text) {
-    const lines = text.split("\n");
-    const outline = state.outline === "none" ? 0 : state.outlineWidth * scale * (state.outline === "double" ? 2 : 1);
-    const padding = EDGE_MARGIN * scale + outline;
-    const fontSize = fitFontSize_(ctx, lines, width - padding * 2, height - padding * 2);
-    const lineHeight = fontSize * 1.15;
-    const startY = height / 2 - (lines.length * lineHeight) / 2 + lineHeight / 2;
-
-    ctx.font = font_(fontSize);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = state.textColor;
-    lines.forEach((line, index) => ctx.fillText(line, width / 2, startY + index * lineHeight));
-  }
-
-  // 手書きの点は「中心からの距離 ÷ 短い辺」で持つので、形を変えても線が伸び縮みしない
-  const unit = Math.min(width, height);
-  const toX = (x) => width / 2 + x * unit;
-  const toY = (y) => height / 2 + y * unit;
-  const strokes = state.currentStroke ? [...state.strokes, state.currentStroke] : state.strokes;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  for (const stroke of strokes) {
-    ctx.lineWidth = stroke.size * scale;
-    ctx.strokeStyle = stroke.color;
-    ctx.beginPath();
-    stroke.points.forEach(([x, y], index) => {
-      if (index === 0) ctx.moveTo(toX(x), toY(y));
-      else ctx.lineTo(toX(x), toY(y));
-    });
-    if (stroke.points.length === 1) {
-      const [x, y] = stroke.points[0];
-      ctx.lineTo(toX(x) + 0.01, toY(y));
-    }
-    ctx.stroke();
-  }
-
-  return canvas;
-}
-
-function font_(px) {
-  const weight = FONTS.find((option) => option.value === state.font)?.weight ?? 800;
-  return `${weight} ${px}px ${state.font}`;
-}
+// ---- 描画（中身は draw.js） ----
 
 // 手書き風の書体は読み込みに時間がかかるので、使う文字の分を読み込んでから描き直す
 // （canvas は読み込み前だと代わりの書体で描いてしまう）
 async function loadWebFont_() {
-  if (!FONTS.find((option) => option.value === state.font)?.webFont || !document.fonts) return;
+  if (!needsWebFont(state) || !document.fonts) return;
   try {
-    await document.fonts.load(font_(48), state.text || "あ");
+    await document.fonts.load(fontOf(state, 48), state.text || "あ");
   } catch {
     // 読み込めなくても代わりの書体で描ける
   }
@@ -253,54 +76,14 @@ async function loadWebFont_() {
 // 描く前に呼ぶ。まだ読み込まれていなければ読み込み、終わったら描き直す（読み込み済みなら何もしない）
 let fontLoading = "";
 function ensureWebFont_() {
-  if (!FONTS.find((option) => option.value === state.font)?.webFont || !document.fonts) return;
-  const key = `${font_(48)}|${state.text}`;
-  if (fontLoading === key || document.fonts.check(font_(48), state.text || "あ")) return;
+  if (!needsWebFont(state) || !document.fonts) return;
+  const key = `${fontOf(state, 48)}|${state.text}`;
+  if (fontLoading === key || document.fonts.check(fontOf(state, 48), state.text || "あ")) return;
   fontLoading = key;
   loadWebFont_().then(() => {
     if (fontLoading === key) fontLoading = "";
     restartPreview_();
   });
-}
-
-function fitFontSize_(ctx, lines, maxWidth, maxHeight) {
-  let low = 8;
-  let high = Math.floor(maxHeight / (lines.length * 1.15));
-  // 二分探索で枠に収まる最大の文字サイズを探す
-  while (low < high) {
-    const mid = Math.ceil((low + high) / 2);
-    ctx.font = font_(mid);
-    const width = Math.max(
-      ...lines.map((line) => {
-        const m = ctx.measureText(line || " ");
-        return m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
-      })
-    );
-    if (width <= maxWidth) low = mid;
-    else high = mid - 1;
-  }
-  return low;
-}
-
-// 不透明な部分を円状にずらして重ね、縁取りを作る（文字・手書き・絵文字すべてに効く）
-function drawOutline_(targetCtx, source, radius, color) {
-  const tinted = document.createElement("canvas");
-  tinted.width = source.width;
-  tinted.height = source.height;
-  const tintedCtx = tinted.getContext("2d");
-  tintedCtx.drawImage(source, 0, 0);
-  tintedCtx.globalCompositeOperation = "source-in";
-  tintedCtx.fillStyle = color;
-  tintedCtx.fillRect(0, 0, tinted.width, tinted.height);
-
-  const steps = Math.max(16, Math.min(48, radius * 4));
-  for (const ratio of [1, 0.66, 0.33]) {
-    const r = radius * ratio;
-    for (let i = 0; i < steps; i += 1) {
-      const angle = (i / steps) * Math.PI * 2;
-      targetCtx.drawImage(tinted, Math.cos(angle) * r, Math.sin(angle) * r);
-    }
-  }
 }
 
 // プレビュー用の layer は内容が変わったときだけ作り直し、アニメーション中は使い回す
@@ -312,10 +95,10 @@ function requestRender() {
   ensureWebFont_();
   requestAnimationFrame(() => {
     renderQueued = false;
-    const { width, height } = dims_(LONG_SIDE);
-    previewLayer = buildLayer(width, height);
+    const { width, height } = dims(state, LONG_SIDE);
+    previewLayer = buildLayer(state, width, height);
     if (!isPreviewMoving_()) {
-      compose(els.canvas.getContext("2d"), width, height, previewLayer);
+      compose(state, els.canvas.getContext("2d"), width, height, previewLayer);
     }
   });
 }
@@ -329,22 +112,22 @@ function restartPreview_() {
   ensureWebFont_();
   cancelAnimationFrame(animationFrame);
   animationFrame = null;
-  const { width, height } = dims_(LONG_SIDE);
+  const { width, height } = dims(state, LONG_SIDE);
   if (els.canvas.width !== width || els.canvas.height !== height) {
     els.canvas.width = width;
     els.canvas.height = height;
   }
   els.canvasFrame.style.aspectRatio = `${width} / ${height}`;
   const ctx = els.canvas.getContext("2d");
-  previewLayer = buildLayer(width, height);
+  previewLayer = buildLayer(state, width, height);
   if (!isPreviewMoving_()) {
-    compose(ctx, width, height, previewLayer);
+    compose(state, ctx, width, height, previewLayer);
     return;
   }
   const start = performance.now();
   const loop = (now) => {
     const t = ((now - start) % 900) / 900;
-    compose(ctx, width, height, previewLayer, computeMotionTransform(state.motion, t, width, height));
+    compose(state, ctx, width, height, previewLayer, computeMotionTransform(state.motion, t, width, height));
     animationFrame = requestAnimationFrame(loop);
   };
   animationFrame = requestAnimationFrame(loop);
@@ -715,20 +498,20 @@ function setStatus_(message, tone = "") {
 async function buildImage_() {
   await loadWebFont_();
   if (state.motion === "none" || state.sendMode !== "card") {
-    const { width, height } = dims_(LONG_SIDE);
+    const { width, height } = dims(state, LONG_SIDE);
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    compose(canvas.getContext("2d"), width, height, buildLayer(width, height));
+    compose(state, canvas.getContext("2d"), width, height, buildLayer(state, width, height));
     return { blob: await canvasToBlob(canvas), width, height, animated: false };
   }
-  const { width, height } = dims_(ANIMATION_LONG_SIDE);
-  const layer = buildLayer(width, height);
+  const { width, height } = dims(state, ANIMATION_LONG_SIDE);
+  const layer = buildLayer(state, width, height);
   const { blob, oversized } = await buildAnimationBlob({
     width,
     height,
     preset: state.motion,
-    renderFrame: (ctx, transform) => compose(ctx, width, height, layer, transform)
+    renderFrame: (ctx, transform) => compose(state, ctx, width, height, layer, transform)
   });
   if (oversized) {
     setStatus_("動く画像がLINEの上限（300KB）を超えたため、止まって表示される場合があります。", "error");
@@ -760,7 +543,6 @@ function closeSheet_(sheet) {
 
 // ---- 送信 ----
 
-
 // アップロード先（無料は画像サーバー、有償は GAS）は shared/plan.js が選ぶ
 async function uploadImage_(blob) {
   const dataUrl = await new Promise((resolve, reject) => {
@@ -770,58 +552,6 @@ async function uploadImage_(blob) {
     reader.readAsDataURL(blob);
   });
   return window.LineSharePlan.upload(dataUrl);
-}
-
-// 今の LINE ではカード（Flex）の背景は透過しない（元の文字アイコンも同じ）。透過したいときは「画像で送る」
-function buildMessage_(mode, imageUrl, item) {
-  if (mode === "image") {
-    return { type: "image", originalContentUrl: imageUrl, previewImageUrl: imageUrl };
-  }
-  const sourceText = item.text?.trim().replace(/\s+/g, " ") || "";
-  const credit = window.LineShareCredit;
-  return {
-    type: "flex",
-    altText: (sourceText || "画像").slice(0, 100),
-    contents: {
-      type: "bubble",
-      size: BUBBLE_SIZES.includes(item.size) ? item.size : "giga",
-      hero: {
-        type: "image",
-        url: imageUrl,
-        size: "full",
-        aspectRatio: aspectRatio_(item.width, item.height),
-        aspectMode: "fit",
-        animated: item.animated,
-        backgroundColor: "#00000000",
-        // Created by が ON のときは画像のタップでも「おくるん」を開く
-        ...(credit?.enabled() ? { action: { type: "uri", label: "おくるん", uri: credit.topUrl() } } : {})
-      },
-      // 画像だけを見せるため本文は空にする（Created by はフッターに付く）
-      body: {
-        type: "box",
-        layout: "vertical",
-        contents: [],
-        paddingAll: "0px",
-        spacing: "none",
-        backgroundColor: "#00000000"
-      },
-      styles: {
-        hero: { backgroundColor: "#00000000" },
-        body: { backgroundColor: "#00000000" }
-      }
-    }
-  };
-}
-
-// 縦横比を約分して「横:縦」にする（LINE の上限に合わせて 3 倍までに抑える）
-function aspectRatio_(width, height) {
-  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
-  const divisor = gcd(width, height) || 1;
-  let w = width / divisor;
-  let h = height / divisor;
-  if (w / h > 3) [w, h] = [3, 1];
-  if (w / h < 1 / 3) [w, h] = [1, 3];
-  return `${w}:${h}`;
 }
 
 async function send_() {
@@ -857,7 +587,7 @@ async function sendImage_(item) {
       stopProgress();
     }
     setStatus_("");
-    const message = window.LineShareCredit?.withCredit(buildMessage_(mode, imageUrl, item)) ?? buildMessage_(mode, imageUrl, item);
+    const message = window.LineShareCredit?.withCredit(buildMessage(mode, imageUrl, item)) ?? buildMessage(mode, imageUrl, item);
     if (await window.LineShareLiff.share([message])) {
       setStatus_(window.LineShareLiff.MESSAGES.sent, "success");
       window.LineShareLog?.track("send", { kind: item.animated ? `${mode}-motion` : mode });
