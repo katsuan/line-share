@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610231900";
-import { MAX_URI_LENGTH } from "./config.js?v=202610231900";
-import { bindHeader } from "./header.js?v=202610231900";
-import { createEventFlex } from "./flex.js?v=202610231900";
-import { bindPlaceSearch } from "./place-search.js?v=202610231900";
+} from "./common.js?v=202610230720";
+import { MAX_URI_LENGTH } from "./config.js?v=202610230720";
+import { bindHeader } from "./header.js?v=202610230720";
+import { createEventFlex } from "./flex.js?v=202610230720";
+import { bindPlaceSearch } from "./place-search.js?v=202610230720";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -70,7 +70,11 @@ export function applyPlace({ mapUrl, title, address, photoUrl }) {
 export function applyEventQuery(params) {
   if (params.has("title")) dom.title.value = params.get("title");
   if (params.has("details")) dom.details.value = params.get("details");
-  if (params.has("url")) dom.url.value = params.get("url");
+  // リンクで渡されたボタンの行き先は、送る前に見えるよう開いておく
+  if (params.has("url")) {
+    dom.url.value = params.get("url");
+    document.getElementById("urlFold").open = Boolean(dom.url.value.trim());
+  }
   if (params.has("location") || params.has("mapUrl")) {
     const mapUrl = params.get("mapUrl") || "";
     const photoUrl = params.get("photoUrl") || "";
@@ -437,6 +441,7 @@ function renderPreviewParts_({ rows, photoUrl, mapUrl, url }) {
     .filter(Boolean)
     .map(([label, attrs]) => `<span class="preview-link secondary" ${attrs}>${label}</span>`)
     .join("");
+  // qcheck-ok: W1 決まった文字と jumpAttrs（決まった id）だけ。外からの文字は入らない
   dom.previewActions.innerHTML = `<span class="preview-link primary" ${jumpAttrs("calendarLinkFold")}>Googleカレンダーに予定を追加</span>${secondary}`;
   autoGrow(dom.details);
 }

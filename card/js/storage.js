@@ -139,7 +139,7 @@ function takeCarriedDeck() {
 
 function collectUrls(value, found = []) {
   if (typeof value === "string") {
-    if (/^https?:\/\//i.test(value.trim())) found.push(value.trim());
+    if (/^(https?:\/\/|line:)/i.test(value.trim())) found.push(value.trim());
   } else if (value && typeof value === "object") {
     Object.values(value).forEach((item) => collectUrls(item, found));
   }

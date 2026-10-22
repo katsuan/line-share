@@ -38,6 +38,9 @@ const PATH_COLUMNS = ['date', 'from', 'prev', 'tool', 'count'];
 const LOG_EVENTS = ['open', 'send', 'error'];
 const MAX_LOG_EVENTS = 50; // 1回に受け取る上限
 const DEFAULT_LOG_KEEP_DAYS = 30;
+// Stripe は届かなかった知らせを3日まで送り直す。それより古い知らせは使わない
+const STRIPE_EVENT_MAX_AGE_SECONDS = 4 * 24 * 60 * 60;
+const FRIENDLY_ERROR = 'うまくいきませんでした。時間をおいて、もう一度ためしてください。';
 
 // プランごとに使える機能（shared/plan.js の PLANS とそろえる）
 const PLANS = {
@@ -49,18 +52,27 @@ function doGet() {
   return jsonResponse_({ ok: true, name: 'line-share-gas' });
 }
 
+// qcheck-ok: G3 Stripe はイベント ID で Stripe から取り直す・me と upload は LINE のトークンで本人を確かめる・log はだれでも送れるが個人の情報は受けとらない
 function doPost(e) {
   let payload = {};
   try {
     payload = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (payload.object === 'event' && /^evt_/.test(String(payload.id || ''))) return handleStripeEvent_(payload.id);
+    if (payload.object === 'event' && /^evt_[A-Za-z0-9]{1,64}$/.test(String(payload.id || ''))) return handleStripeEvent_(payload.id);
     if (payload.action === 'me') return jsonResponse_(me_(String(payload.accessToken || '')));
     if (payload.action === 'log') return jsonResponse_(log_(payload.events));
     return jsonResponse_(upload_(payload));
   } catch (error) {
+    // 画面に返すのは、こちらで書いたやさしい言葉だけ。エラーの中身は実行ログに
     console.error(error);
-    return jsonResponse_({ ok: false, error: error.message || String(error) });
+    return jsonResponse_({ ok: false, error: error && error.forUser ? error.message : FRIENDLY_ERROR });
   }
+}
+
+/** 画面にそのまま見せてよいエラー */
+function userError_(message) {
+  const error = new Error(message);
+  error.forUser = true;
+  return error;
 }
 
 // ---- プラン ----
@@ -130,7 +142,7 @@ function upsertRow_(match, fields) {
       if (fields[name] !== undefined) record[name] = fields[name];
     });
     record.updatedAt = new Date().toISOString();
-    const values = [COLUMNS.map(function (name) { return record[name] || ''; })];
+    const values = [COLUMNS.map(function (name) { return safeCell(record[name] || ''); })];
     if (existing) sheet.getRange(existing.row, 1, 1, COLUMNS.length).setValues(values);
     else sheet.appendRow(values[0]);
   } finally {
@@ -154,18 +166,27 @@ function handleStripeEvent_(eventId) {
   if (response.getResponseCode() !== 200) return jsonResponse_({ ok: false, error: 'unknown event' });
   const event = JSON.parse(response.getContentText());
   const object = event.data && event.data.object;
+  // 古い知らせ（3日の送り直しの期間をすぎたもの）は使わない
+  if (event.id !== eventId || !(Number(event.created) > Date.now() / 1000 - STRIPE_EVENT_MAX_AGE_SECONDS)) {
+    return jsonResponse_({ ok: false, error: 'old event' });
+  }
+  const stripeId = function (value, prefix) {
+    return new RegExp('^' + prefix + '_[A-Za-z0-9]{1,64}$').test(String(value || '')) ? String(value) : '';
+  };
 
-  if (event.type === 'checkout.session.completed' && object && object.client_reference_id) {
-    // 支払いが済んだ：有償にする。サブスクリプションなら期限は解約の知らせが来るまで空（ずっと有効）
+  if (['checkout.session.completed', 'checkout.session.async_payment_succeeded'].indexOf(event.type) !== -1 && object && /^[0-9a-f]{64}$/.test(String(object.client_reference_id || ''))) {
+    // 支払いが済んだ：有償にする。あとで払う支払い方法（コンビニなど）は、払ったときの知らせ（async_payment_succeeded）で。
+    // サブスクリプションなら期限は解約の知らせが来るまで空（ずっと有効）
+    if (['paid', 'no_payment_required'].indexOf(object.payment_status) === -1) return jsonResponse_({ ok: true, type: event.type, skipped: 'unpaid' });
     upsertRow_({ key: 'userHash', value: object.client_reference_id }, {
       userHash: object.client_reference_id,
       plan: 'premium',
       source: 'stripe',
       expiresAt: '',
-      stripeCustomerId: object.customer || '',
-      stripeSubscriptionId: object.subscription || ''
+      stripeCustomerId: stripeId(object.customer, 'cus'),
+      stripeSubscriptionId: stripeId(object.subscription, 'sub')
     });
-  } else if (event.type === 'customer.subscription.deleted' && object && object.customer) {
+  } else if (event.type === 'customer.subscription.deleted' && object && stripeId(object.customer, 'cus')) {
     // 解約された（期間の終わり）：無料に戻す
     if (findRow_(object.customer, 'stripeCustomerId')) {
       upsertRow_({ key: 'stripeCustomerId', value: object.customer }, { plan: 'free', expiresAt: new Date().toISOString() });
@@ -181,7 +202,8 @@ function log_(events) {
   const id = PropertiesService.getScriptProperties().getProperty('LOG_SHEET_ID');
   if (!id || !Array.isArray(events)) return { ok: false };
   const now = new Date().toISOString();
-  const cut = function (value, max) { return String(value === undefined || value === null ? '' : value).slice(0, max); };
+  // 外から来た文字なので、短く切って、式として動かないようにする（safeCell は selfcheck.gs）
+  const cut = function (value, max) { return safeCell(String(value === undefined || value === null ? '' : value).slice(0, max)); };
   const rows = events.slice(0, MAX_LOG_EVENTS)
     .filter(function (e) { return e && LOG_EVENTS.indexOf(e.event) !== -1; })
     .map(function (e) {
@@ -256,11 +278,12 @@ function rollupLogs() {
   const out = Object.keys(groups).sort().map(function (key) {
     const parts = key.split('\t');
     const g = groups[key];
-    return [parts[0], parts[1], parts[2], parts[3], g.events, Object.keys(g.sessions).length, g.inClient, parts[4]];
+    // シートから読み直した文字は先頭の ' が外れているので、書くときにもう一度 safeCell を通す
+    return [parts[0], parts[1], parts[2], parts[3], g.events, Object.keys(g.sessions).length, g.inClient, parts[4]].map(safeCell);
   });
   if (out.length) daily.getRange(daily.getLastRow() + 1, 1, out.length, DAILY_COLUMNS.length).setValues(out);
   const pathRows = Object.keys(moves).sort().map(function (key) {
-    return key.split('\t').concat([moves[key]]);
+    return key.split('\t').map(safeCell).concat([moves[key]]);
   });
   if (pathRows.length) paths.getRange(paths.getLastRow() + 1, 1, pathRows.length, PATH_COLUMNS.length).setValues(pathRows);
   const yesterday = Utilities.formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000), 'Asia/Tokyo', 'yyyy-MM-dd');
@@ -277,7 +300,7 @@ function rollupLogs() {
 
 function upload_(payload) {
   const userHash = verifyUser_(String(payload.accessToken || ''));
-  if (!PLANS[findPlan_(userHash).plan].longImageStorage) throw new Error('有償プランではありません。');
+  if (!PLANS[findPlan_(userHash).plan].longImageStorage) throw userError_('有償プランではありません。');
   const image = parseDataUrl_(String(payload.imageData || ''));
 
   const folder = DriveApp.getFolderById(getProperty_('DRIVE_FOLDER_ID'));
@@ -292,15 +315,15 @@ function upload_(payload) {
 
 /** LIFF のアクセストークンから本人を確かめ、ユーザーIDのハッシュを返す */
 function verifyUser_(accessToken) {
-  if (!accessToken) throw new Error('LINE でログインしてください。');
+  if (!accessToken) throw userError_('LINE でログインしてください。');
 
   const verify = fetchJson_('https://api.line.me/oauth2/v2.1/verify?access_token=' + encodeURIComponent(accessToken));
   if (!verify || String(verify.client_id) !== getProperty_('LINE_CHANNEL_ID')) {
-    throw new Error('LINE のログインを確かめられませんでした。');
+    throw userError_('LINE のログインを確かめられませんでした。');
   }
 
   const profile = fetchJson_('https://api.line.me/v2/profile', { Authorization: 'Bearer ' + accessToken });
-  if (!profile || !profile.userId) throw new Error('LINE のユーザーを確かめられませんでした。');
+  if (!profile || !profile.userId) throw userError_('LINE のユーザーを確かめられませんでした。');
   return sha256Hex_(profile.userId);
 }
 
@@ -312,11 +335,11 @@ function fetchJson_(url, headers) {
 
 function parseDataUrl_(imageData) {
   const match = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
-  if (!match) throw new Error('PNG または JPEG の data URL を送信してください。');
+  if (!match) throw userError_('PNG または JPEG の data URL を送信してください。');
 
   const bytes = Utilities.base64Decode(match[2]);
-  if (!bytes.length) throw new Error('画像データが空です。');
-  if (bytes.length > MAX_IMAGE_BYTES) throw new Error('画像サイズが大きすぎます。5MB 以下にしてください。');
+  if (!bytes.length) throw userError_('画像データが空です。');
+  if (bytes.length > MAX_IMAGE_BYTES) throw userError_('画像サイズが大きすぎます。5MB 以下にしてください。');
 
   return {
     bytes: bytes,
@@ -407,3 +430,12 @@ function setup() {
   console.log('plans: https://docs.google.com/spreadsheets/d/' + props.getProperty('PLANS_SHEET_ID'));
   console.log('logs: https://docs.google.com/spreadsheets/d/' + props.getProperty('LOG_SHEET_ID'));
 }
+
+// 使う前の確かめ（selfcheck.gs の qCheckAll を GAS エディタで実行する）。何も書きこまない
+var Q_SELF_CHECK = {
+  properties: ['DRIVE_FOLDER_ID', 'PLANS_SHEET_ID', 'LINE_CHANNEL_ID', 'KEEP_DAYS', 'LOG_SHEET_ID', 'LOG_KEEP_DAYS'],
+  secretProperties: ['STRIPE_SECRET_KEY'],
+  spreadsheetId: function () { return PropertiesService.getScriptProperties().getProperty('PLANS_SHEET_ID'); },
+  sheets: { plans: COLUMNS },
+  triggers: ['cleanupOldImages', 'rollupLogs']
+};

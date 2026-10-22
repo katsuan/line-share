@@ -97,10 +97,9 @@
   function checkUser(hash) {
     if (!hash) return;
     if (param === "whoami") {
-      window.prompt(
-        "あなたのハッシュです。config.js の creditFreeUsers（Created by を消す）や premiumUsers（有償プラン）に追加して使います。",
-        hash
-      );
+      const text = "config.js の creditFreeUsers（Created by を消す）や premiumUsers（有償プラン）に追加して使います。";
+      if (window.LineShareUI?.ask) window.LineShareUI.ask({ title: "あなたのハッシュ", text, input: hash, readonly: true, ok: "閉じる", cancel: null });
+      else console.info(`あなたのハッシュ：${hash}（${text}）`);
     }
 
     const allowList = Array.isArray(config.creditFreeUsers) ? config.creditFreeUsers : [];
