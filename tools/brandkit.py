@@ -280,8 +280,10 @@ class Brand:
         mark_of = lambda n: marks[min(n, len(marks) - 1)]  # noqa: E731
 
         def extent(m):
-            """図形の外形（しっぽを含む。輪の中心からの範囲、縮めたあと）"""
-            bx0, by0, bx1, by1 = shapes_bounds(m)
+            """図形の外形（しっぽを含む。輪の中心からの範囲、縮めたあと）。
+            "free": True の図形は、上下の範囲には入れるが、横の並び（次の字の位置）には使わない（すくすくのメジャーのテープが、次の字の下にのびる）"""
+            _, by0, _, by1 = shapes_bounds(m)
+            bx0, _, bx1, _ = shapes_bounds([sh for sh in m if not sh.get("free")])
             return (bx0 - mark_center[0]) * k, (by0 - mark_center[1]) * k, (bx1 - mark_center[0]) * k, (by1 - mark_center[1]) * k
 
         # 図形の外形（しっぽを含む。輪の中心からの範囲）
