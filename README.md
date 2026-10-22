@@ -68,6 +68,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `--ls-text` / `--ls-subtext` / `--ls-faint` / `--ls-line` | 文字・小さな文字・もっと薄い文字・線 |
 | `--ls-danger` / `--ls-success` / `--ls-warn` | 消す・うまくいった・気をつけて |
 | `--ls-radius-lg` / `-md` / `-sm`、`--ls-tap`（押せる高さ 44px）、`--ls-shadow`、`--ls-font` | 角の丸み・押せる大きさ・影・書体 |
+| `--ls-tabs-bg` | 切りかえタブ（`ls-tabs`）の帯の色 |
 
 | 部品（クラス） | 使いどころ |
 |---|---|

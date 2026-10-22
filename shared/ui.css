@@ -38,6 +38,7 @@
   --ls-radius-sm: 10px;
   --ls-tap: 44px;
   --ls-shadow: 0 6px 18px rgba(20, 20, 18, 0.05);
+  --ls-tabs-bg: #ebe8f3; /* 切りかえタブの帯の色（ツールの色に合わせて変える） */
 }
 
 /* ---- ベース ---- */
@@ -156,7 +157,7 @@ textarea {
   padding: 4px;
   border: 1px solid var(--ls-line);
   border-radius: 16px;
-  background: #ebe8f3;
+  background: var(--ls-tabs-bg);
 }
 
 .ls-tab {

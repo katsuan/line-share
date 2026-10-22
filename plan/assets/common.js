@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610221909";
+import { MAX_URI_LENGTH } from "./config.js?v=202610221919";
 
 export const app = {
   liffReady: false
