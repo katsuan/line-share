@@ -1233,6 +1233,11 @@ body.is-typing .ls-to-preview {
  * クラス名と変数名は、読んでいるツールがあるので変えない（足すのはよい）。
  */
 
+/* 送る帯（.ls-sendbar）がないページでは、トーストを画面の下のほうに出す（帯の上に浮かせない） */
+body:not(.ls-has-sendbar) .ls-toast {
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
 /* 見出しの行：アイコン＋名前（左）とロゴ（右）、下にひとこと */
 .ls-brand {
   display: flex;
