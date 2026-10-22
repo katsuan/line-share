@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja" data-ls-dark="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f5f4f9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
+    <meta name="robots" content="noindex" />
+    <title>記録のバックアップ｜ConneQt</title>
+    <meta name="description" content="コネクト 〜ConneQt〜 のツールで、この端末に残した記録を1つのファイルに保存して、戻せます。" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610222346" />
+    <script src="../shared/ui.js?v=202610222346" defer></script>
+    <script src="./app.js?v=202610222346" defer></script>
+    <style>
+      .bk-tools {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        border: 1px solid var(--ls-line);
+        border-radius: var(--ls-radius-md);
+        overflow: hidden;
+      }
+
+      .bk-tools li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 44px;
+        padding: 8px 14px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .bk-tools li + li {
+        border-top: 1px solid var(--ls-line);
+      }
+
+      .bk-tools small {
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .bk-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .bk-row .ls-button {
+        white-space: normal;
+        padding: 8px 12px;
+        line-height: 1.35;
+      }
+
+      .bk-paste {
+        min-height: 96px;
+        font-size: 13px;
+      }
+
+      .bk-steps {
+        margin: 0;
+        padding-left: 1.3em;
+        color: var(--ls-subtext);
+        font-size: 13px;
+        line-height: 1.8;
+      }
+
+      .bk-ok {
+        color: var(--ls-success);
+        font-size: 13px;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="ls-page">
+      <header class="ls-topbar">
+        <a id="back" class="ls-back" href="../">おくるん</a>
+        <h1 class="ls-title">バックアップ</h1>
+        <span class="ls-topbar-end"></span>
+      </header>
+
+      <div class="ls-stack">
+        <p class="ls-hint">ConneQt の記録は、この端末の中だけにあります。ファイルにしておけば、機種変更のときも戻せます。</p>
+
+        <section class="ls-panel" aria-labelledby="saveTitle">
+          <h2 id="saveTitle" class="ls-panel-title">📦 保存する</h2>
+          <ul id="tools" class="bk-tools"></ul>
+          <p id="empty" class="ls-empty" hidden><span class="ls-empty-icon">🗒️</span>この端末には、まだ記録がありません。</p>
+          <div class="bk-row">
+            <button id="saveFile" class="ls-button is-primary" type="button">ファイルに保存</button>
+            <button id="copyText" class="ls-button" type="button">文字でコピー</button>
+          </div>
+          <p class="ls-hint">LINE の中では「文字でコピー」して Keep メモに貼ると確実です。写真・動画は入りません。</p>
+        </section>
+
+        <section class="ls-panel" aria-labelledby="loadTitle">
+          <h2 id="loadTitle" class="ls-panel-title">📥 戻す</h2>
+          <div class="bk-row">
+            <label class="ls-button" for="loadFile">ファイルを選ぶ</label>
+            <button id="pasteOpen" class="ls-button" type="button">文字を貼る</button>
+          </div>
+          <input id="loadFile" type="file" accept="application/json,.json,text/plain" hidden />
+          <div id="pasteBox" class="ls-field" hidden>
+            <textarea id="pasteText" class="ls-input bk-paste" placeholder="コピーしておいた文字を、ここに貼る" aria-label="バックアップの文字"></textarea>
+            <button id="pasteApply" class="ls-button is-primary is-block" type="button">この文字から戻す</button>
+          </div>
+        </section>
+
+        <section class="ls-panel" aria-labelledby="keepTitle">
+          <h2 id="keepTitle" class="ls-panel-title">🏠 消えにくくする</h2>
+          <p class="ls-hint">iPhone の Safari では、しばらく開かないと記録が消えることがあります。ホーム画面に追加すると消えにくくなります。</p>
+          <ol class="bk-steps">
+            <li>Safari でツールを開く</li>
+            <li>下の共有ボタン（□↑）→「ホーム画面に追加」</li>
+          </ol>
+          <p id="persisted" class="bk-ok" hidden>✅ この端末では、記録を消えにくくしてあります</p>
+        </section>
+      </div>
+    </main>
+    <!-- 電波がなくても開けるように（sw.js） -->
+    <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(() => {});</script>
+  </body>
+</html>

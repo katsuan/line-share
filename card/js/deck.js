@@ -56,14 +56,22 @@ function addCard() {
 
 function removeCard() {
   if (cards.length <= 1) return;
-  if (!confirm(`カード${current + 1}を消しますか？`)) return;
-  cards.splice(current, 1);
+  // 聞かずに消して、「元に戻す」を出す
+  const at = current;
+  const [removed] = cards.splice(current, 1);
   current = Math.min(current, cards.length - 1);
   state = cards[current];
   applyStateToEditor();
   render();
   renderPeeks();
-  setStatus("カードを消しました。");
+  setStatus("");
+  window.LineShareUI?.toast(`カード${at + 1}を消しました`, {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      cards.splice(at, 0, removed);
+      switchCard(at);
+    }
+  });
 }
 
 // 隣のカード（左右に端だけ見せる）の絵を作る。編集中のカードの画面を一時的にそのカードにして写し取り、元に戻す。

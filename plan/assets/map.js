@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610221922";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610221922";
-import { bindHeader } from "./header.js?v=202610221922";
-import { createPlaceFlex } from "./flex.js?v=202610221922";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610222346";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610222346";
+import { bindHeader } from "./header.js?v=202610222346";
+import { createPlaceFlex } from "./flex.js?v=202610222346";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -436,10 +436,17 @@ function saveTemplate_() {
 }
 
 function deleteTemplate_(name) {
-  if (!confirm(`「${name}」を削除しますか？`)) return;
-  saveTemplates_(loadTemplates_().filter((item) => item.name !== name));
+  // 聞かずに消して、「元に戻す」を出す
+  const before = loadTemplates_();
+  saveTemplates_(before.filter((item) => item.name !== name));
   renderTemplates_();
-  setMessage(dom.message, `「${name}」を削除しました。`);
+  window.LineShareUI?.toast(`「${name}」を消しました`, {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      saveTemplates_(before);
+      renderTemplates_();
+    }
+  });
 }
 
 function loadTemplates_() {

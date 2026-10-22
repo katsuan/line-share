@@ -1,5 +1,7 @@
 // ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
+// 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
+// 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
 // その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み：おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
@@ -18,6 +20,23 @@
   if (!toolKey) return;
 
   const BASE = new URL("..", script.src); // https://katsuan.github.io/line-share/
+
+  // 最近使ったツール（おくるん HOME の「最近つかった」に出す）。どのツールも katsuan.github.io の下なので、保存場所は共通
+  const RECENT_KEY = "conneqt:recent";
+  try {
+    const list = JSON.parse(localStorage.getItem(RECENT_KEY) || "[]").filter((row) => row && row.key !== toolKey);
+    list.unshift({ key: toolKey, at: Date.now() });
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
+  } catch {
+    // 覚えられない環境では何もしない
+  }
+
+  // 端末の記録を、ブラウザが勝手に消さないようにお願いする（できない環境では何も起きない）
+  try {
+    navigator.storage?.persist?.().catch(() => {});
+  } catch {
+    // そのまま
+  }
 
   // おくるんのカードの入口（shared/oqrn.js）。ツールがまだ読んでいなければ、ここで読む
   const oqrnReady = window.OQRN
@@ -56,15 +75,30 @@
     style.textContent = `
       .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
       .oqrn-family { display: grid; justify-items: center; gap: 6px; font-family: inherit; line-height: 1.4; }
-      .oqrn-family-label { margin: 0; color: #8a877e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
-      .oqrn-family-sub { margin: -2px 0 2px; color: #8a877e; font-size: 11px; line-height: 1.9; }
+      .oqrn-family-label { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
+      .oqrn-family-sub { margin: -2px 0 2px; color: var(--ls-subtext, #8a877e); font-size: 11px; line-height: 1.9; }
       .oqrn-family-sub rt { font-size: 8px; font-weight: 700; }
-      .oqrn-family-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
-      .oqrn-family-list button { display: block; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 9px; background: none; cursor: pointer; }
+      .oqrn-family-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 2px; max-width: 340px; margin: 0; padding: 0; list-style: none; }
+      .oqrn-family-list button {
+        display: grid; justify-items: center; gap: 3px; width: 60px; padding: 4px 0; border: 0; border-radius: 10px;
+        background: none; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer;
+      }
+      .oqrn-family-list button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .oqrn-family-list img { display: block; width: 32px; height: 32px; }
-      .oqrn-tool-ogp { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 14px; background: #eeece6; }
+      .oqrn-next {
+        display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: min(100%, 400px);
+        padding: 10px 14px; border: 1px solid var(--ls-line, #e3e0d8); border-radius: 16px; background: var(--ls-surface, #fff);
+        color: var(--ls-text, #23211c); font: inherit; font-size: 14px; line-height: 1.45; text-align: left; cursor: pointer;
+      }
+      .oqrn-next img { width: 36px; height: 36px; }
+      .oqrn-next small { display: block; color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 700; }
+      .oqrn-next b { display: block; font-size: 15px; }
+      .oqrn-next-arrow { color: var(--ls-faint, #a3a29b); }
+      .oqrn-backup { color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 700; text-decoration: none; }
+      .oqrn-backup:active { text-decoration: underline; }
+      .oqrn-tool-ogp { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 14px; background: var(--ls-surface-sub, #eeece6); }
       .oqrn-tool-copy { margin: -4px 0 0; font-size: 16px; font-weight: 800; line-height: 1.5; }
-      .oqrn-tool-lead { margin: -4px 0 0; color: #6b6860; font-size: 14px; line-height: 1.6; }
+      .oqrn-tool-lead { margin: -4px 0 0; color: var(--ls-subtext, #6b6860); font-size: 14px; line-height: 1.6; }
       .oqrn-tool-open {
         display: block; min-height: 48px; padding: 13px 16px; border-radius: 999px; color: #fff;
         font-size: 15px; font-weight: 800; line-height: 22px; text-align: center; text-decoration: none;
@@ -81,19 +115,19 @@
       .oqrn-sheet[hidden] { display: none; }
       .oqrn-sheet-card {
         display: grid; gap: 10px; width: min(100%, 440px); padding: 20px; border-radius: 22px;
-        background: #fff; color: #23211c; font-family: inherit; font-size: 15px; line-height: 1.5; text-align: left; /* 置いた先のページの文字の大きさを受け継がない（ぽもくるは画面基準の大きな字） */
+        background: var(--ls-surface, #fff); color: var(--ls-text, #23211c); font-family: inherit; font-size: 15px; line-height: 1.5; text-align: left; /* 置いた先のページの文字の大きさを受け継がない（ぽもくるは画面基準の大きな字） */
       }
       .oqrn-sheet-title { margin: 0; font-size: 17px; font-weight: 800; }
       .oqrn-sheet-option {
-        display: grid; gap: 2px; padding: 12px 14px; border: 1px solid #e3e0d8; border-radius: 14px;
-        background: #fff; color: inherit; font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer;
+        display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--ls-line-strong, #e3e0d8); border-radius: 14px;
+        background: var(--ls-surface, #fff); color: inherit; font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer;
         text-decoration: none;
       }
       .oqrn-sheet-option.is-primary { border-color: ${color}; box-shadow: inset 4px 0 0 ${color}; }
-      .oqrn-sheet-option small { color: #6b6860; font-size: 13px; font-weight: 500; }
-      .oqrn-sheet-status { min-height: 1em; margin: 0; color: #6b6860; font-size: 13px; }
+      .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 500; }
+      .oqrn-sheet-status { min-height: 1em; margin: 0; color: var(--ls-subtext, #6b6860); font-size: 13px; }
       .oqrn-sheet-close {
-        min-height: 44px; border: 0; background: transparent; color: #6b6860; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+        min-height: 44px; border: 0; background: transparent; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
       }
     `;
     document.head.appendChild(style);
@@ -194,7 +228,7 @@
       ogp: new URL("shared/ogp.png?v=20261019", BASE).href,
       url: window.OQRN?.top || BASE.href
     });
-    const showTool = toolSheet();
+    const showTool = sharedToolSheet();
     [oqrn, ...others].forEach((item) => {
       if (!item.appIcon || !item.url) return;
       const li = document.createElement("li");
@@ -204,15 +238,54 @@
       button.setAttribute("aria-haspopup", "dialog");
       const img = document.createElement("img");
       img.src = item.appIcon;
-      img.alt = button.title;
+      img.alt = "";
       img.width = img.height = 32;
-      button.appendChild(img);
+      button.setAttribute("aria-label", button.title);
+      button.append(img, Object.assign(document.createElement("span"), { textContent: item.short || item.name }));
       button.addEventListener("click", () => showTool(item, button));
       li.appendChild(button);
       list.appendChild(li);
     });
     nav.append(label, sub, list);
     return nav;
+  }
+
+  // なかまのシートは1つだけ作って使い回す（「つぎにおすすめ」とアイコンの欄の両方から開く）
+  let toolSheetOpen = null;
+  function sharedToolSheet() {
+    toolSheetOpen ||= toolSheet();
+    return toolSheetOpen;
+  }
+
+  // 「つぎにおすすめ」：このツールのあとに使うと便利なツールを1つだけ（hub-links.json の next）
+  function nextCard(tool, others) {
+    const target = tool.next && others.find((item) => item.key === tool.next.key);
+    if (!target) return null;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "oqrn-next";
+    button.setAttribute("aria-haspopup", "dialog");
+    const img = Object.assign(document.createElement("img"), { src: target.appIcon || "", alt: "", width: 36, height: 36 });
+    const text = document.createElement("span");
+    text.append(
+      Object.assign(document.createElement("small"), { textContent: "つぎにおすすめ" }),
+      Object.assign(document.createElement("b"), { textContent: target.name }),
+      document.createTextNode(tool.next.why || target.desc || "")
+    );
+    const arrow = Object.assign(document.createElement("span"), { className: "oqrn-next-arrow", textContent: "›" });
+    arrow.setAttribute("aria-hidden", "true");
+    button.append(img, text, arrow);
+    button.addEventListener("click", () => sharedToolSheet()(target, button));
+    return button;
+  }
+
+  // この端末の記録のバックアップ（おくるんの /backup/。ConneQt の全ツールの記録を1つのファイルにまとめる）
+  function backupLink() {
+    const link = document.createElement("a");
+    link.className = "oqrn-backup";
+    link.href = new URL(`backup/?from=${encodeURIComponent(toolKey)}`, BASE).href;
+    link.textContent = "💾 この端末の記録をバックアップ";
+    return link;
   }
 
   function build(tool, others = [], lead = "") {
@@ -229,8 +302,11 @@
     open.className = "oqrn-share-open";
     open.setAttribute("aria-haspopup", "dialog");
     open.textContent = `📤 ${tool.name}を紹介する`;
+    const next = nextCard(tool, others);
+    if (next) host.appendChild(next);
     host.appendChild(open);
     host.appendChild(familyRow(tool, others, lead));
+    host.appendChild(backupLink());
 
     const sheet = document.createElement("div");
     sheet.className = "oqrn-sheet";
@@ -282,7 +358,8 @@
         await navigator.clipboard.writeText(tool.url);
         status.textContent = "リンクをコピーしました。";
       } catch {
-        window.prompt("このリンクをコピーしてください", tool.url);
+        if (window.LineShareUI?.ask) window.LineShareUI.ask({ title: "長押ししてコピーしてください", input: tool.url, readonly: true, ok: "閉じる", cancel: null });
+        else window.prompt("このリンクをコピーしてください", tool.url);
       }
     });
   }

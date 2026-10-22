@@ -1,24 +1,25 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-ls-dark="auto">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" href="../shared/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../shared/apple-touch-icon.png" />
     <link rel="manifest" href="../manifest.webmanifest" />
-    <meta name="theme-color" content="#f5f4f9" />
+    <meta name="theme-color" content="#f5f4f9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
     <title>場所・予定｜おくるん</title>
     <meta name="description" content="Google Mapsの場所や予定をカードにして、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610221922" />
-    <link rel="stylesheet" href="./assets/styles.css?v=202610221922" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610222346" />
+    <link rel="stylesheet" href="./assets/styles.css?v=202610222346" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610221922"></script>
-    <script src="../shared/log.js?v=202610221922"></script>
-    <script src="../shared/credit.js?v=202610221922"></script>
-    <script src="../shared/plan.js?v=202610221922"></script>
-    <script src="../shared/liff.js?v=202610221922"></script>
-    <script src="../shared/ui.js?v=202610221922" defer></script>
-    <script type="module" src="./assets/main.js?v=202610221922"></script>
+    <script src="../config.js?v=202610222346"></script>
+    <script src="../shared/log.js?v=202610222346"></script>
+    <script src="../shared/credit.js?v=202610222346"></script>
+    <script src="../shared/plan.js?v=202610222346"></script>
+    <script src="../shared/liff.js?v=202610222346"></script>
+    <script src="../shared/ui.js?v=202610222346" defer></script>
+    <script type="module" src="./assets/main.js?v=202610222346"></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -303,5 +304,7 @@
         <button id="sendBarButton" class="ls-send" type="button" disabled>🪧 カードで送る</button>
       </div>
     </div>
+    <!-- 電波がなくても開けるように（sw.js） -->
+    <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("../sw.js").catch(() => {});</script>
   </body>
 </html>

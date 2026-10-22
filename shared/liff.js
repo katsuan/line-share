@@ -148,15 +148,15 @@
     host.className = "ls-outside";
     host.hidden = false;
     host.innerHTML =
-      '<p class="ls-outside-text">LINE の外で開いています。送るには、どちらかから：</p>' +
+      '<p class="ls-outside-text">LINE の外で開いています。送るには：</p>' +
       '<div class="ls-outside-actions">' +
       '<button type="button" class="ls-outside-button" data-outside-login>🔑 ログインして送る</button>' +
-      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINE アプリで開く</a>' +
+      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINEで開く</a>' +
       "</div>";
     const loginButton = host.querySelector("[data-outside-login]");
     const appLink = host.querySelector("[data-outside-app]");
     loginButton.hidden = !canLogin || env.loggedIn;
-    if (loginButton.hidden) host.querySelector(".ls-outside-text").textContent = "LINE の外で開いています。LINE アプリで開くと送れます：";
+    if (loginButton.hidden) host.querySelector(".ls-outside-text").textContent = "LINE の外で開いています。LINEで開くと送れます：";
     loginButton.addEventListener("click", () => {
       beforeLogin?.();
       try {
