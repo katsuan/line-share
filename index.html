@@ -643,7 +643,7 @@
           <button id="shareCard" class="share-option" type="button">🪧 LINEにカードで送る<small>紹介カードを、選んだ友だち・グループに送ります</small></button>
           <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
           <!-- 作成者（config.js の ownerUsers）だけに出す -->
-          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんの紹介と、ツールの紹介カードをグループごとに横に並べて送ります</small></button>
+          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんとツールの紹介カードを横に並べて送ります（ツールが12個をこえたらグループごと）</small></button>
         </div>
         <p id="shareStatus" class="ls-hint" role="status"></p>
         <button id="shareClose" class="ls-sheet-cancel" type="button">閉じる</button>
@@ -1092,13 +1092,20 @@
           };
         }
 
-        // 全ツールのカード：おくるんの紹介（1通目）と、グループ（hub-links.json の groups）ごとに1通（横に並べたカルーセル）。
+        // 全ツールのカード：ツールが12個までは全ツールを横に並べて1通（上を見る）。12個をこえたら、おくるんの紹介（1通目）と、グループ（hub-links.json の groups）ごとに1通（横に並べたカルーセル）。
         // グループのツールが12より少ないうちは、先頭にグループの説明のカードをつける。12以上になったら説明はやめて、12枚ずつに分ける。
         // 1回で送れるのは5通まで。こえるときは、おくるんの紹介をやめてグループを優先する（それでもこえる分は送らない）
         async function allToolsMessages() {
           const response = await fetch("./data/hub-links.json", { cache: "no-cache" });
           const data = response.ok ? await response.json() : {};
           const tools = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name && item.ogp);
+          // ツールが12個までは、グループに分けずに全ツールを横に並べて1通に。おくるんの紹介も入るなら先頭に入れる（入らなければ1通目に別で）
+          if (tools.length <= MAX_BUBBLES) {
+            const all = tools.map(toolBubble);
+            const carousel = (bubbles) => ({ type: "flex", altText: "ConneQt｜Q のツールたち", contents: { type: "carousel", contents: bubbles } });
+            return all.length < MAX_BUBBLES ? [carousel([introCard().contents, ...all])] : [introCard(), carousel(all)];
+          }
+          // 12個をこえたら、グループごとに分ける
           const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: tools.filter((t) => t.group === g.key) }));
           const rest = tools.filter((t) => !groups.some((g) => g.key === t.group)); // グループのないツール
           if (rest.length) groups.push({ key: "other", label: "🧩 そのほか", tools: rest });
