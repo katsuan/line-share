@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610230122";
-import { MAX_URI_LENGTH } from "./config.js?v=202610230122";
-import { bindHeader } from "./header.js?v=202610230122";
-import { createEventFlex } from "./flex.js?v=202610230122";
-import { bindPlaceSearch } from "./place-search.js?v=202610230122";
+} from "./common.js?v=202610231900";
+import { MAX_URI_LENGTH } from "./config.js?v=202610231900";
+import { bindHeader } from "./header.js?v=202610231900";
+import { createEventFlex } from "./flex.js?v=202610231900";
+import { bindPlaceSearch } from "./place-search.js?v=202610231900";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -221,7 +221,7 @@ export function refreshCalendarTab() {
     dom.generatedUrl.value = calendarUrl;
     dom.openUrlButton.disabled = false;
     dom.copyUrlButton.disabled = false;
-    dom.shareTargetButton.disabled = !app.liffReady;
+    dom.shareTargetButton.disabled = !app.canSend;
 
     renderPreview_(data);
     window.LineShareUI.setPreviewError(
@@ -231,7 +231,7 @@ export function refreshCalendarTab() {
 
     if (calendarUrl.length > MAX_URI_LENGTH) {
       setMessage(dom.statusMessage, "リンクが長すぎるためLINEでは送れません。詳細などを短くしてください。", "error");
-    } else if (app.liffReady) {
+    } else if (app.canSend) {
       setMessage(dom.statusMessage, "共有先を選んで送れます。");
     } else {
       setMessage(dom.statusMessage, "リンクの作成とコピーができます。LINEアプリで開くと送れます。");

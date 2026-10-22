@@ -1,7 +1,9 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610230122";
+import { MAX_URI_LENGTH } from "./config.js?v=202610231900";
 
 export const app = {
-  liffReady: false
+  liffReady: false,
+  // 送り先を選んで送れるか（LIFF の準備ができていて、shareTargetPicker が使えるとき）
+  canSend: false
 };
 
 /**
@@ -84,7 +86,7 @@ export function titleFromMapUrl(url) {
  * 送信先を選んで Flex Message を送る。送信したら true、閉じられたら false。
  */
 export async function shareFlex(message) {
-  if (!app.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
+  if (!app.canSend) {
     throw new UserError("LINEアプリで開くと送れます。");
   }
   // 送り先は複数選べる。送れたら、続けて別のトークにも送るか・閉じるかを選んでもらう（shared/ui.js）

@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610230122";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610230122";
-import { bindHeader } from "./header.js?v=202610230122";
-import { createPlaceFlex } from "./flex.js?v=202610230122";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610231900";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610231900";
+import { bindHeader } from "./header.js?v=202610231900";
+import { createPlaceFlex } from "./flex.js?v=202610231900";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -163,7 +163,7 @@ export function refreshMapTab() {
   dom.address.hidden = !place.address;
   dom.openButton.disabled = !hasUrl;
   dom.createEventButton.disabled = !hasUrl;
-  dom.shareButton.disabled = !hasUrl || !app.liffReady;
+  dom.shareButton.disabled = !hasUrl || !app.canSend;
 
   renderPreview_(place);
   window.LineShareUI.syncOptionals();
