@@ -98,7 +98,7 @@
       chip.addEventListener("click", () => chip.parentElement.querySelectorAll(".ls-chip").forEach((c) => c.setAttribute("aria-pressed", String(c === chip))))
     );
     document.getElementById("toastButton").addEventListener("click", () =>
-      LineShareUI.toast("カレーライス を記録しました", { actionLabel: "取り消す", onAction: () => LineShareUI.toast("取り消しました") })
+      LineShareUI.toast("カレーライス を記録しました", { actionLabel: "元に戻す", onAction: () => LineShareUI.toast("元に戻しました") })
     );
     const sheet = document.getElementById("sheet");
     document.getElementById("sheetButton").addEventListener("click", () => (sheet.hidden = false));

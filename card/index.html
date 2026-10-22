@@ -11,30 +11,30 @@
     <meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
     <title>お知らせカード｜おくるん</title>
     <meta name="description" content="見出し・写真・バッジ・リンクボタン付きのお知らせカードを、LINEのトークに送れます。" />
-    <link rel="stylesheet" href="../shared/ui.css?v=202610222346" />
-    <link rel="stylesheet" href="./style.css?v=202610222346" />
+    <link rel="stylesheet" href="../shared/ui.css?v=202610230122" />
+    <link rel="stylesheet" href="./style.css?v=202610230122" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="../config.js?v=202610222346"></script>
-    <script src="../shared/log.js?v=202610222346"></script>
-    <script src="../shared/credit.js?v=202610222346"></script>
-    <script src="../shared/plan.js?v=202610222346"></script>
-    <script src="../shared/liff.js?v=202610222346"></script>
-    <script src="../shared/ui.js?v=202610222346" defer></script>
+    <script src="../config.js?v=202610230122"></script>
+    <script src="../shared/log.js?v=202610230122"></script>
+    <script src="../shared/credit.js?v=202610230122"></script>
+    <script src="../shared/plan.js?v=202610230122"></script>
+    <script src="../shared/liff.js?v=202610230122"></script>
+    <script src="../shared/ui.js?v=202610230122" defer></script>
     <!-- お知らせカードの本体。役割ごとのファイルを、この順に読む（core が先、main が最後。どれも同じ範囲の変数を使う） -->
-    <script src="./js/core.js?v=202610222346" defer></script>
-    <script src="./js/storage.js?v=202610222346" defer></script>
-    <script src="./js/state.js?v=202610222346" defer></script>
-    <script src="./js/url.js?v=202610222346" defer></script>
-    <script src="./js/deck.js?v=202610222346" defer></script>
-    <script src="./js/render.js?v=202610222346" defer></script>
-    <script src="./js/kinds.js?v=202610222346" defer></script>
-    <script src="./js/soccer.js?v=202610222346" defer></script>
-    <script src="./js/flex.js?v=202610222346" defer></script>
-    <script src="./js/photo.js?v=202610222346" defer></script>
-    <script src="./js/templates.js?v=202610222346" defer></script>
-    <script src="./js/send.js?v=202610222346" defer></script>
-    <script src="./js/events.js?v=202610222346" defer></script>
-    <script src="./js/main.js?v=202610222346" defer></script>
+    <script src="./js/core.js?v=202610230122" defer></script>
+    <script src="./js/storage.js?v=202610230122" defer></script>
+    <script src="./js/state.js?v=202610230122" defer></script>
+    <script src="./js/url.js?v=202610230122" defer></script>
+    <script src="./js/deck.js?v=202610230122" defer></script>
+    <script src="./js/render.js?v=202610230122" defer></script>
+    <script src="./js/kinds.js?v=202610230122" defer></script>
+    <script src="./js/soccer.js?v=202610230122" defer></script>
+    <script src="./js/flex.js?v=202610230122" defer></script>
+    <script src="./js/photo.js?v=202610230122" defer></script>
+    <script src="./js/templates.js?v=202610230122" defer></script>
+    <script src="./js/send.js?v=202610230122" defer></script>
+    <script src="./js/events.js?v=202610230122" defer></script>
+    <script src="./js/main.js?v=202610230122" defer></script>
   </head>
   <body class="ls-has-sendbar">
     <main class="ls-page">
@@ -110,7 +110,6 @@
           </div>
           <!-- カードを足すのはカードの下（次のカードは右に並ぶ） -->
           <button id="cardAddButton" class="ls-optional-add card-add" type="button">＋ カードを追加</button>
-          <p class="ls-preview-note">文字はタップで編集、＋で追加。投票・チェックリストは複数行の貼り付けもできます。</p>
         </section>
 
         <div class="ls-folds">
@@ -238,7 +237,7 @@
         </div>
 
         <div class="card-tools">
-          <button id="resetButton" class="ls-button is-danger" type="button">入力をリセット</button>
+          <button id="resetButton" class="ls-button is-danger" type="button">🧹 入力をぜんぶ消す</button>
         </div>
       </div>
     </main>
@@ -252,18 +251,18 @@
           <span><b>📝 記録用の文字も送る</b><small id="sendTextPreview"></small></span>
         </label>
         <p id="status" class="ls-status" aria-live="polite"></p>
-        <button id="shareButton" class="ls-send" type="button" disabled>🪧 カードで送る</button>
+        <button id="shareButton" class="ls-send" type="button" disabled>💬 LINEで送る</button>
       </div>
     </div>
 
     <div id="sendWarningModal" class="ls-sheet" hidden>
       <div class="ls-sheet-card" role="alertdialog" aria-modal="true" aria-labelledby="sendWarningTitle">
-        <p id="sendWarningTitle" class="ls-sheet-title">送信前の確認</p>
+        <p id="sendWarningTitle" class="ls-sheet-title">送る前に確かめてね</p>
         <p class="ls-hint">送ったあとは直せません。内容を確かめてから送ってください。</p>
         <label class="ls-chip modal-check"><input id="sendWarningDontShow" type="checkbox" />次から表示しない</label>
         <div class="ls-sheet-actions">
           <button id="sendWarningCancel" class="ls-send ls-send-secondary" type="button">やめる</button>
-          <button id="sendWarningConfirm" class="ls-send" type="button">送る</button>
+          <button id="sendWarningConfirm" class="ls-send" type="button">💬 送る</button>
         </div>
       </div>
     </div>

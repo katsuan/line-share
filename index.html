@@ -21,13 +21,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610222346" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610230122" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610222346"></script>
-    <script src="./shared/log.js?v=202610222346"></script>
-    <script src="./shared/credit.js?v=202610222346"></script>
-    <script src="./shared/plan.js?v=202610222346"></script>
-    <script src="./shared/liff.js?v=202610222346"></script>
+    <script src="./config.js?v=202610230122"></script>
+    <script src="./shared/log.js?v=202610230122"></script>
+    <script src="./shared/credit.js?v=202610230122"></script>
+    <script src="./shared/plan.js?v=202610230122"></script>
+    <script src="./shared/liff.js?v=202610230122"></script>
     <style>
       .hub-head {
         display: flex;
@@ -143,6 +143,11 @@
 
       .hub-name {
         white-space: nowrap;
+      }
+
+      /* 明るい・暗い表示でロゴを切りかえる箱。並びには影響させない */
+      .hub-logo-pic {
+        display: contents;
       }
 
       .hub-logo {
@@ -572,12 +577,13 @@
       <!-- 見出しは1行：アイコン＋名前（左）と、横長のロゴ（右）。ほかのツール（さくせん盤・ろくがなど）と同じ形 -->
       <div class="hub-head">
         <h1 class="hub-title"><img class="hub-icon" src="./shared/icon.svg" alt="" width="36" height="36" /><span class="hub-name">おくるん</span></h1>
-        <img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="99" height="30" />
+        <!-- 暗い表示では O・R・N を明るい色にしたロゴ（tools/brand.py） -->
+        <picture class="hub-logo-pic"><source srcset="./shared/logo-dark.svg" media="(prefers-color-scheme: dark)" /><img class="hub-logo" src="./shared/logo.svg" alt="OQRN" width="99" height="30" /></picture>
       </div>
-      <!-- キャッチコピーと説明。シェアはその右 -->
+      <!-- キャッチコピーと説明。「紹介する」はその右 -->
       <div class="hub-lead-row">
         <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
-        <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
+        <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 紹介する</button>
       </div>
       <!-- 最近つかったツール（ConneQt のツールを開くと覚える。なければ出さない） -->
       <nav id="hubRecent" class="hub-recent" aria-labelledby="hubRecentTitle" hidden>
@@ -638,7 +644,7 @@
 
     <div id="shareSheet" class="ls-sheet" hidden>
       <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
-        <p id="shareTitle" class="ls-sheet-title">おくるんをシェア</p>
+        <p id="shareTitle" class="ls-sheet-title">おくるんを紹介する</p>
         <div class="share-options">
           <button id="shareCard" class="share-option" type="button">🪧 LINEにカードで送る<small>紹介カードを、選んだ友だち・グループに送ります</small></button>
           <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
@@ -1162,7 +1168,9 @@
             await navigator.clipboard.writeText(PAGE_URL);
             setStatus("リンクをコピーしました。");
           } catch {
-            setStatus(`リンク：${PAGE_URL}`);
+            // コピーできないときは、長押しで選べる文字で出す
+            if (window.LineShareUI?.ask) window.LineShareUI.ask({ title: "長押ししてコピーしてください", input: PAGE_URL, readonly: true, ok: "閉じる", cancel: null });
+            else setStatus(`リンク：${PAGE_URL}`);
           }
         }
 

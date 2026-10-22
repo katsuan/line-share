@@ -42,7 +42,7 @@ window.LINE_SHARE_CONFIG = {
     "2009927582-qytzPvoy" // くるかな
   ],
 
-  // 作成者（ユーザーIDの SHA-256）。トップのシェアに「全ツールのカードを送る」が出る（?credit=whoami でハッシュを確かめられる）
+  // 作成者（ユーザーIDの SHA-256）。トップの「紹介する」に「全ツールのカードを送る」が出る（?credit=whoami でハッシュを確かめられる）
   ownerUsers: [
     "24f2d88d2332937479e0e0275c2f8713d029cdf4a7fe788a136178b456e5b519" // katsuan
   ],

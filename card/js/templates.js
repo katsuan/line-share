@@ -27,13 +27,14 @@ function getTemplates() {
 
 // 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる
 // 当てはめる前の全カード（複数枚もまとめて）を覚え、数秒だけ「元に戻す」を出す
-function offerUndo(message) {
+function offerUndo(message, onUndo) {
   storeCurrent();
   const snapshot = { cards: structuredClone(cards), current };
   return () =>
     window.LineShareUI.toast(message, {
       actionLabel: "元に戻す",
       onAction: () => {
+        onUndo?.();
         restoreDeck(snapshot);
         setStatus("元に戻しました。");
       }

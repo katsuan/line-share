@@ -223,21 +223,12 @@ function bindEvents() {
   });
   els.copyJsonButton.addEventListener("click", copyJson);
 
-  const resetLabel = els.resetButton.textContent;
-  let resetTimer = null;
+  // 聞かずに消して、トーストの「元に戻す」で戻せるようにする（docs/ux.md D1）
   els.resetButton.addEventListener("click", () => {
-    if (resetTimer === null) {
-      els.resetButton.textContent = "もう一度タップでリセット";
-      resetTimer = setTimeout(() => {
-        els.resetButton.textContent = resetLabel;
-        resetTimer = null;
-      }, 3000);
-      return;
-    }
-    clearTimeout(resetTimer);
-    resetTimer = null;
-    els.resetButton.textContent = resetLabel;
-    const showUndo = offerUndo("入力をリセットしました");
+    const lastSent = localStorageGet(LAST_SENT_KEY);
+    const showUndo = offerUndo("入力を消しました", () => {
+      if (lastSent !== null) localStorageSet(LAST_SENT_KEY, lastSent);
+    });
     hasTriedShare = false;
     state = structuredClone(BLANK_STATE);
     cards = [state];
@@ -246,7 +237,7 @@ function bindEvents() {
     localStorageRemove(LAST_SENT_KEY);
     applyStateToEditor();
     render();
-    setStatus("入力をリセットしました。");
+    setStatus("");
     showUndo();
   });
 

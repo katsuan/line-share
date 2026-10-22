@@ -33,7 +33,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `LineShareUI.afterSent({ resend })`（`shared/ui.js`） | 送ったあとのシート。「続けて別のトークにも送る」「閉じる」「もう少し作る」。すぐには閉じない |
 | `LineShareUI.firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方を出す（「わかった」で消え、その端末では二度と出さない） |
 | お知らせカードの下書き（`card/js/storage.js`） | 編集するたびに少し間をおいて端末に残し、ページが隠れる・閉じるときもすぐ残す。次に開いたら「前回の続きから開きました［新しく作る］」。送ったら消す（送った内容は「前回送った内容」に残る） |
-| `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・リセットのあとに「元に戻す」を出す。消す操作は、聞かずに消してここで「元に戻す」を出すのが基本 |
+| `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・入力をぜんぶ消す・カードを消すのあとに、文字・手書きでは、文字を消す・手書きを全部消す・送った画像を履歴から消すのあとに「元に戻す」を出す。消す操作は、聞かずに消してここで「元に戻す」を出すのが基本 |
 | `LineShareUI.ask({ title, text, ok, cancel, danger, input })` | ブラウザ標準の `confirm`・`alert`・`prompt` の代わり（LINE の中で標準の窓を出すと、上にドメイン名が出て浮くため）。下から出るシートで聞き、Promise で返す（OK なら `true`。`input` を渡すと入れた文字か `null`）。`cancel: null` でお知らせだけ、`danger: true` で赤いボタン、`readonly: true` でコピー用の欄。Q のツールはどれもこれを使う |
 | プレビューへ戻るボタン（`shared/ui.js` が自動で付ける） | 下の設定までスクロールしてプレビューが見えなくなったら右下に「👀 プレビュー」を出す。`.ls-preview` があるページすべて（場所・予定は表示中のタブのプレビューへ） |
 | `LineShareUI.progress(label, show)` | 時間のかかる処理（画像の保存）に、経過秒数と、長引いたときの理由を出す |
@@ -97,7 +97,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 | 動き（`window.LineShareUI`） | 中身 |
 |---|---|
-| `toast(message, { actionLabel, onAction, ms })` | 下に数秒出る知らせ。「取り消す」などのボタンも付けられる |
+| `toast(message, { actionLabel, onAction, ms })` | 下に数秒出る知らせ。「元に戻す」などのボタンも付けられる |
 | `firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方 |
 | `afterSent({ resend })` | 送ったあとのシート |
 | `progress(label, show)` | 時間のかかる処理の経過秒数 |
@@ -135,7 +135,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 - `billingPortalUrl`: お支払いの確認・解約のリンク（Stripe カスタマーポータル）。空ならボタンを出さない
 - `showCredit`: 送るカードに「Created by おくるん」を付けるか（`false` で全員から消える）
 - `creditFreeUsers`: Created by を出さない LINE ユーザー（ユーザーIDの SHA-256）。`https://liff.line.me/<LIFF ID>/?credit=whoami` を LINE で開くと自分の値が表示される
-- `ownerUsers`: 作成者（ユーザーIDの SHA-256。値の確かめ方は上と同じ）。トップの「シェア」に「🗂 全ツールのカードを送る」が出て、おくるんとほかのツール（`data/hub-links.json` の `ogp` があるもの）の紹介カードを送れる。ツールが12個までは、全ツールを横に並べて1通（カルーセル。おくるんの紹介も入るときは先頭に、入らないときは1通目に別で）。12個をこえたら、おくるんの紹介（1通目）と、グループ（`groups`）ごとに横に並べて1通ずつ（カルーセル）送れる。グループのツールが12より少ないうちは、先頭にグループの説明のカード（`groups` の `desc` と、ツールの一覧）。12以上になったら説明はやめて12枚ずつに分ける。1回で送れるのは5通まで（こえるときは、おくるんの紹介をやめる）
+- `ownerUsers`: 作成者（ユーザーIDの SHA-256。値の確かめ方は上と同じ）。トップの「📤 紹介する」に「🗂 全ツールのカードを送る」が出て、おくるんとほかのツール（`data/hub-links.json` の `ogp` があるもの）の紹介カードを送れる。ツールが12個までは、全ツールを横に並べて1通（カルーセル。おくるんの紹介も入るときは先頭に、入らないときは1通目に別で）。12個をこえたら、おくるんの紹介（1通目）と、グループ（`groups`）ごとに横に並べて1通ずつ（カルーセル）送れる。グループのツールが12より少ないうちは、先頭にグループの説明のカード（`groups` の `desc` と、ツールの一覧）。12以上になったら説明はやめて12枚ずつに分ける。1回で送れるのは5通まで（こえるときは、おくるんの紹介をやめる）
 
 ### Created by を自分だけ消す
 
@@ -149,6 +149,8 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 1. LINE Developers で LIFF アプリを1つ作る（Scope: `profile` / `chat_message.write`、Share Target Picker を有効化）
 2. エンドポイント URL に `https://katsuan.github.io/line-share/` を設定する
 3. 各ツールは `https://liff.line.me/<LIFF ID>/plan/` のようにパスを付けて開く。トップページが `liff.state` を受けて各ツールへ転送する
+
+LINE の外のブラウザで開いたとき（使い心地の決まり `docs/ux.md` の B6）：お知らせカード（`/card/`）と返事（`/reply/`）は、送るボタンの上に「🔑 ログインして送る」「💬 LINEで開く」を出す（`LineShareLiff.outsideHelp`）。場所・予定（`/plan/`）と文字・手書き（`/image/`）は決まりと違い、開いたときにそのまま LINE のログインへ移る。手書きは端末に残さないので、描いたあとにログインで行き来すると消えてしまうのと、画像の保存先（プラン）をログインで決めるため
 
 ### Google Maps（任意）
 

@@ -132,7 +132,7 @@
   async function restore(text) {
     const data = parse(text);
     if (!data || !Object.keys(data.items).length) {
-      await ui().ask({ title: "戻せませんでした", text: "ConneQt のバックアップではないようです。保存したファイル（または文字）をそのまま選んでください。", ok: "OK", cancel: null });
+      await ui().ask({ title: "戻せませんでした", text: "ConneQt のバックアップではないようです。保存したファイル（または文字）をそのまま選んでください。", ok: "閉じる", cancel: null });
       return;
     }
     const names = byTool(data.items).map((row) => row.name).join("・");
@@ -140,14 +140,14 @@
     const yes = await ui().ask({
       title: "この記録に戻しますか？",
       text: `${when ? `${when} に保存したもの\n` : ""}${names}\n\nいまこの端末にある同じツールの記録は、上書きされます。`,
-      ok: "戻す",
+      ok: "上書きして戻す",
       danger: true
     });
     if (!yes) return;
     try {
       for (const [key, value] of Object.entries(data.items)) localStorage.setItem(key, value);
     } catch {
-      await ui().ask({ title: "戻せませんでした", text: "この端末に保存できませんでした。容量がいっぱいかもしれません。", ok: "OK", cancel: null });
+      await ui().ask({ title: "戻せませんでした", text: "この端末に保存できませんでした。容量がいっぱいかもしれません。", ok: "閉じる", cancel: null });
       return;
     }
     $("pasteBox").hidden = true;

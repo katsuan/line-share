@@ -321,7 +321,7 @@
       </div>`;
     document.body.appendChild(sheet);
     const $ = (selector) => sheet.querySelector(selector);
-    $(".oqrn-sheet-title").textContent = `${tool.name}をシェア`;
+    $(".oqrn-sheet-title").textContent = `${tool.name}を紹介する`;
     $("[data-card]").href = cardUrl(tool);
     const status = $(".oqrn-sheet-status");
 

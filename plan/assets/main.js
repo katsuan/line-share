@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610222346";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610222346";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610222346";
+import { app } from "./common.js?v=202610230122";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610230122";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610230122";
 
 const TABS = ["map", "calendar"];
 
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.LineShareUI.firstTip("plan", [
     "📍 場所：場所を探すと、地図を開けるカードになります。",
     "🗓️ 予定：件名と日時を入れると、カレンダーに入れられるカードになります。",
-    "下の「カードで送る」で、送り先を選んで送れます。"
+    "カードの文字はタップで入力します。写真・バッジ・日時・ボタンは、タップすると設定が開きます。"
   ], document.querySelector(".ls-tabs"));
   initMapTab({
     onCreateEvent: (place) => {
@@ -96,8 +96,8 @@ function bindSendBar_() {
     const message = document.getElementById(target.message);
     barButton.disabled = source.disabled;
     barButton.textContent = source.textContent;
-    // 送れないのに理由が空のときは、何を入れれば送れるかを出す
-    const hint = source.disabled && !message.textContent.trim() ? EMPTY_HINTS[activeTab_()] : "";
+    // 送れないのに理由が空のときは、何を入れれば送れるかを出す（LINE とつながっていないときは、そのことを先に）
+    const hint = source.disabled && !message.textContent.trim() ? (app.liffReady ? EMPTY_HINTS[activeTab_()] : window.LineShareLiff.MESSAGES.notInLine) : "";
     barMessage.textContent = hint || message.textContent;
     // 送れない間は「次に何を入れるか」の案内なので赤くしない（送ろうとして失敗したときだけ赤）
     barMessage.className = source.disabled ? "ls-status" : `ls-status ${message.className.replace("message", "")}`;
