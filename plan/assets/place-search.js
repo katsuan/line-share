@@ -1,5 +1,5 @@
-import { CONFIG } from "./config.js?v=202610222346";
-import { isHttpsUrl, setMessage, toUserMessage, UserError } from "./common.js?v=202610222346";
+import { CONFIG } from "./config.js?v=202610230122";
+import { isHttpsUrl, setMessage, toUserMessage, UserError } from "./common.js?v=202610230122";
 
 // Google Maps JavaScript API（Places）で場所を検索する。サーバー不要。
 let mapsLoading = null;
@@ -76,7 +76,7 @@ export function bindPlaceSearch({ input, button, results, message, onSelect }) {
 
   async function run() {
     button.disabled = true;
-    button.textContent = "検索中...";
+    button.textContent = "検索中…";
     results.replaceChildren();
     try {
       const places = await searchPlaces(input.value);

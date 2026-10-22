@@ -105,7 +105,7 @@ async function prepare() {
     mode = "here";
   } else if (window.LineShareLiff.canShare()) {
     mode = "pick";
-    els.sendButton.textContent = "送り先を選んで送る";
+    els.sendButton.textContent = "💬 送り先を選んで送る";
     els.replyNote.textContent = "吹き出しはタップで書きかえられます。次の画面で、返事をするトークを選んでください。";
   } else {
     setStatus("この画面からは送れません。コピーしてトークに貼り付けてください。");

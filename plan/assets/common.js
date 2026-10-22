@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610222346";
+import { MAX_URI_LENGTH } from "./config.js?v=202610230122";
 
 export const app = {
   liffReady: false
@@ -85,7 +85,7 @@ export function titleFromMapUrl(url) {
  */
 export async function shareFlex(message) {
   if (!app.liffReady || !liff.isApiAvailable("shareTargetPicker")) {
-    throw new UserError("この環境では送信機能を利用できません。LINEアプリ内で開いてください。");
+    throw new UserError("LINEアプリで開くと送れます。");
   }
   // 送り先は複数選べる。送れたら、続けて別のトークにも送るか・閉じるかを選んでもらう（shared/ui.js）
   const messages = [window.LineShareCredit.withCredit(message)];

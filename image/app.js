@@ -1,15 +1,15 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。画面・手書きの操作・送信・送った画像。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
 // 決まった値は constants.js、描く処理は draw.js、送るメッセージの組み立ては message.js。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610222346";
-import { addSent, deleteSent, listSent } from "./history.js?v=202610222346";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610230122";
+import { addSent, deleteSent, listSent, restoreSent } from "./history.js?v=202610230122";
 
 import {
   ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
   LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
-} from "./constants.js?v=202610222346";
-import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610222346";
-import { buildMessage } from "./message.js?v=202610222346";
+} from "./constants.js?v=202610230122";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610230122";
+import { buildMessage } from "./message.js?v=202610230122";
 
 const config = window.LINE_SHARE_CONFIG || {};
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）
@@ -386,7 +386,7 @@ function updateMeta_() {
 }
 
 function sendLabel_() {
-  return state.sendMode === "card" ? "🪧 カードで送る" : "🖼️ 画像で送る";
+  return "💬 LINEで送る";
 }
 
 // スライダーと見本の丸を今の太さに合わせる。丸はプレビュー上で実際に描かれる太さ
@@ -406,11 +406,19 @@ function syncTextClear_() {
   els.drawTextLabel.textContent = text.length > 10 ? `${text.slice(0, 10)}…` : text;
 }
 
+// 聞かずに消して、トーストの「元に戻す」で戻せるようにする（docs/ux.md D1）
 function clearText_() {
   if (!state.text) return;
+  const before = state.text;
   state.text = "";
   onChange_();
-  setStatus_(state.mode === "draw" ? "文字を消しました。手書きだけになります。" : "文字を消しました。");
+  window.LineShareUI.toast(state.mode === "draw" ? "文字を消しました（手書きは残っています）" : "文字を消しました", {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      state.text = before;
+      onChange_();
+    }
+  });
 }
 
 function onChange_() {
@@ -468,10 +476,19 @@ function bindEvents_() {
   els.clearButton.addEventListener("click", () => {
     if (!state.strokes.length) return;
     pushUndo_();
+    const before = state.strokes;
     state.strokes = [];
     updateUndo_();
     requestRender();
-    setStatus_("手書きを消しました。「元に戻す」で戻せます。");
+    window.LineShareUI.toast("手書きを消しました", {
+      actionLabel: "元に戻す",
+      onAction: () => {
+        pushUndo_();
+        state.strokes = before;
+        updateUndo_();
+        requestRender();
+      }
+    });
   });
   els.saveButton.addEventListener("click", openSaveSheet_);
   els.saveClose.addEventListener("click", () => closeSheet_(els.saveSheet));
@@ -577,7 +594,7 @@ async function sendImage_(item) {
     // 送った画像を送り直すときは、送ったときと同じ送り方にする
     const mode = item.mode || (item.animated ? "card" : "image");
 
-    els.sendButton.textContent = "準備中...";
+    els.sendButton.textContent = "準備中…";
     // 画像の保存は30秒前後かかることがあるので、経過秒数と理由を出す（shared/ui.js）
     const stopProgress = window.LineShareUI.progress("画像を保存しています", (text) => setStatus_(text));
     let imageUrl;
@@ -641,9 +658,17 @@ async function renderHistory_() {
       remove.className = "history-remove";
       remove.textContent = "×";
       remove.setAttribute("aria-label", "履歴から消す");
+      // 聞かずに消して、トーストの「元に戻す」で戻せるようにする（docs/ux.md D1）
       remove.addEventListener("click", async () => {
         await deleteSent(item.id);
         renderHistory_();
+        window.LineShareUI.toast("送った画像を履歴から消しました", {
+          actionLabel: "元に戻す",
+          onAction: async () => {
+            await restoreSent(item);
+            renderHistory_();
+          }
+        });
       });
 
       cell.append(button, remove);

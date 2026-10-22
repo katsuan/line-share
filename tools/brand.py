@@ -8,6 +8,7 @@ Q はふきだし：輪を一筆でくるんと回り、終わりが細くなっ
   shared/icon-512.png         … PWA（maskable）
   shared/apple-touch-icon.png … iPhone のホーム画面
   shared/logo.svg             … 横長のロゴ「OQRN」
+  shared/logo-dark.svg        … 同じロゴの暗い表示用（O・R・N を明るい色に。HOME の見出し）
 
 O は Q の輪と同じ真円で描く。R・N の字形は Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf）から取る。
 fontTools と Pillow が必要。
@@ -25,6 +26,7 @@ FONT_PATH = Path.home() / "Library" / "Fonts" / "Jua.ttf"
 ACCENT = (108, 71, 255)  # shared/ui.css の --ls-accent
 ACCENT_LIGHT = (164, 139, 255)
 INK = (43, 35, 80)  # ロゴの O・R・N の色（紫寄りの紺）
+INK_DARK = (228, 222, 252)  # 暗い表示のときの O・R・N の色（紫寄りの白）
 WHITE = (255, 255, 255)
 
 # Q の形（輪の半径を 1 とした値）
@@ -218,7 +220,7 @@ def _glyph_bounds(glyphs, name):
     return pen.bounds
 
 
-def logo_svg():
+def logo_svg(ink=INK):
     layout = wordmark_layout()
     paths, o, q, width, height = layout["paths"], layout["o"], layout["q"], layout["width"], layout["height"]
     pad = q["w"] * 0.2
@@ -228,8 +230,8 @@ def logo_svg():
         '<defs><linearGradient id="q" x1="0" y1="0" x2="1" y2="1">'
         f'<stop offset="0" stop-color="{hex_(ACCENT)}"/><stop offset="1" stop-color="{hex_(ACCENT_LIGHT)}"/>'
         "</linearGradient></defs>"
-        f'<g fill="{hex_(INK)}">{letters}</g>'
-        f'<circle cx="{_num(o["cx"])}" cy="{_num(o["cy"])}" r="{_num(o["r"])}" fill="none" stroke="{hex_(INK)}" stroke-width="{_num(o["w"])}"/>'
+        f'<g fill="{hex_(ink)}">{letters}</g>'
+        f'<circle cx="{_num(o["cx"])}" cy="{_num(o["cy"])}" r="{_num(o["r"])}" fill="none" stroke="{hex_(ink)}" stroke-width="{_num(o["w"])}"/>'
         f"{q_svg(**q, fill='url(#q)', dot_fill=hex_(ACCENT))}"
         "</svg>\n"
     )
@@ -270,9 +272,10 @@ def wordmark_image(cap_height, letter_fill, q_fill, dot_fill):
 def main():
     (ROOT / "shared" / "icon.svg").write_text(icon_svg(), encoding="utf-8")
     (ROOT / "shared" / "logo.svg").write_text(logo_svg(), encoding="utf-8")
+    (ROOT / "shared" / "logo-dark.svg").write_text(logo_svg(INK_DARK), encoding="utf-8")
     icon_png(512, shrink=MASKABLE_SCALE).convert("RGB").save(ROOT / "shared" / "icon-512.png", optimize=True)
     icon_png(180).convert("RGB").save(ROOT / "shared" / "apple-touch-icon.png", optimize=True)
-    print("wrote shared/icon.svg, shared/logo.svg, shared/icon-512.png, shared/apple-touch-icon.png")
+    print("wrote shared/icon.svg, shared/logo.svg, shared/logo-dark.svg, shared/icon-512.png, shared/apple-touch-icon.png")
 
 
 if __name__ == "__main__":

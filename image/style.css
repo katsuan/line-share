@@ -117,6 +117,13 @@
   cursor: pointer;
 }
 
+/* 見た目は小さい丸のまま、押せる範囲は 44px に広げる（docs/ux.md C3） */
+.history-remove::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
 
 
 

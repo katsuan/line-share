@@ -7,7 +7,7 @@
 (function () {
   const MESSAGES = {
     connecting: "LINEとつないでいます…",
-    failed: "LINEとの接続に失敗しました。LINEアプリから開き直してください。",
+    failed: "LINEとつながりませんでした。LINEアプリから開きなおすと送れます。",
     timeout: "LINEとつながりませんでした。電波のよい所で開き直してください（作成・プレビューはできます）。",
     // 送った結果（全ツールでそろえる）
     sent: "送りました。",

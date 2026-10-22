@@ -61,3 +61,12 @@ export async function deleteSent(id) {
     console.error(error);
   }
 }
+
+// 消したものを、元の id と送った日時のまま戻す（「元に戻す」用）
+export async function restoreSent(item) {
+  try {
+    await run("readwrite", (store) => store.put(item));
+  } catch (error) {
+    console.error(error);
+  }
+}
