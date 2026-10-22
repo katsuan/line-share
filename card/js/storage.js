@@ -87,6 +87,9 @@ function keepDeckForLogin() {
   saveDraftNow();
   try {
     sessionStorage.setItem(CARRY_KEY, encodeDeck());
+    // 記録用の文字（?sendText=。send.js）も、ログインのあとに残す
+    const text = activeSendText();
+    if (text) sessionStorage.setItem(SEND_TEXT_KEY, text);
   } catch (error) {
     console.warn(error);
   }
@@ -99,7 +102,11 @@ function loginReturnUrl() {
 
 function carriedDeckUrl() {
   const deck = encodeDeck();
-  return window.LineShareLiff.appUrl(deck.length <= CARRY_MAX ? `/card/?deck=${deck}` : "/card/");
+  // 記録用の文字（?sendText=。send.js）も、LINE アプリで開いたあとに渡す
+  const text = activeSendText();
+  const extra = text ? `sendText=${encodeURIComponent(text)}` : "";
+  const query = [deck.length <= CARRY_MAX ? `deck=${deck}` : "", extra].filter(Boolean).join("&");
+  return window.LineShareLiff.appUrl(query ? `/card/?${query}` : "/card/");
 }
 
 // ?deck=（LINE アプリで開いたとき）か、ログインの前に残した中身。URL からは消す
