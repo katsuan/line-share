@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-ls-dark="auto">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" href="./shared/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="./shared/apple-touch-icon.png" />
     <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#f5f4f9" />
+    <meta name="theme-color" content="#f5f4f9" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
     <title>おくるん｜つくって、おくるん💬</title>
     <meta name="description" content="場所・予定・お知らせ・文字・手書きを、LINEのトークにカードや画像で送れます。" />
     <!-- リンクを共有したときの表示（画像は tools/ogp.py で作る） -->
@@ -20,13 +21,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610221922" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610222346" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610221922"></script>
-    <script src="./shared/log.js?v=202610221922"></script>
-    <script src="./shared/credit.js?v=202610221922"></script>
-    <script src="./shared/plan.js?v=202610221922"></script>
-    <script src="./shared/liff.js?v=202610221922"></script>
+    <script src="./config.js?v=202610222346"></script>
+    <script src="./shared/log.js?v=202610222346"></script>
+    <script src="./shared/credit.js?v=202610222346"></script>
+    <script src="./shared/plan.js?v=202610222346"></script>
+    <script src="./shared/liff.js?v=202610222346"></script>
     <style>
       .hub-head {
         display: flex;
@@ -247,6 +248,10 @@
         font-size: 13px;
       }
 
+      .hub-foot + .hub-foot {
+        margin-top: 8px;
+      }
+
       .hub-foot a {
         color: var(--ls-subtext);
         font-weight: 700;
@@ -380,6 +385,7 @@
       /* メイン機能とは別の、ほかのページへのリンク */
       /* LINE絵文字：説明と、行の左に置く小さな代表画像 */
       .hub-emoji-lead {
+        word-break: auto-phrase;
         margin: -4px 4px 10px;
         color: var(--ls-subtext);
         font-size: 13px;
@@ -496,6 +502,64 @@
         font-size: 14px;
       }
 
+      /* 最近つかったツール（tool-share.js が覚えた conneqt:recent）。続きからすぐ開けるよう、上のほうに小さく */
+      .hub-recent {
+        display: grid;
+        gap: 6px;
+        margin: 14px 0 0;
+      }
+
+      .hub-recent-title {
+        margin: 0 4px;
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hub-recent-list {
+        display: flex;
+        gap: 8px;
+        margin: 0;
+        padding: 0 0 2px;
+        overflow-x: auto;
+        list-style: none;
+        scrollbar-width: none;
+      }
+
+      .hub-recent-list a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 40px;
+        padding: 0 14px 0 8px;
+        border: 1px solid var(--ls-line);
+        border-radius: 999px;
+        background: var(--ls-surface);
+        color: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .hub-recent-list img {
+        width: 24px;
+        height: 24px;
+      }
+
+      /* コネクトの中の分け方（hub-links.json の groups） */
+      .hub-group-head {
+        padding: 10px 16px 4px;
+        background: var(--ls-surface-sub);
+        color: var(--ls-subtext);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .hub-links li.hub-group-head + li {
+        border-top: 0;
+      }
+
       .hub-redirect {
         padding-top: 30vh;
         color: var(--ls-subtext);
@@ -515,6 +579,11 @@
         <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 シェア</button>
       </div>
+      <!-- 最近つかったツール（ConneQt のツールを開くと覚える。なければ出さない） -->
+      <nav id="hubRecent" class="hub-recent" aria-labelledby="hubRecentTitle" hidden>
+        <p id="hubRecentTitle" class="hub-recent-title">最近つかった</p>
+        <ul id="hubRecentList" class="hub-recent-list"></ul>
+      </nav>
       <ul class="hub-tools">
         <li>
           <a class="hub-tool is-featured" href="./card/?from=home">
@@ -564,6 +633,7 @@
         <ul id="hubEmojiList" class="hub-links"></ul>
       </section>
       <p class="hub-foot"><a href="./account/">⭐ プラン（無料・有償で使える機能）</a></p>
+      <p class="hub-foot"><a href="./backup/">💾 この端末の記録をバックアップ</a></p>
     </main>
 
     <div id="shareSheet" class="ls-sheet" hidden>
@@ -794,10 +864,52 @@
           })
           .catch((error) => console.error("LINE絵文字を読み込めませんでした", error));
 
+        // 最近つかったツール：新しい順に3つまで。押すとすぐそのツールを開く（紹介のカードは出さない）
+        function showRecent(rows) {
+          let recent = [];
+          try {
+            recent = JSON.parse(localStorage.getItem("conneqt:recent") || "[]");
+          } catch {
+            return;
+          }
+          const items = recent.map((row) => rows.find((item) => item.key === row?.key)).filter(Boolean).slice(0, 3);
+          if (!items.length) return;
+          document.getElementById("hubRecentList").replaceChildren(
+            ...items.map((item) => {
+              const li = document.createElement("li");
+              const a = Object.assign(document.createElement("a"), { href: item.url });
+              if (item.appIcon) a.append(Object.assign(document.createElement("img"), { src: item.appIcon, alt: "", width: 24, height: 24 }));
+              a.append(item.name);
+              li.append(a);
+              return li;
+            })
+          );
+          document.getElementById("hubRecent").hidden = false;
+        }
+
+        // groups があるときは、分け方ごとに小さな見出しを入れて並べる（見出しのない残りは最後）
+        function grouped(data, rows) {
+          const groups = Array.isArray(data.groups) ? data.groups : [];
+          if (!groups.length) return rows.map(createRow);
+          const out = [];
+          const used = new Set();
+          for (const group of groups) {
+            const members = rows.filter((row) => row.group === group.key);
+            if (!members.length) continue;
+            const head = Object.assign(document.createElement("li"), { className: "hub-group-head", textContent: group.label });
+            out.push(head, ...members.map(createRow));
+            members.forEach((row) => used.add(row));
+          }
+          out.push(...rows.filter((row) => !used.has(row)).map(createRow));
+          return out;
+        }
+
         loadJson("./data/hub-links.json")
           .then((data) => {
             const rows = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name);
             fill({ section: "hubMore", title: "hubMoreTitle", lead: "hubMoreLead", list: "hubMoreList" }, { title: "ほかのツール", ...data }, rows);
+            if (rows.length) document.getElementById("hubMoreList").replaceChildren(...grouped(data, rows));
+            showRecent(rows);
           })
           .catch((error) => console.error("ほかのツールを読み込めませんでした", error));
       })();
@@ -1002,5 +1114,7 @@
         });
       })();
     </script>
+    <!-- 電波がなくても開けるように（sw.js） -->
+    <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
   </body>
 </html>

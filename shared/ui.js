@@ -403,6 +403,81 @@
     setTimeout(hide, ms);
   }
 
+  // ---- 確認の窓 ----
+
+  /**
+   * ブラウザ標準の confirm / alert の代わり。下から出るシートで聞き、押したほうを Promise で返す（OK なら true）。
+   * LINE の中で標準の窓を出すと上にドメイン名が出て浮くので、どのツールもこれを使う。
+   *   ask({ title: "この作戦を消しますか？", text: "消すと元に戻せません。", ok: "消す", danger: true })
+   *   ask({ title: "保存できませんでした", ok: "OK", cancel: null })   … お知らせだけ（alert の代わり）
+   *   ask({ title: "作戦の名前", input: "作戦 1", ok: "決める" })   … 入力欄つき（prompt の代わり）。入れた文字か null を返す
+   *   ask({ title: "長押ししてコピーしてください", input: url, readonly: true, ok: "閉じる", cancel: null })   … コピーできないとき
+   * 消したあとに「元に戻す」を出せるときは、聞かずに消して toast(…, { actionLabel: "元に戻す" }) のほうがよい。
+   */
+  function ask({ title = "", text = "", ok = "OK", cancel = "やめる", danger = false, input = null, readonly = false, maxLength = 0 } = {}) {
+    return new Promise((resolve) => {
+      document.querySelector(".ls-sheet.ls-ask")?.remove();
+      const before = document.activeElement;
+      const sheet = document.createElement("div");
+      sheet.className = "ls-sheet ls-ask";
+      const card = document.createElement("div");
+      card.className = "ls-sheet-card";
+      card.setAttribute("role", cancel === null ? "alertdialog" : "dialog");
+      card.setAttribute("aria-modal", "true");
+      const head = Object.assign(document.createElement("p"), { className: "ls-sheet-title", textContent: title });
+      head.id = `lsAsk${Date.now()}`;
+      card.setAttribute("aria-labelledby", head.id);
+      card.append(head);
+      if (text) card.append(Object.assign(document.createElement("p"), { className: "ls-ask-text", textContent: text }));
+      let field = null;
+      if (input !== null) {
+        field = Object.assign(document.createElement("input"), { className: "ls-input", value: String(input), readOnly: readonly });
+        field.setAttribute("aria-label", title);
+        if (maxLength) field.maxLength = maxLength;
+        field.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" && !event.isComposing) done(true);
+        });
+        card.append(field);
+      }
+      const actions = Object.assign(document.createElement("div"), { className: "ls-sheet-actions" });
+      const done = (value) => {
+        sheet.remove();
+        document.removeEventListener("keydown", onKey);
+        before?.focus?.({ preventScroll: true });
+        if (field && !readonly) resolve(value ? field.value : null);
+        else resolve(value);
+      };
+      if (cancel !== null) {
+        const no = Object.assign(document.createElement("button"), { type: "button", className: "ls-button", textContent: cancel });
+        no.addEventListener("click", () => done(false));
+        actions.append(no);
+      }
+      const yes = Object.assign(document.createElement("button"), {
+        type: "button",
+        className: `ls-button ${danger ? "is-danger-fill" : "is-primary"}`,
+        textContent: ok
+      });
+      yes.addEventListener("click", () => done(true));
+      actions.append(yes);
+      card.append(actions);
+      sheet.append(card);
+      sheet.addEventListener("click", (event) => {
+        if (event.target === sheet) done(cancel === null);
+      });
+      const onKey = (event) => {
+        if (event.key === "Escape") done(cancel === null);
+      };
+      document.addEventListener("keydown", onKey);
+      document.body.append(sheet);
+      if (field) {
+        field.focus();
+        field.select();
+      } else {
+        (cancel === null || !danger ? yes : actions.firstChild).focus();
+      }
+    });
+  }
+
   // ---- はじめて使う人への案内 ----
 
   /**
@@ -474,6 +549,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent
+    afterSent, firstTip, progress, toast, setAccent, ask
   };
 })();

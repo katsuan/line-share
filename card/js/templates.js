@@ -160,10 +160,17 @@ function saveTemplate() {
 }
 
 function deleteTemplate(name) {
-  if (!confirm(`「${name}」を削除しますか？`)) return;
-  saveJson(TEMPLATE_KEY, getTemplates().filter((template) => template.name !== name));
+  // 聞かずに消して、「元に戻す」を出す
+  const before = getTemplates();
+  saveJson(TEMPLATE_KEY, before.filter((template) => template.name !== name));
   renderTemplates();
-  setStatus(`「${name}」を削除しました。`);
+  window.LineShareUI?.toast(`「${name}」を消しました`, {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      saveJson(TEMPLATE_KEY, before);
+      renderTemplates();
+    }
+  });
 }
 
 async function copyJson() {

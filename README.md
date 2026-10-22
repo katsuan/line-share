@@ -33,7 +33,8 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `LineShareUI.afterSent({ resend })`（`shared/ui.js`） | 送ったあとのシート。「続けて別のトークにも送る」「閉じる」「もう少し作る」。すぐには閉じない |
 | `LineShareUI.firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方を出す（「わかった」で消え、その端末では二度と出さない） |
 | お知らせカードの下書き（`card/js/storage.js`） | 編集するたびに少し間をおいて端末に残し、ページが隠れる・閉じるときもすぐ残す。次に開いたら「前回の続きから開きました［新しく作る］」。送ったら消す（送った内容は「前回送った内容」に残る） |
-| `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・リセットのあとに「元に戻す」を出す |
+| `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・リセットのあとに「元に戻す」を出す。消す操作は、聞かずに消してここで「元に戻す」を出すのが基本 |
+| `LineShareUI.ask({ title, text, ok, cancel, danger, input })` | ブラウザ標準の `confirm`・`alert`・`prompt` の代わり（LINE の中で標準の窓を出すと、上にドメイン名が出て浮くため）。下から出るシートで聞き、Promise で返す（OK なら `true`。`input` を渡すと入れた文字か `null`）。`cancel: null` でお知らせだけ、`danger: true` で赤いボタン、`readonly: true` でコピー用の欄。Q のツールはどれもこれを使う |
 | プレビューへ戻るボタン（`shared/ui.js` が自動で付ける） | 下の設定までスクロールしてプレビューが見えなくなったら右下に「👀 プレビュー」を出す。`.ls-preview` があるページすべて（場所・予定は表示中のタブのプレビューへ） |
 | `LineShareUI.progress(label, show)` | 時間のかかる処理（画像の保存）に、経過秒数と、長引いたときの理由を出す |
 | `LineSharePlan.warmUp()`（`shared/plan.js`） | 無料の画像サーバー（Render）を、画像を保存するページを開いた時点で起こしておく |
@@ -60,6 +61,12 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 ```
 
 色は `:root` に書く（開いた瞬間から色が付く）か、`LineShareUI.setAccent("#ec8a16")`（濃い色・薄い色・文字色を1色から作る）。`<script src=".../ui.js" data-accent="#ec8a16" defer>` でもよい。
+
+**暗い表示（ダークモード）**：`<html lang="ja" data-ls-dark="auto">` を付けたページだけ、スマホが暗い表示のときに暗くなる。背景・カード・文字・線・薄い色（`--ls-*`）は `ui.css` が `!important` で上書きする（背景にはツールの色を少し混ぜる）。ツールの CSS に明るい色を直接書いているところは、同じ `@media (prefers-color-scheme: dark)` の中に `:root[data-ls-dark="auto"] …` で暗いときの色を書く。`<meta name="theme-color">` も `media` で明るい・暗いの2つを置く。LINE のトークの見た目（送る前のプレビュー・カードの見本）や、受け取った人が見るお祝いのページ（くろのす・ジェンダーリビールの表示ページ）は明るいまま。
+
+**日本語の改行**：`ui.css` が、文（`p`・`li` など）に `text-wrap: pretty`、見出し・ラベル・ボタン・1〜2行の説明（`.ls-hint`・`li`・`small`・`.lead`・`.sub`・`.hint`・`.note`）に `word-break: auto-phrase`（文節で折る）を付けて、「〜ま／す。」のような1〜2文字だけの行を防ぐ。長い本文には文節で折る指定を付けない（右がガタガタになって行が増える）。折りたくない短い語は `<span class="ls-nowrap">`。説明は1〜2行に収まる長さにし、スマホの幅（375px と 320px）で確かめる。
+
+**電波がないとき（service worker）**：各ツールのいちばん上に `sw.js`（2行：`self.CONNEQT_TOOL = "<key>"; importScripts("/line-share/shared/sw-core.js");`）を置き、各ページで `navigator.serviceWorker.register("./sw.js")`。中身は `shared/sw-core.js`：同じサイトのファイルはまずネットから取り（新しい版をすぐ出す）、取れない・5秒より遅いときだけ前に保存したものを出す。Google Fonts は保存したものを先に使う。LINE・Firebase・画像サーバーなどほかのサイトには触らない。
 
 | 変数 | 中身 |
 |---|---|
@@ -230,9 +237,10 @@ python3 tools/stamp.py
 | ファイル | 中身 |
 |---|---|
 | `data/line-emoji.json` | トップの「LINE絵文字」。`title`・`lead`、`items`（`id`＝LINE STORE の URL の `product/` のあと、`name`、`desc`）、`author`（`id`＝`author/` のあと、`name`）。リンクと画像は ID から作る（`url`・`image` を書くとそちらを使う） |
-| `data/hub-links.json` | トップの「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組みの名前。前は「ほかのツール」「Qるっと」）と、補足の1行（`lead`：「｜Qらし《くらし》を、ひとつなぎ」。｜と《》で囲んだところはルビになる）。各ツールの紹介の窓口の下に並ぶアイコンの欄も同じ名前。`title`、`items`（`icon`・`name`・`desc`・`url`。`appIcon` にツールのアイコン画像の URL を入れると絵文字の代わりに出す。読めないときは `icon`。`en` に英字の名前を入れると、名前の右に「さくせん盤 〜SAQSEN〜」のように小さく添える。`ogp` は共有画像。`ogp` があるツールはタップするとまず画像と説明のカード（「○○を開く」）を出す。紹介カードの写真にも使う、`copy` はキャッチコピーで、画像のカードの名前の下と紹介カードの見出しに出す。`key`・`color`・`lead`・`intro` は下の紹介の窓口が使う） |
+| `data/hub-links.json` | トップの「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組みの名前。前は「ほかのツール」「Qるっと」）と、補足の1行（`lead`：「｜Qらし《くらし》を、ひとつなぎ」。｜と《》で囲んだところはルビになる）。各ツールの紹介の窓口の下に並ぶアイコンの欄も同じ名前。`title`、`items`（`icon`・`name`・`desc`・`url`。`appIcon` にツールのアイコン画像の URL を入れると絵文字の代わりに出す。読めないときは `icon`。`en` に英字の名前を入れると、名前の右に「さくせん盤 〜SAQSEN〜」のように小さく添える。`ogp` は共有画像。`ogp` があるツールはタップするとまず画像と説明のカード（「○○を開く」）を出す。紹介カードの写真にも使う、`copy` はキャッチコピーで、画像のカードの名前の下と紹介カードの見出しに出す。`key`・`color`・`lead`・`intro` は下の紹介の窓口が使う）。`groups`（`key`・`label`）と各ツールの `group` で、トップの一覧を「⚽ スポーツ・からだ」などに分けて小さな見出しを入れる。`next`（`{ key, why }`）は、そのツールの紹介の窓口の上に出す「つぎにおすすめ」（使う流れでつながるツールを1つだけ）。`short` はアイコンの欄に出す短い名前（長い名前のツールだけ） |
 | `shared/oqrn.js` | ほかのツール（さくせん盤・くろのす・ジェンダーリビール・くじ）から、おくるんのお知らせカードを開く入口。LIFF ID とカードの URL はここ1か所（config.js の liffId と同じ値）。`OQRN.cardUrl({ … })` で中身を入れたカードの URL を作る。各ツールは自分の script より前に `<script src="https://katsuan.github.io/line-share/shared/oqrn.js">` で読む |
-| `shared/tool-share.js` | ほかのツールに置く「📤 ○○を紹介する」の窓口。`<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="<key>" defer>` と `<div data-tool-share></div>`（置き場所。なければページの最後）で使う。押すとシートで「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。カードはお知らせカード（`/card/`）に、`data/hub-links.json` の同じ `key` の中身（名前・英字・ツールの色・OGP 画像・説明・URL）を渡して作る。流入口は `from=<key>-intro`
+| `shared/tool-share.js` | ほかのツールに置く「📤 ○○を紹介する」の窓口。`<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="<key>" defer>` と `<div data-tool-share></div>`（置き場所。なければページの最後）で使う。押すとシートで「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。カードはお知らせカード（`/card/`）に、`data/hub-links.json` の同じ `key` の中身（名前・英字・ツールの色・OGP 画像・説明・URL）を渡して作る。流入口は `from=<key>-intro`。上に「つぎにおすすめ」（`next` があるツールだけ）、アイコンの欄（名前つき）の下に「💾 この端末の記録をバックアップ」（`/backup/?from=<key>`）。開くたびに「最近使ったツール」（localStorage の `conneqt:recent`）を覚え、トップの「最近つかった」に3つまで出す。`navigator.storage.persist()` で、ブラウザが記録を勝手に消さないようにもお願いする |
+| `backup/` | 記録のバックアップ。ConneQt のツールが katsuan.github.io の localStorage に残した記録（名前の頭が `line-share:`・`soccer:`・`kiloq:` など、`backup/app.js` の `OWNERS` にあるものだけ。LINE のログイン情報は入れない）を1つのファイル（`conneqt-年月日.json`）か文字にまとめて保存し、ファイルを選ぶか文字を貼ると戻す（戻す前に確かめる）。写真・動画・手書きの画像（IndexedDB）は入らない。新しいツールが記録を残すなら `OWNERS` に名前の頭を足す |
 | `data/templates.json` | テンプレートと候補。`card`＝お知らせカードのテンプレート（`key`・`label`・`icon`・`description`・`status`・`state`。`"{top}"` はおくるんのトップの URL に置き換わる）、`place.presets`＝場所のテンプレート、`place.badges`＝バッジの候補、`text`＝文字・手書きの「よく使う文字」 |
 
 `data/line-emoji.json` を書き換えたら、公開前に `python3 tools/check_emoji.py` で各 ID の LINE STORE のページがあるか（とストア上の名前）を確かめる。トップでは代表画像が取れない絵文字の行に代わりのアイコン（😀、`fallbackIcon` で変更可）を出す。

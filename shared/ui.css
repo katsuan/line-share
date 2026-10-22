@@ -116,6 +116,7 @@ textarea {
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .ls-back::before {
@@ -878,7 +879,7 @@ input[type="time"].ls-input {
   z-index: 40;
   padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--ls-line);
-  background: #ffffff;
+  background: var(--ls-surface);
   box-shadow: 0 -8px 24px rgba(20, 20, 18, 0.08);
   transition: transform 0.18s ease;
 }
@@ -1317,5 +1318,107 @@ body:not(.ls-has-sendbar) .ls-toast {
 @media (prefers-reduced-motion: reduce) {
   .ls-skeleton {
     animation: none;
+  }
+}
+
+/* ---- 日本語の改行 ----
+ * スマホの幅で「〜ま／す。」のように最後の1〜2文字だけが次の行に落ちないようにする。
+ * text-wrap: pretty は最後の行が短くなりすぎないよう前の行から字を回す（Safari・Chrome）。
+ * word-break: auto-phrase は文節の途中で折らない（Chrome。Safari では効かないが害はない）。見出し・ラベル・ボタンだけ。
+ * ボタンや見出しのような短い文字には balance（行の長さをそろえる）。
+ */
+p, li, dd, dt, figcaption, label, .ls-hint, .ls-label, .ls-empty, .ls-tip, .ls-sheet-card {
+  text-wrap: pretty;
+}
+
+h1, h2, h3, .ls-sheet-title, .ls-panel-title, .ls-button, .ls-chip, .ls-tab, .ls-send, .ls-outside-button, summary {
+  text-wrap: balance;
+}
+
+/* 文節で折るのは短い文字だけ（見出し・ラベル・ボタン・1〜2行の説明。長い本文に使うと右がガタガタになって行が増える） */
+.ls-hint:lang(ja), .ls-panel-note:lang(ja), li:lang(ja), small:lang(ja), .lead:lang(ja), .sub:lang(ja), .hint:lang(ja), .note:lang(ja), .ls-tip:lang(ja), .ls-ask-text:lang(ja), .ls-empty:lang(ja),
+h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(ja), .ls-panel-title:lang(ja), .ls-brand-copy:lang(ja),
+.ls-button:lang(ja), .ls-chip:lang(ja), .ls-tab:lang(ja), .ls-send:lang(ja), .ls-outside-button:lang(ja), summary:lang(ja) {
+  word-break: auto-phrase;
+}
+
+/* 1かたまりで折り返したくない短い語（「なくてもOK」「（15文字まで）」など）は <span class="ls-nowrap"> で包む */
+.ls-nowrap {
+  white-space: nowrap;
+}
+
+/* ---- 確認の窓（LineShareUI.ask）。ブラウザ標準の confirm / alert の代わり ---- */
+
+.ls-ask .ls-sheet-card {
+  gap: 10px;
+}
+
+.ls-ask-text {
+  margin: 0;
+  color: var(--ls-subtext);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.ls-ask .ls-sheet-actions {
+  margin-top: 6px;
+}
+
+.ls-ask .ls-sheet-actions:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.ls-button.is-danger-fill {
+  border-color: var(--ls-danger);
+  background: var(--ls-danger);
+  color: #fff;
+}
+
+/* ---- 暗い表示（ダークモード） ----
+ * スマホを暗い表示にしているとき、<html data-ls-dark="auto"> を付けたツールだけ暗くなる
+ * （ツールごとの CSS に明るい色を直接書いているところを直してから付ける）。
+ * ツールが :root や setAccent で決めた背景・文字・薄い色は !important で上書きする（背景にはツールの色を少し混ぜる）。
+ * ツールの CSS では、暗いときだけ変えたいところを同じ @media の中に :root[data-ls-dark="auto"] … で書く。
+ */
+@media (prefers-color-scheme: dark) {
+  :root[data-ls-dark="auto"] {
+    color-scheme: dark;
+
+    --ls-bg: color-mix(in srgb, var(--ls-accent) 7%, #121116) !important;
+    --ls-surface: color-mix(in srgb, var(--ls-accent) 5%, #1c1b21) !important;
+    --ls-surface-sub: color-mix(in srgb, var(--ls-accent) 8%, #24232a) !important;
+    --ls-text: #ecebf1 !important;
+    --ls-subtext: #a9a7b2 !important;
+    --ls-faint: #75737d !important;
+    --ls-line: rgba(255, 255, 255, 0.12) !important;
+    --ls-line-strong: rgba(255, 255, 255, 0.22) !important;
+    --ls-accent-soft: color-mix(in srgb, var(--ls-accent) 22%, #1c1b21) !important;
+    --ls-accent-ink: color-mix(in srgb, var(--ls-accent) 55%, #ffffff) !important;
+    --ls-danger: #ff6b6b !important;
+    --ls-danger-soft: #3a1d1f !important;
+    --ls-success: #6fcf8f !important;
+    --ls-warn: #ffb27a !important;
+    --ls-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+    --ls-tabs-bg: #0e0d12 !important;
+  }
+
+  :root[data-ls-dark="auto"] .ls-send:disabled {
+    background: #3a3942;
+    color: #8d8b96;
+  }
+
+  :root[data-ls-dark="auto"] .ls-toast {
+    background: rgba(236, 235, 241, 0.95);
+    color: #141318;
+  }
+
+  :root[data-ls-dark="auto"] .ls-toast button {
+    background: #141318;
+    color: #fff;
+  }
+
+  :root[data-ls-dark="auto"] .ls-sheet {
+    background: rgba(0, 0, 0, 0.6);
   }
 }
