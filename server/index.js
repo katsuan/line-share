@@ -8,10 +8,14 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 const uploadDir = path.join(__dirname, "uploads");
-const allowedOrigin = process.env.ALLOWED_ORIGIN || "";
+const allowedOrigin = process.env.ALLOWED_ORIGIN || "https://katsuan.github.io";
 const maxImageBytes = 5 * 1024 * 1024;
+// 1つの接続元から受けるアップロードの数（1分あたり）
+const uploadsPerMinute = Number(process.env.UPLOADS_PER_MINUTE) || 20;
 
+// Render の前のプロキシが付ける接続元を使う（送りすぎを止める目安。Render の前は何段かあるので、先頭を見る）
 app.set("trust proxy", true);
+app.disable("x-powered-by");
 
 app.use((request, _response, next) => {
   console.log(
@@ -25,9 +29,20 @@ app.use((request, _response, next) => {
 // アップロードは自分のページ（ALLOWED_ORIGIN）からだけ受け付ける
 const uploadCors = cors({
   origin(origin, callback) {
-    callback(null, !allowedOrigin || !origin || origin === allowedOrigin);
+    callback(null, origin === allowedOrigin);
   },
 });
+
+// 同じ接続元からの送りすぎを止める（覚えるのはこのサーバーが動いている間だけ）
+const recentUploads = new Map();
+function tooManyUploads(ip) {
+  const now = Date.now();
+  const list = (recentUploads.get(ip) || []).filter((time) => now - time < 60 * 1000);
+  list.push(now);
+  recentUploads.set(ip, list);
+  if (recentUploads.size > 10000) recentUploads.clear();
+  return list.length > uploadsPerMinute;
+}
 
 // 送った画像は LINE の受信者など誰からでも読めるようにする。
 // ここに Origin の制限をかけると、Flex の画像を受信者側で読み込めず枠だけになる。
@@ -36,6 +51,7 @@ app.use(
   express.static(uploadDir, {
     maxAge: "1d",
     setHeaders(response) {
+      response.set("X-Content-Type-Options", "nosniff");
       response.set("Access-Control-Allow-Origin", "*");
       response.set("Cross-Origin-Resource-Policy", "cross-origin");
     },
@@ -50,22 +66,35 @@ function buildPublicBaseUrl(request) {
   return `${request.protocol}://${request.get("host")}`;
 }
 
+function userError(message) {
+  const error = new Error(message);
+  error.forUser = true;
+  return error;
+}
+
 function parseDataUrl(imageData) {
   const match = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
 
   if (!match) {
-    throw new Error("PNG または JPEG の data URL を送信してください。");
+    throw userError("PNG または JPEG の data URL を送信してください。");
   }
 
   const extension = match[1] === "jpeg" ? "jpg" : "png";
   const buffer = Buffer.from(match[2], "base64");
 
   if (!buffer.length) {
-    throw new Error("画像データが空です。");
+    throw userError("画像データが空です。");
   }
 
   if (buffer.length > maxImageBytes) {
-    throw new Error("画像サイズが大きすぎます。5MB 以下にしてください。");
+    throw userError("画像サイズが大きすぎます。5MB 以下にしてください。");
+  }
+
+  // 中身も PNG・JPEG か（先頭の印を見る）
+  const isPng = buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (!(extension === "png" ? isPng : isJpeg)) {
+    throw userError("PNG または JPEG の data URL を送信してください。");
   }
 
   return { extension, buffer };
@@ -77,9 +106,13 @@ app.get("/health", (_request, response) => {
 
 app.options("/api/upload", uploadCors);
 app.post("/api/upload", uploadCors, express.json({ limit: "10mb" }), async (request, response) => {
-  const origin = request.get("origin");
-  if (allowedOrigin && origin && origin !== allowedOrigin) {
+  // 自分のページ（ブラウザはかならず Origin を付ける）からだけ受け付ける
+  if (request.get("origin") !== allowedOrigin) {
     response.status(403).json({ error: "このサイトからはアップロードできません。" });
+    return;
+  }
+  if (tooManyUploads(request.ip)) {
+    response.status(429).json({ error: "少し時間をおいてから、もう一度ためしてください。" });
     return;
   }
 
@@ -102,7 +135,7 @@ app.post("/api/upload", uploadCors, express.json({ limit: "10mb" }), async (requ
     response.status(201).json({ imageUrl });
   } catch (error) {
     console.error(error);
-    response.status(400).json({ error: error.message || "画像保存に失敗しました。" });
+    response.status(400).json({ error: error.forUser ? error.message : "画像保存に失敗しました。" });
   }
 });
 
@@ -116,7 +149,17 @@ app.get("/", (_request, response) => {
   });
 });
 
-app.listen(port, async () => {
-  await fs.mkdir(uploadDir, { recursive: true });
-  console.log(`Server listening on port ${port}`);
+// 読めない本文・大きすぎる本文など：中身は出さずに短く答える
+app.use((error, _request, response, _next) => {
+  console.error(error);
+  response.status(error.status && error.status < 500 ? error.status : 500).json({ error: "画像保存に失敗しました。" });
 });
+
+module.exports = { app, parseDataUrl };
+
+if (require.main === module) {
+  app.listen(port, async () => {
+    await fs.mkdir(uploadDir, { recursive: true });
+    console.log(`Server listening on port ${port}`);
+  });
+}

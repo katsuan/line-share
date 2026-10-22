@@ -166,7 +166,9 @@ LINE の画像メッセージには HTTPS で公開された画像 URL が必要
 - Root Directory: `server`
 - Build Command: `npm install`
 - Start Command: `npm start`
-- 環境変数: `ALLOWED_ORIGIN=https://katsuan.github.io`、`PUBLIC_BASE_URL=https://<サービス名>.onrender.com`
+- 環境変数: `ALLOWED_ORIGIN=https://katsuan.github.io`（省略時もこれ）、`PUBLIC_BASE_URL=https://<サービス名>.onrender.com`、`UPLOADS_PER_MINUTE`（1つの接続元から1分に受ける数。省略時 20）
+- 受け付けるのは `ALLOWED_ORIGIN` のページからの、中身が PNG・JPEG の画像（5MB まで）だけ
+- 手元のテスト：`cd server && npm test`
 
 Render のローカルディスクは永続ではないため、保存した画像は再起動（無料プランでは15分アクセスがないとスリープ）で消えます。受け取った人がすぐに開かないと画像が表示されないことがあるため、文字・手書きのプレビューの下と、お知らせカードの写真（端末から選んだとき）に注意書きを出しています。
 
@@ -207,6 +209,8 @@ Render のローカルディスクは永続ではないため、保存した画�
    - `DRIVE_FOLDER_ID`: 保存先フォルダ（setup が作る）
    - `STRIPE_SECRET_KEY`: Stripe の秘密鍵（Events を読めれば足りる制限付きキーがよい）。空なら Stripe の知らせは受けない
 4. コードを変えたら `clasp push -f` のあと、デプロイを管理 → 既存のデプロイを編集して新しいバージョンにする（URL を変えないため）
+5. 使う前の確かめ：エディタで `qCheckAll`（`selfcheck.gs`）を実行し、実行ログを見る（何も書きこまない）。何を確かめるかは `Code.js` の終わりの `Q_SELF_CHECK`
+6. 手元のテスト：`node --test gas/test/`（本番のシート・LINE・Stripe には触らない）
 
 **利用状況とエラーの記録（shared/log.js・gas/ の action: "log"）**
 
@@ -221,9 +225,9 @@ Render のローカルディスクは永続ではないため、保存した画�
 
 1. Stripe で有償プランの商品（サブスクリプション）と支払いリンク（Payment Link）を作り、URL を `config.js` の `premiumCheckoutUrl` に入れる。`/account/` の「有償プランにする」が、`?client_reference_id=<ユーザーのハッシュ>` を付けて開く
 2. カスタマーポータルのリンクを `billingPortalUrl` に入れると、有償の人に「お支払いの確認・解約」が出る
-3. Webhook の送り先に GAS のウェブアプリの URL を登録し、`checkout.session.completed` と `customer.subscription.deleted` を送るようにする
+3. Webhook の送り先に GAS のウェブアプリの URL を登録し、`checkout.session.completed` と `customer.subscription.deleted`（あとで払う支払い方法を使うなら `checkout.session.async_payment_succeeded` も）を送るようにする
    - 支払いが済むと、その人の行が `premium`（`source`＝`stripe`）になる。解約（期間の終わり）で `free` に戻る
-   - GAS はリクエストのヘッダーを読めず Stripe の署名を確かめられないので、届いたイベント ID で Stripe からイベントを取り直して処理する（偽の知らせは取り直せない）
+   - GAS はリクエストのヘッダーを読めず Stripe の署名を確かめられないので、届いたイベント ID で Stripe からイベントを取り直して処理する（偽の知らせは取り直せない。4日より古いイベントは使わない）
    - 注意：GAS のウェブアプリは POST に 302 で答えるため、Stripe の管理画面では送信が失敗に見え、再送されることがある（処理は1回目で済み、同じ内容を書き直すだけ）。続けて失敗扱いになると Stripe が送信を止めるので、本番では `server/`（Render）など 200 を返せる所で受けて GAS に渡す形に替える
 
 ## 公開するとき

@@ -359,7 +359,7 @@
         status.textContent = "リンクをコピーしました。";
       } catch {
         if (window.LineShareUI?.ask) window.LineShareUI.ask({ title: "長押ししてコピーしてください", input: tool.url, readonly: true, ok: "閉じる", cancel: null });
-        else window.prompt("このリンクをコピーしてください", tool.url);
+        else status.textContent = tool.url;
       }
     });
   }
