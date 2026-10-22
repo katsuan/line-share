@@ -452,8 +452,28 @@
     return () => clearInterval(timer);
   }
 
+  /**
+   * ツールの色を1色で変える（Q キット）。濃い色・薄い色・薄い色の上の文字色は、その色から作る。
+   * CSS の :root に書いてもよい（そのほうが開いた瞬間から色が付く）。<script … data-accent="#ec8a16"> でも呼ばれる
+   */
+  function setAccent(hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(String(hex || ""))) return;
+    const num = parseInt(hex.slice(1), 16);
+    const rgb = [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+    const toHex = (values) => `#${values.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+    const shade = (amount) => toHex(rgb.map((c) => c * (1 - amount))); // 黒に寄せる
+    const style = document.documentElement.style;
+    style.setProperty("--ls-accent", hex);
+    style.setProperty("--ls-accent-strong", shade(0.15));
+    style.setProperty("--ls-accent-soft", paletteFromColor(hex).soft);
+    style.setProperty("--ls-accent-ink", shade(0.35));
+  }
+
+  const accentFromScript = document.currentScript?.dataset.accent;
+  if (accentFromScript) setAccent(accentFromScript);
+
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast
+    afterSent, firstTip, progress, toast, setAccent
   };
 })();

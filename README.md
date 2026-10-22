@@ -12,7 +12,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `/` | ツール一覧（おくるん） |
 | `/plan/` | 📍🗓️ 場所・予定。Google Maps の場所を写真・バッジ・コメント付きで送る。場所から「この場所で予定を作る」で Google カレンダー登録リンク付きの予定カードにできる |
 | `/card/` | 🪧 お知らせカード。見出し・写真・バッジ・リンクボタン付きのお知らせカード。カード上で直接編集でき、ひな形・テンプレート保存・JSONコピーあり。投票・チェックリスト・チケット・クーポンの形式もあり、`/card/?template=<data/templates.json のキー>` でその形式のテンプレートを入れて開く（HOME の「形式を選んでつくる」） |
-| `/image/` | 💬👆 文字・手書き。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
+| `/image/` | 💬👆 文字・手書き（`app.js` 画面・送信、`constants.js` 決まった値、`draw.js` 描く処理、`message.js` 送るメッセージ）。文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動き（APNG）を付けて画像またはカードで送る |
 | `/account/` | プラン（無料・有償）と使える機能、有償プランへの支払い（Stripe） |
 | `/reply/` | カードの投票・完了のボタンから開き、返事の文を書きかえてから送るかコピーするページ（LIFF で送るカードのボタンはリンクだけなので）。投票は候補もすべて渡し、ここで選び直せる（`?text=`・`title`・`format`・`pick`・`c`）。トークに送る権限（chat_message.write）があればそのトークに、なければ送り先を選んで送る。LINE の中ではコピーするとトークに戻る |
 | `server/` | 画像アップロード用 API（Render で動かす Node.js）。無料プランの保存先 |
@@ -43,7 +43,58 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 お知らせカードの本体は `card/js/` に役割ごとに分けています（`core` 定数と状態 → `storage` → `state` → `url` → `deck` 複数枚 → `render` 描画 → `kinds` 投票・チェックリスト・チケット・クーポン → `flex` 送るカードの組み立て → `photo` → `templates` → `send` 送信 → `events` 操作 → `main` はじめに動かす）。どれも普通の `<script defer>` で、`card/index.html` に書いた順に読み、同じ範囲の変数（`state`・`els` など）を使います。新しい形式は `kinds.js`（プレビューと Flex の部品）・`core.js` の `KINDS` に足します。
 
-全ページ共通のデザイン（`shared/ui.css`）、プランと使える機能・画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
+全ページ共通のデザイン（`shared/ui.css`。ほかの Q のツールも使う「Q キット」）、プランと使える機能・画像のアップロード先の振り分け（`shared/plan.js`）、LIFF の準備（`shared/liff.js`。LINE の外で開いたときのログインのしかただけツールごとに選ぶ）、送るカード末尾の「Created by おくるん」（`shared/credit.js`）、アイコンは `shared/` にあります。
+
+### Q キット（Q のツールの共通部品）
+
+ほかの Q のツール（しょくじ・キロっく・さくせん盤・ロクガ・くじ・くろのす・ひっくり・ぽもくる・ジェンダーリビール・くるかな・食事記録）も、おくるんと同じ部品を使えます。中身は `shared/ui.css`（見た目）と `shared/ui.js`（シート・トースト・はじめての案内など）。見本は `shared/kit.html`（ツールの色を切りかえて見られる。検索には出さない）。
+
+読みこみ方（各ツールの HTML。ツールの CSS より前に読む）：
+
+```html
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<style>
+  :root { --ls-accent: #ec8a16; --ls-accent-strong: #c97513; --ls-accent-soft: #fdf1e3; --ls-accent-ink: #995a0e; --ls-font: "M PLUS Rounded 1c", sans-serif; }
+</style>
+<script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
+```
+
+色は `:root` に書く（開いた瞬間から色が付く）か、`LineShareUI.setAccent("#ec8a16")`（濃い色・薄い色・文字色を1色から作る）。`<script src=".../ui.js" data-accent="#ec8a16" defer>` でもよい。
+
+| 変数 | 中身 |
+|---|---|
+| `--ls-accent` / `-strong` / `-soft` / `-ink` | ツールの色・押したときの濃い色・薄い色（選択中のチップなど）・薄い色の上の文字 |
+| `--ls-bg` / `--ls-surface` / `--ls-surface-sub` | ページの背景・カード・カードの中の箱 |
+| `--ls-text` / `--ls-subtext` / `--ls-faint` / `--ls-line` | 文字・小さな文字・もっと薄い文字・線 |
+| `--ls-danger` / `--ls-success` / `--ls-warn` | 消す・うまくいった・気をつけて |
+| `--ls-radius-lg` / `-md` / `-sm`、`--ls-tap`（押せる高さ 44px）、`--ls-shadow`、`--ls-font` | 角の丸み・押せる大きさ・影・書体 |
+
+| 部品（クラス） | 使いどころ |
+|---|---|
+| `ls-page`・`ls-stack` | ページの幅（560px まで）と、縦に並べる間隔 |
+| `ls-brand`・`ls-brand-name`・`ls-brand-icon`・`ls-brand-logo`・`ls-brand-copy` | 見出しの行（アイコン＋名前、右にロゴ、下にひとこと） |
+| `ls-panel`・`ls-panel-head`・`ls-panel-title`・`ls-hint` | 白いカードと見出し・説明 |
+| `ls-tabs`・`ls-tab`（`aria-selected`） | 切りかえ |
+| `ls-chips`・`ls-chip`（`aria-pressed` か `is-active`、中に radio・checkbox も可）・`is-small` | 選ぶもの |
+| `ls-field`・`ls-label`・`ls-input`・`ls-row` | 入力欄（16px 以上、iPhone で寄らない） |
+| `ls-button`（`is-primary`・`is-danger`・`is-block`）・`ls-icon-button`・`ls-actions` | ボタン |
+| `ls-folds`・`ls-fold`（`<details>`）・`ls-fold-icon`・`ls-fold-meta`・`ls-fold-body` | 開閉する設定 |
+| `ls-list`・`ls-list-item`・`ls-list-row` | 一覧から選ぶ |
+| `ls-sheet`・`ls-sheet-card`・`ls-sheet-title`・`ls-sheet-actions`・`ls-sheet-cancel` | 下から出るシート（`hidden` で出し入れ） |
+| `ls-empty`・`ls-empty-icon` | まだ何もないとき（一言と次にすること） |
+| `ls-skeleton` | 読みこみ中の箱（中身と同じ大きさで） |
+| `ls-sendbar` ほか | 下に固定する送るボタンの帯（入力中は自動で隠れる） |
+
+| 動き（`window.LineShareUI`） | 中身 |
+|---|---|
+| `toast(message, { actionLabel, onAction, ms })` | 下に数秒出る知らせ。「取り消す」などのボタンも付けられる |
+| `firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方 |
+| `afterSent({ resend })` | 送ったあとのシート |
+| `progress(label, show)` | 時間のかかる処理の経過秒数 |
+| `setAccent(hex)` | ツールの色を変える |
+| `PALETTE`・`paletteFromColor(hex)` | おくるんの色の並び・1色から薄い色などを作る |
+
+クラス名と変数名は、読んでいるツールがあるので変えない（足すのはよい）。おくるん専用の部品（送信プレビュー・カードの大きさ・Created by）は、ほかのツールでは使わなくてよい。
 
 ### 場所・予定をリンクから作る（クエリパラメータ）
 
