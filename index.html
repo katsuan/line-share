@@ -643,7 +643,7 @@
           <button id="shareCard" class="share-option" type="button">🪧 LINEにカードで送る<small>紹介カードを、選んだ友だち・グループに送ります</small></button>
           <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
           <!-- 作成者（config.js の ownerUsers）だけに出す -->
-          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんとほかのツールの紹介カードを、横に並べて1通で送ります</small></button>
+          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんの紹介と、ツールの紹介カードをグループごとに横に並べて送ります</small></button>
         </div>
         <p id="shareStatus" class="ls-hint" role="status"></p>
         <button id="shareClose" class="ls-sheet-cancel" type="button">閉じる</button>
@@ -1048,22 +1048,80 @@
           };
         }
 
-        async function allToolsMessage() {
+        const MAX_MESSAGES = 5; // 1回の共有で送れるメッセージの数の上限（LINE の決まり）
+
+        // グループの説明のカード：グループの名前と、入っているツールの一覧（アイコン・名前・ひとこと）
+        function groupBubble(group, tools, data) {
+          const color = data.color || "#6C47FF";
+          return {
+            type: "bubble",
+            header: {
+              type: "box",
+              layout: "vertical",
+              background: { type: "linearGradient", angle: "135deg", startColor: color, endColor: lighten(color) },
+              paddingAll: "16px",
+              contents: [
+                { type: "text", text: group.label, color: "#FFFFFF", weight: "bold", size: "lg", wrap: true },
+                { type: "text", text: data.title || "コネクト 〜ConneQt〜", color: "#FFFFFF", size: "xs", margin: "sm" }
+              ]
+            },
+            body: {
+              type: "box",
+              layout: "vertical",
+              spacing: "md",
+              contents: [
+                { type: "text", text: group.desc || `${tools.length}つのツール`, weight: "bold", size: "md", wrap: true, color },
+                ...tools.map((tool) => ({
+                  type: "box",
+                  layout: "baseline",
+                  spacing: "sm",
+                  contents: [
+                    { type: "text", text: tool.icon || "・", size: "sm", flex: 0 },
+                    { type: "text", text: tool.name, size: "sm", weight: "bold", flex: 0, color: tool.color || color },
+                    { type: "text", text: tool.desc || tool.copy || " ", size: "xs", color: "#6B6860", wrap: true }
+                  ]
+                })),
+                { type: "text", text: "横にめくると、ひとつずつ紹介しています →", size: "xxs", color: "#A3A29B", wrap: true }
+              ]
+            },
+            footer: {
+              type: "box",
+              layout: "vertical",
+              contents: [{ type: "button", style: "secondary", action: { type: "uri", label: "ConneQt の一覧を見る", uri: TOP_URL } }]
+            }
+          };
+        }
+
+        // 全ツールのカード：おくるんの紹介（1通目）と、グループ（hub-links.json の groups）ごとに1通（横に並べたカルーセル）。
+        // グループのツールが12より少ないうちは、先頭にグループの説明のカードをつける。12以上になったら説明はやめて、12枚ずつに分ける。
+        // 1回で送れるのは5通まで。こえるときは、おくるんの紹介をやめてグループを優先する（それでもこえる分は送らない）
+        async function allToolsMessages() {
           const response = await fetch("./data/hub-links.json", { cache: "no-cache" });
           const data = response.ok ? await response.json() : {};
           const tools = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name && item.ogp);
-          const bubbles = [introCard().contents, ...tools.map(toolBubble)].slice(0, MAX_BUBBLES);
-          return { type: "flex", altText: "おくるんのツールたち｜つくって、おくるん💬", contents: { type: "carousel", contents: bubbles } };
+          const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: tools.filter((t) => t.group === g.key) }));
+          const rest = tools.filter((t) => !groups.some((g) => g.key === t.group)); // グループのないツール
+          if (rest.length) groups.push({ key: "other", label: "🧩 そのほか", tools: rest });
+          const carousels = [];
+          for (const group of groups.filter((g) => g.tools.length)) {
+            const bubbles = group.tools.length < MAX_BUBBLES ? [groupBubble(group, group.tools, data), ...group.tools.map(toolBubble)] : group.tools.map(toolBubble);
+            for (let i = 0; i < bubbles.length; i += MAX_BUBBLES) {
+              carousels.push({ type: "flex", altText: `ConneQt｜${group.label.replace(/^\S+\s/, "")}のツール`, contents: { type: "carousel", contents: bubbles.slice(i, i + MAX_BUBBLES) } });
+            }
+          }
+          const messages = carousels.length < MAX_MESSAGES ? [introCard(), ...carousels] : carousels;
+          return messages.slice(0, MAX_MESSAGES);
         }
+        const bubbleCount = (messages) => messages.reduce((n, m) => n + (m.contents.type === "carousel" ? m.contents.contents.length : 1), 0);
 
         async function shareAll() {
           if (!(await window.LineShareLiff.isOwner())) return;
           if (!(await readyToSend())) return;
           try {
-            const message = await allToolsMessage();
-            const result = await liff.shareTargetPicker([message], { isMultiple: true });
-            setStatus(result ? `${message.contents.contents.length}枚のカードを送りました。` : "送るのをやめました。");
-            if (result) window.LineShareLog?.track("send", { kind: "intro-all", count: message.contents.contents.length });
+            const messages = await allToolsMessages();
+            const result = await liff.shareTargetPicker(messages, { isMultiple: true });
+            setStatus(result ? `${messages.length}通（${bubbleCount(messages)}枚）のカードを送りました。` : "送るのをやめました。");
+            if (result) window.LineShareLog?.track("send", { kind: "intro-all", count: bubbleCount(messages) });
           } catch (error) {
             console.error(error);
             setStatus("送れませんでした。時間をおいてもう一度お試しください。");
