@@ -1,15 +1,15 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。画面・手書きの操作・送信・送った画像。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
 // 決まった値は constants.js、描く処理は draw.js、送るメッセージの組み立ては message.js。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610230930";
-import { addSent, deleteSent, listSent, restoreSent } from "./history.js?v=202610230930";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610231134";
+import { addSent, deleteSent, listSent, restoreSent } from "./history.js?v=202610231134";
 
 import {
   ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
   LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
-} from "./constants.js?v=202610230930";
-import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610230930";
-import { buildMessage } from "./message.js?v=202610230930";
+} from "./constants.js?v=202610231134";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610231134";
+import { buildMessage } from "./message.js?v=202610231134";
 
 const config = window.LINE_SHARE_CONFIG || {};
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）
@@ -704,7 +704,23 @@ async function initLiff_() {
 function loadPrefs_() {
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
-    return Object.fromEntries(Object.keys(DEFAULT_PREFS).filter((key) => key in saved).map((key) => [key, saved[key]]));
+    if (!saved || typeof saved !== "object") return {};
+    // はじめの設定と同じ型のものだけ使う（壊れていても止まらないように）。背景は色の文字か null
+    const fits = (key) =>
+      key === "background"
+        ? saved[key] === null || typeof saved[key] === "string"
+        : typeof saved[key] === typeof DEFAULT_PREFS[key] && (typeof saved[key] !== "number" || Number.isFinite(saved[key]));
+    // 選ぶ形のもの（形・送り方・動きなど）は、いまある選択肢のどれかのときだけ
+    const choices = {
+      mode: ["text", "draw"],
+      shape: SHAPES.map((item) => item.value),
+      sendMode: ["image", "card"],
+      motion: MOTIONS.map((item) => item.value),
+      bubbleSize: BUBBLE_SIZES,
+      outline: [...OUTLINES.map((item) => item.value), "custom"]
+    };
+    const ok = (key) => fits(key) && (!choices[key] || choices[key].includes(saved[key]));
+    return Object.fromEntries(Object.keys(DEFAULT_PREFS).filter((key) => key in saved && ok(key)).map((key) => [key, saved[key]]));
   } catch {
     return {};
   }

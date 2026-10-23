@@ -255,14 +255,18 @@ function rollupLogs() {
 
   const lastRow = events.getLastRow();
   const values = lastRow >= 2 ? events.getRange(2, 1, lastRow - 1, LOG_COLUMNS.length).getValues() : [];
-  const dayOf = function (row) { return Utilities.formatDate(new Date(row[0]), 'Asia/Tokyo', 'yyyy-MM-dd'); };
+  // 日付が読めない行（空の行など）は ''。集計には入れず、ローテーションでは古い行として消す
+  const dayOf = function (row) {
+    const time = row[0] ? new Date(row[0]).getTime() : NaN;
+    return isNaN(time) ? '' : Utilities.formatDate(new Date(time), 'Asia/Tokyo', 'yyyy-MM-dd');
+  };
 
   // 集計：今日より前で、まだ集計していない日だけ。流入口（from）ごとに分ける
   const groups = {};
   const moves = {};
   values.forEach(function (row) {
     const day = dayOf(row);
-    if (day >= today || day <= lastDone) return;
+    if (!day || day >= today || day <= lastDone) return;
     const from = row[9] || '';
     const key = [day, row[3], row[2], row[4], from].join('\t');
     const g = groups[key] || (groups[key] = { events: 0, sessions: {}, inClient: 0 });
@@ -289,10 +293,19 @@ function rollupLogs() {
   const yesterday = Utilities.formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000), 'Asia/Tokyo', 'yyyy-MM-dd');
   props.setProperty('LOG_ROLLED_UP_TO', yesterday);
 
-  // ローテーション：上から順（古い順）に書いているので、cutoff より前の行をまとめて消す
+  // ローテーション：上から順（古い順）に書いているので、cutoff より前の行をまとめて消す。
+  // log_ の書きこみと重ならないようにロックする（重なると、書く位置がずれて空の行ができる）
   let old = 0;
   while (old < values.length && dayOf(values[old]) < cutoff) old += 1;
-  if (old > 0) events.deleteRows(2, old);
+  if (old > 0) {
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    try {
+      events.deleteRows(2, old);
+    } finally {
+      lock.releaseLock();
+    }
+  }
   console.log('rolled up ' + out.length + ' groups, deleted ' + old + ' rows older than ' + cutoff);
 }
 

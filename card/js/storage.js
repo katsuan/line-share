@@ -148,7 +148,10 @@ function collectUrls(value, found = []) {
 
 function loadDraft() {
   const draft = loadJson(DRAFT_KEY);
-  return Array.isArray(draft?.cards) && draft.cards.length ? draft : null;
+  if (!Array.isArray(draft?.cards) || !draft.cards.length) return null;
+  // 何枚目を開いていたか。数でない・枚数をこえるときは1枚目（壊れていても止まらないように）
+  const current = Number.isInteger(draft.current) && draft.current >= 0 && draft.current < Math.min(draft.cards.length, MAX_CARDS) ? draft.current : 0;
+  return { ...draft, current };
 }
 
 function clearDraft() {

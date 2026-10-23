@@ -10,7 +10,9 @@
   const config = window.LINE_SHARE_CONFIG || {};
   // LINE で開くと、まず HOME に liff.state 付きで届き、そこから各ツールへ移る。この中継は数えない
   const relaying = new URLSearchParams(location.search).has("liff.state");
-  const enabled = config.logging !== false && Boolean(config.gasWebAppUrl) && !relaying;
+  // 手元で確かめているとき（localhost など）は、本番の記録に混ぜない
+  const local = /^(localhost|127\.0\.0\.1|\[::1\]|.*\.localhost|.*\.test)$/.test(location.hostname) || location.protocol === "file:";
+  const enabled = config.logging !== false && Boolean(config.gasWebAppUrl) && !relaying && !local;
   const MAX_PER_PAGE = 40; // 1ページで送る上限（エラーが続いても送りすぎない）
   const FLUSH_AT = 10;
   const TOOL = location.pathname.replace(/\/(index\.html)?$/, "").split("/").filter(Boolean).pop() || "home";

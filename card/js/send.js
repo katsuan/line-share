@@ -140,7 +140,20 @@ function setStatus(message, isError = false) {
   els.status.classList.toggle("is-error", isError);
 }
 
+// 送っている途中か（確かめの窓・送り先選びが開いている間に、もう一度押されても2回送らない）
+let sharing = false;
+
 async function share() {
+  if (sharing) return;
+  sharing = true;
+  try {
+    await shareOnce();
+  } finally {
+    sharing = false;
+  }
+}
+
+async function shareOnce() {
   if (!window.LineShareLiff.canShare()) {
     setStatus(window.LineShareLiff.MESSAGES.notInLine, true);
     return;

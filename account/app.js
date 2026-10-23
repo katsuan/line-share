@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const Plan = window.LineSharePlan;
   renderTable(Plan, "");
 
+  // このページでは、覚えておいたプランを使わずに聞き直す（支払いのすぐあとに開き直したとき、古いプランを出さない）
+  try {
+    sessionStorage.removeItem("line-share:plan");
+  } catch {
+    // 覚えていなければそのまま
+  }
   // プランは LINE のログインで決まるので、LINE の外ではログインしてもらう
   const timeout = new Promise((resolve) => setTimeout(() => resolve({ ready: false, reason: "timeout" }), 8000));
   const { ready, reason } = await Promise.race([window.LineShareLiff.init({ login: "redirect" }), timeout]);

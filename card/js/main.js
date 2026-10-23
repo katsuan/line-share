@@ -49,7 +49,8 @@ async function init() {
       : [hydrate(saved ?? BLANK_STATE)];
   // 大きさは全カードでそろえる（カルーセルのカードは同じ大きさにする）
   cards.forEach((card) => (card.bubbleSize = cards[0].bubbleSize));
-  current = draft ? Math.min(draft.current || 0, cards.length - 1) : 0;
+  // 何枚目か（リンクで渡された ?deck= の中身も、数でなければ1枚目）
+  current = draft && Number.isInteger(draft.current) ? Math.min(Math.max(draft.current, 0), cards.length - 1) : 0;
   state = cards[current];
 
   bindEvents();
