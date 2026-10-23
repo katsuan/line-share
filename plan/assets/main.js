@@ -1,6 +1,6 @@
-import { app } from "./common.js?v=202610230720";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610230720";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610230720";
+import { app } from "./common.js?v=202610230930";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./map.js?v=202610230930";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./calendar.js?v=202610230930";
 
 const TABS = ["map", "calendar"];
 
@@ -26,6 +26,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // LIFF の初期化後に読む（liff.state からの転送後に正しいクエリになるため）
   applyQuery_(new URLSearchParams(location.search));
+  // 読み終えたら、長いクエリは URL から消す（開いているタブだけ残す）
+  window.LineShareLiff.tidyUrl(["tab"]);
 });
 
 // LIFF の準備は shared/liff.js。LINE の外ではログイン画面へ移る

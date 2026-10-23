@@ -110,9 +110,11 @@ function sendTextMessages() {
 // 戻り先は、来たページ（document.referrer）がそのツールのページならそこ、なければ data/hub-links.json の url
 const FROM_TOOLS = { soccer: "saqsen", countdown: "qronos", "gender-reveal": "babyq", workout: "kiloq" };
 let backTarget = null;
+// どのツールから来たか（読みこみのあとに URL のクエリは消すので、先に覚えておく）
+const FROM_PARAM = new URLSearchParams(location.search).get("from") || "";
 
 async function loadBackTarget() {
-  const from = new URLSearchParams(location.search).get("from") || "";
+  const from = FROM_PARAM;
   const key = FROM_TOOLS[from] || from.replace(/-intro$/, "");
   if (!key || key === "home") return;
   try {
