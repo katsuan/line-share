@@ -21,6 +21,8 @@
     ["othello:", "ひっくり", "hiqri"],
     ["shoquji:", "しょくじ", "shoquji"],
     ["suqsuq:", "すくすく", "suqsuq"],
+    ["tuzuq:", "つづく", "tuzuq"],
+    ["yuqsaki:", "ゆくさき", "yuqsaki"],
     ["conneqt:", "ConneQt", "conneqt"]
   ];
   // 入れないもの：作り直せる一時的なもの（プランの確認結果・ログイン中の持ち越し）

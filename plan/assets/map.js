@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610231134";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610231134";
-import { bindHeader } from "./header.js?v=202610231134";
-import { createPlaceFlex } from "./flex.js?v=202610231134";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610231832";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610231832";
+import { bindHeader } from "./header.js?v=202610231832";
+import { createPlaceFlex } from "./flex.js?v=202610231832";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
