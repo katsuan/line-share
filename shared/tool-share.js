@@ -81,19 +81,14 @@
       .oqrn-family-sep { margin: 0 6px; opacity: 0.5; }
       .oqrn-family-head rt { font-size: 7px; font-weight: 700; }
       .oqrn-family-viewport {
-        width: 100%; overflow: hidden;
+        width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
         -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
         mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
       }
-      .oqrn-family-list { display: flex; width: max-content; margin: 0; padding: 0; list-style: none; animation: oqrn-family-flow var(--flow, 40s) linear infinite; }
-      .oqrn-family-viewport:hover .oqrn-family-list,
-      .oqrn-family-viewport:focus-within .oqrn-family-list,
-      .oqrn-family-viewport.is-held .oqrn-family-list { animation-play-state: paused; }
-      @keyframes oqrn-family-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-      /* 動きを減らす設定の端末では流さず、指で横に流す */
+      .oqrn-family-viewport::-webkit-scrollbar { display: none; }
+      .oqrn-family-list { display: flex; width: max-content; margin: 0; padding: 0; list-style: none; }
+      /* 動きを減らす設定の端末では流さず、指で横に流すだけ（くり返しの2回目は出さない） */
       @media (prefers-reduced-motion: reduce) {
-        .oqrn-family-viewport { overflow-x: auto; scrollbar-width: none; }
-        .oqrn-family-list { animation: none; }
         .oqrn-family-list li[aria-hidden="true"] { display: none; }
       }
       .oqrn-family-list li { flex: 0 0 auto; }
@@ -275,15 +270,61 @@
     };
     items.forEach((item) => addItem(item, false));
     items.forEach((item) => addItem(item, true));
-    // 1つのアイコンが 3 秒くらいで流れる速さ（ふえても同じ速さ）
-    list.style.setProperty("--flow", `${Math.max(items.length, 4) * 3}s`);
-    // 指で触れているあいだは止める（ねらったアイコンを押せるように）
-    const hold = (on) => () => viewport.classList.toggle("is-held", on);
-    viewport.addEventListener("pointerdown", hold(true));
-    ["pointerup", "pointercancel", "pointerleave"].forEach((type) => viewport.addEventListener(type, () => setTimeout(hold(false), 1200)));
     viewport.appendChild(list);
+    flowBand(viewport, list, items.length);
     nav.append(head, viewport);
     return nav;
+  }
+
+  // アイコンの帯を、横にスクロールする枠として少しずつ流す（指でつかめば、そのまま前後に送れる）。
+  // 同じ並びが2回あるので、半分まで進んだら（戻ったら）半分ずらして、終わりなく続いて見せる。
+  // 触れている・指で送ったあとの少しのあいだ・マウスを乗せている・キーボード（Tab）で選んでいるあいだは流さない。
+  // 1つのアイコンが 3 秒くらいで流れる速さ（ふえても同じ速さ）。動きを減らす設定の端末では流さない
+  function flowBand(viewport, list, count) {
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    // マウスを乗せたら止めるのは、マウスのある端末だけ（スマホは押したあとも :hover が残るため）
+    const mouse = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+    let pos = 0; // 小数まで持つ（scrollLeft は丸められることがある）
+    let heldUntil = 0;
+    let touching = false;
+    let last = 0;
+    const half = () => list.scrollWidth / 2;
+    const hold = (ms) => (heldUntil = Math.max(heldUntil, performance.now() + ms));
+    // 端まで来たら、半分ずらして続きに見せる。見せる位置は 1〜半分+1 のあいだ
+    // （ちょうど 0 と半分の両方を端にすると、ずらした先がまた端になって、行ったり来たりが止まらない）
+    const wrap = () => {
+      const h = half();
+      if (!h || still?.matches) return;
+      if (viewport.scrollLeft >= h + 1) viewport.scrollLeft -= h;
+      else if (viewport.scrollLeft < 1) viewport.scrollLeft += h;
+      else return;
+      pos = viewport.scrollLeft;
+    };
+    viewport.addEventListener("pointerdown", () => ((touching = true), hold(1500)));
+    ["pointerup", "pointercancel"].forEach((type) => viewport.addEventListener(type, () => ((touching = false), hold(1500))));
+    viewport.addEventListener("touchstart", () => ((touching = true), hold(1500)), { passive: true });
+    viewport.addEventListener("touchend", () => ((touching = false), hold(1500)), { passive: true });
+    viewport.addEventListener("wheel", () => hold(1500), { passive: true });
+    viewport.addEventListener("scroll", () => {
+      // 自分で流した分でなければ、指（または慣性）で送った分。そこから続けて、少し待ってから流しなおす
+      if (Math.abs(viewport.scrollLeft - pos) > 2) {
+        pos = viewport.scrollLeft;
+        hold(1500);
+      }
+      if (!touching) wrap();
+    }, { passive: true });
+    const step = (now) => {
+      const dt = last ? Math.min(now - last, 100) : 0;
+      last = now;
+      const paused = touching || now < heldUntil || still?.matches || (mouse?.matches && viewport.matches(":hover")) || Boolean(viewport.querySelector(":focus-visible")) || document.hidden;
+      if (!paused && half()) {
+        pos += (half() / (Math.max(count, 4) * 3000)) * dt;
+        if (pos >= half() + 1) pos -= half();
+        viewport.scrollLeft = pos;
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
 
   // なかまのシートは1つだけ作って使い回す（「つぎにおすすめ」とアイコンの欄の両方から開く）
