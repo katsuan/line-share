@@ -497,6 +497,14 @@ function createGas(o = {}) {
         .filter((f) => /\/v2\/bot\/message\/(reply|push|multicast|broadcast)/.test(f.url) && f.json)
         .map((f) => ({ kind: f.url.match(/message\/(\w+)/)[1], to: f.json.to, messages: f.json.messages || [] }));
     },
+    /** 同じ返事の合図（replyToken）で2回以上 reply したもの。LINE では2回目は断られる（断られたあとの返しなおしは push で） */
+    reusedReplyTokens() {
+      const seen = new Map();
+      fetches
+        .filter((f) => /\/v2\/bot\/message\/reply/.test(f.url) && f.json)
+        .forEach((f) => seen.set(f.json.replyToken, (seen.get(f.json.replyToken) || 0) + 1));
+      return [...seen].filter(([, n]) => n > 1).map(([token]) => token);
+    },
     lastMessages() {
       const all = gas.replies();
       return all.length ? all[all.length - 1].messages : [];
@@ -536,6 +544,11 @@ function checkMessages(messages) {
       if (String(m.altText || "").length > 400) add(at, "altText が 400 字をこえる");
       const c = m.contents || {};
       if (c.type === "carousel" && (c.contents || []).length > 12) add(at, "カルーセルが 12 枚をこえる");
+      // 横に並べるカードは、すべて同じ大きさ（size。書かないときは mega）でないと LINE に断られる
+      if (c.type === "carousel") {
+        const sizes = [...new Set((c.contents || []).map((b) => (b && b.size) || "mega"))];
+        if (sizes.length > 1) add(at, `カルーセルのカードの大きさがそろっていない（${sizes.join("・")}）`);
+      }
       walk(c, `${at}.contents`);
     }
     if (m.quickReply) {

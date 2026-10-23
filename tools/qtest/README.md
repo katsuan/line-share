@@ -41,7 +41,8 @@ test("本人確認なしの呼び出しは断る", () => {
 | `gas.doPost(body)` / `gas.doGet(param)` | 画面からの呼び出し。JSON で返したものは中身を返す |
 | `gas.lineEvent(event, { key })` | LINE の Webhook として1つのイベントを送る |
 | `gas.replies()` / `gas.lastMessages()` | LINE に送ったメッセージ |
-| `gas.flexProblems()` | LINE が受けつけない（error）・受けつけないことがある（warn）書き方 |
+| `gas.flexProblems()` | LINE が受けつけない（error）・受けつけないことがある（warn）書き方。横に並べるカードの大きさのちがいも見る |
+| `gas.reusedReplyTokens()` | 同じ返事の合図で2回以上 reply したもの（LINE では2回目は断られる。返しなおしは push で） |
 | `gas.seed("シート", rows)` / `gas.rows("シート")` | シートに見本を入れる／中身を見る |
 | `gas.formulaCells()` | 外の文字が、式のまま（= + - @ で始まる）シートに書かれたところ |
 | `gas.fetches` / `gas.calls` / `gas.logs` / `gas.reads.count` | 外への問い合わせ・置きもののサービスの呼び出し・ログ・シートを読んだ回数 |
