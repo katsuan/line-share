@@ -23,7 +23,7 @@
     ["suqsuq:", "すくすく", "suqsuq"],
     ["tuzuq:", "つづく", "tuzuq"],
     ["yuqsaki:", "ゆくさき", "yuqsaki"],
-    ["conneqt:", "ConneQt", "conneqt"]
+    ["conneqt:", "Qube", "conneqt"]
   ];
   // 入れないもの：作り直せる一時的なもの（プランの確認結果・ログイン中の持ち越し）
   const SKIP = ["line-share:plan", "line-share:card-carry"];
@@ -92,7 +92,7 @@
     const file = new File([text], fileName(), { type: "application/json" });
     try {
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "ConneQt の記録" });
+        await navigator.share({ files: [file], title: "Qube の記録" });
         ui()?.toast("保存しました");
         return;
       }
@@ -134,7 +134,7 @@
   async function restore(text) {
     const data = parse(text);
     if (!data || !Object.keys(data.items).length) {
-      await ui().ask({ title: "戻せませんでした", text: "ConneQt のバックアップではないようです。保存したファイル（または文字）をそのまま選んでください。", ok: "閉じる", cancel: null });
+      await ui().ask({ title: "戻せませんでした", text: "Qube のバックアップではないようです。保存したファイル（または文字）をそのまま選んでください。", ok: "閉じる", cancel: null });
       return;
     }
     const names = byTool(data.items).map((row) => row.name).join("・");
