@@ -21,13 +21,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610232225" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610232231" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610232225"></script>
-    <script src="./shared/log.js?v=202610232225"></script>
-    <script src="./shared/credit.js?v=202610232225"></script>
-    <script src="./shared/plan.js?v=202610232225"></script>
-    <script src="./shared/liff.js?v=202610232225"></script>
+    <script src="./config.js?v=202610232231"></script>
+    <script src="./shared/log.js?v=202610232231"></script>
+    <script src="./shared/credit.js?v=202610232231"></script>
+    <script src="./shared/plan.js?v=202610232231"></script>
+    <script src="./shared/liff.js?v=202610232231"></script>
     <style>
       .hub-head {
         display: flex;
@@ -1069,7 +1069,7 @@
               paddingAll: "16px",
               contents: [
                 { type: "text", text: group.label, color: "#FFFFFF", weight: "bold", size: "lg", wrap: true },
-                { type: "text", text: data.title || "キュー部 〜Qube〜", color: "#FFFFFF", size: "xs", margin: "sm" }
+                { type: "text", text: data.title || "くらぶ 〜Qlove〜", color: "#FFFFFF", size: "xs", margin: "sm" }
               ]
             },
             body: {
@@ -1094,7 +1094,7 @@
             footer: {
               type: "box",
               layout: "vertical",
-              contents: [{ type: "button", style: "secondary", action: { type: "uri", label: "Qube の一覧を見る", uri: TOP_URL } }]
+              contents: [{ type: "button", style: "secondary", action: { type: "uri", label: "Qlove の一覧を見る", uri: TOP_URL } }]
             }
           };
         }
@@ -1109,7 +1109,7 @@
           // ツールが12個までは、グループに分けずに全ツールを横に並べて1通に。おくるんの紹介も入るなら先頭に入れる（入らなければ1通目に別で）
           if (tools.length <= MAX_BUBBLES) {
             const all = tools.map(toolBubble);
-            const carousel = (bubbles) => ({ type: "flex", altText: "Qube｜Q のツールたち", contents: { type: "carousel", contents: bubbles } });
+            const carousel = (bubbles) => ({ type: "flex", altText: "Qlove｜Q のツールたち", contents: { type: "carousel", contents: bubbles } });
             return all.length < MAX_BUBBLES ? [carousel([introCard().contents, ...all])] : [introCard(), carousel(all)];
           }
           // 12個をこえたら、グループごとに分ける
@@ -1120,7 +1120,7 @@
           for (const group of groups.filter((g) => g.tools.length)) {
             const bubbles = group.tools.length < MAX_BUBBLES ? [groupBubble(group, group.tools, data), ...group.tools.map(toolBubble)] : group.tools.map(toolBubble);
             for (let i = 0; i < bubbles.length; i += MAX_BUBBLES) {
-              carousels.push({ type: "flex", altText: `Qube｜${group.label.replace(/^\S+\s/, "")}のツール`, contents: { type: "carousel", contents: bubbles.slice(i, i + MAX_BUBBLES) } });
+              carousels.push({ type: "flex", altText: `Qlove｜${group.label.replace(/^\S+\s/, "")}のツール`, contents: { type: "carousel", contents: bubbles.slice(i, i + MAX_BUBBLES) } });
             }
           }
           const messages = carousels.length < MAX_MESSAGES ? [introCard(), ...carousels] : carousels;
