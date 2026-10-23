@@ -3,7 +3,7 @@
   "color": "#6C47FF",
   "lead": "くらしの部室",
   "groups": [
-    { "key": "sports", "label": "💪 キュー部 〜Q部〜", "desc": "練習・試合・記録を、チームや仲間と" },
+    { "key": "sports", "label": "💪 たいいく部 〜taiiQ部〜", "desc": "練習・試合・記録を、チームや仲間と" },
     { "key": "habit", "label": "🔥 けいぞく部 〜keizoQ部〜", "desc": "毎日の「できた」を、つみかさね" },
     { "key": "family", "label": "🏠 かぞく部 〜kazoQ部〜", "desc": "家族の記念日と、育ちの記録に" },
     { "key": "daily", "label": "👾 きたく部 〜kitaQ部〜", "desc": "ちょっとしたあそびと、毎日のおたのしみに" }
