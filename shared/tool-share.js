@@ -2,7 +2,7 @@
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
-// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
+// その下に「キュー部 〜Qube〜」（Q＋Cube。Q のツールが集まる箱）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -208,7 +208,7 @@
     };
   }
 
-  // 「コネクト 〜ConneQt〜」（Q のツールをつなぐ仕組みの名前）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
+  // 「キュー部 〜Qube〜」（Q のツールが集まる箱の名前）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
   // 「｜Qらし《くらし》」の形をルビにする（data/hub-links.json の lead。HTML は入れない）
   function withRuby(text) {
     const parts = [];
@@ -228,17 +228,17 @@
     return parts;
   }
 
-  function familyRow(tool, others, lead) {
+  function familyRow(tool, others, lead, title) {
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
-    nav.setAttribute("aria-label", "コネクト（ConneQt）");
+    nav.setAttribute("aria-label", "キュー部（Qube）");
     // 1行目：名前と、名前だけでは伝わらないので補足をひとこと
     const head = document.createElement("p");
     head.className = "oqrn-family-head";
     head.append(
-      Object.assign(document.createElement("span"), { className: "oqrn-family-label", textContent: "コネクト 〜ConneQt〜" }),
+      Object.assign(document.createElement("span"), { className: "oqrn-family-label", textContent: title || "キュー部 〜Qube〜" }),
       Object.assign(document.createElement("span"), { className: "oqrn-family-sep", textContent: "｜" }),
-      ...withRuby(lead || "｜Qらし《くらし》を、ひとつなぎ")
+      ...withRuby(lead || "多彩な機能が集まる箱")
     );
     // 2行目：アイコンの帯。同じ並びを2回つないで左へ流し、半分進んだら頭に戻す（終わりなく続いて見える）
     const viewport = document.createElement("div");
@@ -324,7 +324,7 @@
     return link;
   }
 
-  function build(tool, others = [], lead = "") {
+  function build(tool, others = [], lead = "", title = "") {
     injectStyle(tool.color || "#6C47FF");
 
     let host = document.querySelector("[data-tool-share]");
@@ -341,7 +341,7 @@
     const next = nextCard(tool, others);
     if (next) host.appendChild(next);
     host.appendChild(open);
-    host.appendChild(familyRow(tool, others, lead));
+    host.appendChild(familyRow(tool, others, lead, title));
     host.appendChild(backupLink());
 
     const sheet = document.createElement("div");
@@ -407,8 +407,8 @@
       const tool = items.find((item) => item.key === toolKey);
       if (!tool) return;
       const others = items.filter((item) => item.key !== toolKey);
-      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => build(tool, others, data.lead));
-      else build(tool, others, data.lead);
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => build(tool, others, data.lead, data.title));
+      else build(tool, others, data.lead, data.title);
     })
     .catch((error) => console.error("紹介の中身を読み込めませんでした", error));
 })();

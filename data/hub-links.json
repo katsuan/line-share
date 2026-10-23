@@ -1,7 +1,7 @@
 {
-  "title": "コネクト 〜ConneQt〜",
+  "title": "キュー部 〜Qube〜",
   "color": "#6C47FF",
-  "lead": "｜Qらし《くらし》を、ひとつなぎ",
+  "lead": "多彩な機能が集まる箱",
   "groups": [
     { "key": "sports", "label": "⚽ スポーツ・からだ", "desc": "練習・試合・記録を、チームや仲間と" },
     { "key": "family", "label": "🎂 家族・記念日", "desc": "家族の記念日と、育ちの記録に" },
