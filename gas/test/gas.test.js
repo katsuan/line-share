@@ -219,6 +219,19 @@ test("rollupLogs：シートから読み直した文字も、まとめるとき�
   assert.deepEqual(gas.formulaCells(), []);
 });
 
+test("rollupLogs：空の行（書きこみと消すのが重なったとき）があっても止まらず、古い行は消す", () => {
+  const gas = make();
+  const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
+  const recent = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+  const row = (at) => [at, at, "open", "card", "", "", 0, "", "s1", "", "", 1];
+  const blank = gas.ctx.LOG_COLUMNS.map(() => "");
+  gas.seed("events", [gas.ctx.LOG_COLUMNS, row(old), blank, row(old), row(recent)], "LOGS");
+  gas.call("rollupLogs");
+  const left = gas.rows("events", "LOGS");
+  assert.deepEqual(left.slice(1).map((r) => r[0]), [recent]);
+  assert.ok(!JSON.stringify(gas.rows("daily", "LOGS")).includes("NaN"));
+});
+
 // ---- 使う前の確かめ ----
 
 test("Q_SELF_CHECK と safeCell がある（GAS エディタで qCheckAll を動かせる）", () => {

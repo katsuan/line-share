@@ -85,12 +85,20 @@
   /**
    * 送り先を選んで送る（全ツール共通）。送れたら true、閉じられたら false を返す。
    * Created by は各ツールがメッセージを作るときに付ける（カルーセルなど付け方がツールで違うため）。
-   * 送ったあとのシート（LineShareUI.afterSent）の「続けて別のトークにも送る」からも、同じ messages で呼ぶ
+   * 送ったあとのシート（LineShareUI.afterSent）の「続けて別のトークにも送る」からも、同じ messages で呼ぶ。
+   * 送り先選びが開いている間にもう一度呼ばれたら（二重押し）、2つ目は開かずに同じ結果を返す
    */
-  async function share(messages) {
-    if (!canShare()) throw new Error(MESSAGES.notInLine);
-    const result = await liff.shareTargetPicker(messages, { isMultiple: true });
-    return Boolean(result) && (!result.status || result.status === "success");
+  let picking = null;
+  function share(messages) {
+    if (picking) return picking;
+    picking = (async () => {
+      if (!canShare()) throw new Error(MESSAGES.notInLine);
+      const result = await liff.shareTargetPicker(messages, { isMultiple: true });
+      return Boolean(result) && (!result.status || result.status === "success");
+    })().finally(() => {
+      picking = null;
+    });
+    return picking;
   }
 
   // 作成者（config.js の ownerUsers）か。ログインしていないとき・確かめられないときは false
@@ -127,7 +135,6 @@
     }
   }
 
-  // LINE アプリで開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
   // 読み終えたクエリ（ほかのツールから渡された中身）を URL から消す。長い URL がアドレス欄・タブ・履歴に残らないように。
   // LIFF とログインの戻りに使う印（liff.〜・code・state など）と keep に入れたものは残す。# のあとは触らない
   const LIFF_KEYS = /^(liff|code$|state$|error|friendship_status_changed$)/i;
@@ -143,6 +150,7 @@
     }
   }
 
+  // LINE アプリで開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
   function appUrl(path = "") {
     const liffId = window.LINE_SHARE_CONFIG?.liffId;
     return liffId ? `https://liff.line.me/${liffId}${path}` : "";

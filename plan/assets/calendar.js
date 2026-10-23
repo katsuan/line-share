@@ -15,11 +15,11 @@ import {
   shareFlex,
   toUserMessage,
   UserError
-} from "./common.js?v=202610230930";
-import { MAX_URI_LENGTH } from "./config.js?v=202610230930";
-import { bindHeader } from "./header.js?v=202610230930";
-import { createEventFlex } from "./flex.js?v=202610230930";
-import { bindPlaceSearch } from "./place-search.js?v=202610230930";
+} from "./common.js?v=202610231134";
+import { MAX_URI_LENGTH } from "./config.js?v=202610231134";
+import { bindHeader } from "./header.js?v=202610231134";
+import { createEventFlex } from "./flex.js?v=202610231134";
+import { bindPlaceSearch } from "./place-search.js?v=202610231134";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -380,10 +380,10 @@ function getFlexLabels_(data) {
 
 function formatWhenLabel_(data, duration) {
   if (data.allDay) {
-    const lastDay = new Date(data.end.getTime() - DAY_MS);
+    const lastDay = addDays_(data.end, -1);
     return isSameCalendarDate_(data.start, lastDay)
       ? `${formatDateLabel_(data.start)}\n（終日）`
-      : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}\n（${duration}）`;
+      : `${formatDateLabel_(data.start)} 〜 ${formatDateLabel_(lastDay)}\n（${Math.round((data.end - data.start) / DAY_MS)}日）`;
   }
   const end = isSameCalendarDate_(data.start, data.end) ? formatTimeLabel_(data.end) : ` ${formatDateTimeLabel_(data.end)}`;
   return `${formatDateTimeLabel_(data.start)}〜${end}\n（${duration}）`;
@@ -550,7 +550,12 @@ function getCustomParams_() {
     .filter((param) => param.key && param.value);
 }
 
+// 送っている途中か（二重押しで2回送らない）
+let sharing_ = false;
+
 async function shareToTargetPicker_() {
+  if (sharing_) return;
+  sharing_ = true;
   try {
     const data = getFormData_();
     const calendarUrl = createGoogleCalendarUrl_(data);
@@ -564,6 +569,8 @@ async function shareToTargetPicker_() {
     );
   } catch (error) {
     setMessage(dom.statusMessage, toUserMessage(error, window.LineShareLiff.MESSAGES.sendFailed), "error");
+  } finally {
+    sharing_ = false;
   }
 }
 
@@ -650,7 +657,7 @@ function setEndFromStart_(start, minutes) {
   const end = new Date(start.getTime() + minutes * 60 * 1000);
   if (state.allDay) {
     // 終日は終了日を「最終日」で表示する（内部では翌日 0:00 まで）
-    dom.endDate.value = toDateInputValue_(new Date(end.getTime() - DAY_MS));
+    dom.endDate.value = toDateInputValue_(addDays_(start, Math.max(1, Math.round(minutes / 1440)) - 1));
     return;
   }
   dom.endDate.value = toDateInputValue_(end);
@@ -666,7 +673,7 @@ function getEnd_() {
     return combineDateTime_(dom.endDate.value, dom.endTime.value);
   }
   const lastDay = combineDateTime_(dom.endDate.value, "00:00");
-  return lastDay ? new Date(lastDay.getTime() + DAY_MS) : null;
+  return lastDay ? addDays_(lastDay, 1) : null;
 }
 
 function handleAllDayChange_() {
@@ -687,6 +694,13 @@ function handleAllDayChange_() {
   syncDurationButtons_();
   updateDurationSummary_();
   refreshCalendarTab();
+}
+
+// 暦の上で n 日ずらす（24時間をたすのではなく。夏時間のある地域でも、終日の予定の日付がずれないように）
+function addDays_(date, days) {
+  const next = new Date(date.getTime());
+  next.setDate(next.getDate() + days);
+  return next;
 }
 
 function combineDateTime_(dateValue, timeValue) {

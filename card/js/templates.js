@@ -22,7 +22,8 @@ async function loadPresets() {
 
 function getTemplates() {
   const templates = loadJson(TEMPLATE_KEY);
-  return Array.isArray(templates) ? templates : [];
+  // 壊れた行（名前のないもの）は読まない。中身は当てはめるときに hydrate で形をそろえる
+  return (Array.isArray(templates) ? templates : []).filter((item) => item && typeof item === "object" && typeof item.name === "string" && item.name);
 }
 
 // 用意済み（PRESETS）と自分で保存したものを1つの一覧に並べる

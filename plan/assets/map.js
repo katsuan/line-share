@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610230930";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610230930";
-import { bindHeader } from "./header.js?v=202610230930";
-import { createPlaceFlex } from "./flex.js?v=202610230930";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610231134";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610231134";
+import { bindHeader } from "./header.js?v=202610231134";
+import { createPlaceFlex } from "./flex.js?v=202610231134";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -452,7 +452,15 @@ function deleteTemplate_(name) {
 function loadTemplates_() {
   try {
     const templates = JSON.parse(localStorage.getItem(TEMPLATE_KEY) || "[]");
-    return Array.isArray(templates) ? templates : [];
+    // 壊れた行（名前のないもの・形のちがうもの）は読まない
+    return (Array.isArray(templates) ? templates : [])
+      .filter((item) => item && typeof item === "object" && typeof item.name === "string" && item.name)
+      .map((item) => ({
+        ...item,
+        place: item.place && typeof item.place === "object" ? item.place : {},
+        badges: Array.isArray(item.badges) ? item.badges.filter((badge) => typeof badge === "string") : [],
+        comment: typeof item.comment === "string" ? item.comment : ""
+      }));
   } catch {
     return [];
   }

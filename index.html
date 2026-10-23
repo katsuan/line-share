@@ -21,13 +21,13 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610230930" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610231134" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610230930"></script>
-    <script src="./shared/log.js?v=202610230930"></script>
-    <script src="./shared/credit.js?v=202610230930"></script>
-    <script src="./shared/plan.js?v=202610230930"></script>
-    <script src="./shared/liff.js?v=202610230930"></script>
+    <script src="./config.js?v=202610231134"></script>
+    <script src="./shared/log.js?v=202610231134"></script>
+    <script src="./shared/credit.js?v=202610231134"></script>
+    <script src="./shared/plan.js?v=202610231134"></script>
+    <script src="./shared/liff.js?v=202610231134"></script>
     <style>
       .hub-head {
         display: flex;
@@ -878,6 +878,7 @@
           } catch {
             return;
           }
+          if (!Array.isArray(recent)) return; // 壊れていたら出さない
           const items = recent.map((row) => rows.find((item) => item.key === row?.key)).filter(Boolean).slice(0, 3);
           if (!items.length) return;
           document.getElementById("hubRecentList").replaceChildren(

@@ -2,7 +2,9 @@
 
 // ---- 状態 ----
 
-function hydrate(source = {}) {
+function hydrate(input = {}) {
+  // 端末に残した中身が壊れていても（null・数・配列など）止まらないよう、ふつうのオブジェクトだけ読む
+  const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
   const legacyButton = source.showAction && (source.actionUrl || source.actionLabel)
     ? [{ label: source.actionLabel || "", url: source.actionUrl || "" }]
     : [];
@@ -28,15 +30,19 @@ function hydrate(source = {}) {
     kind: Object.hasOwn(KINDS, source.kind) ? source.kind : "notice",
     items: (Array.isArray(source.items) ? source.items : []).map((item) => String(item ?? "").trim()).slice(0, 20),
     doneLabel: String(source.doneLabel ?? "").trim() || DEFAULT_DONE_LABEL,
-    route: Object.fromEntries(["from", "fromSub", "to", "toSub"].map((key) => [key, String(source.route?.[key] ?? "").trim()])),
+    route: Object.fromEntries(["from", "fromSub", "to", "toSub"].map((key) => [key, String(objectOr(source.route)[key] ?? "").trim()])),
     pairs: (Array.isArray(source.pairs) ? source.pairs : [])
       .map((pair) => ({ label: String(pair?.label ?? "").trim(), value: String(pair?.value ?? "").trim() }))
       .slice(0, MAX_PAIRS),
-    coupon: Object.fromEntries(["offer", "code", "expiry"].map((key) => [key, String(source.coupon?.[key] ?? "").trim()])),
+    coupon: Object.fromEntries(["offer", "code", "expiry"].map((key) => [key, String(objectOr(source.coupon)[key] ?? "").trim()])),
     // サッカーの形式の中身（card/js/soccer.js が確かめる）。保存した形（data の形）でも、整えた形でも受け取る
     lineup: source.lineup ? sanitizeLineup(source.lineup.pl?.[0]?.number !== undefined ? lineupToData(source.lineup) : source.lineup) : null,
     match: source.match ? sanitizeMatch(source.match.g?.[0]?.side !== undefined ? matchToData(source.match) : source.match) : null
   };
+}
+
+function objectOr(value) {
+  return value && typeof value === "object" ? value : {};
 }
 
 function pick(source, keys, cast) {
