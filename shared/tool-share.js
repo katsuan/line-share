@@ -2,7 +2,7 @@
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
-// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み）を1行で置く：左に名前、右におくるんとほかのツールのアイコンを横1列（ふえても1行のまま、指で横に流す）。タップするとおくるん HOME の「ほかのツール」と同じく、
+// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -74,27 +74,29 @@
     const style = document.createElement("style");
     style.textContent = `
       .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
-      /* コネクト：左に名前、右にアイコンを横1列（ツールがふえても1行。指で横に流す。続きがある側は薄く消える） */
-      .oqrn-family {
-        display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px; width: min(100%, 440px);
-        font-family: inherit; line-height: 1.4;
+      /* コネクト：1行目に名前と説明、2行目にツールのアイコンが横に流れつづける帯（終わりなくくり返す。ふえても1行のまま） */
+      .oqrn-family { display: grid; justify-items: center; gap: 4px; width: min(100%, 440px); font-family: inherit; line-height: 1.4; }
+      .oqrn-family-head { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; line-height: 1.9; white-space: nowrap; }
+      .oqrn-family-label { font-weight: 800; letter-spacing: 0.04em; }
+      .oqrn-family-sep { margin: 0 6px; opacity: 0.5; }
+      .oqrn-family-head rt { font-size: 7px; font-weight: 700; }
+      .oqrn-family-viewport {
+        width: 100%; overflow: hidden;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
       }
-      .oqrn-family-head { display: grid; gap: 1px; padding-right: 8px; border-right: 1px solid var(--ls-line, #e3e0d8); text-align: left; }
-      .oqrn-family-label { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; }
-      .oqrn-family-label small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0; }
-      .oqrn-family-sub { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 9px; line-height: 1.8; white-space: nowrap; }
-      .oqrn-family-sub rt { font-size: 7px; font-weight: 700; }
-      .oqrn-family-list {
-        display: flex; gap: 0; margin: 0; padding: 0; overflow-x: auto; overscroll-behavior-x: contain; list-style: none;
-        scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-        --fade-l: 0px; --fade-r: 0px;
-        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
-        mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+      .oqrn-family-list { display: flex; width: max-content; margin: 0; padding: 0; list-style: none; animation: oqrn-family-flow var(--flow, 40s) linear infinite; }
+      .oqrn-family-viewport:hover .oqrn-family-list,
+      .oqrn-family-viewport:focus-within .oqrn-family-list,
+      .oqrn-family-viewport.is-held .oqrn-family-list { animation-play-state: paused; }
+      @keyframes oqrn-family-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+      /* 動きを減らす設定の端末では流さず、指で横に流す */
+      @media (prefers-reduced-motion: reduce) {
+        .oqrn-family-viewport { overflow-x: auto; scrollbar-width: none; }
+        .oqrn-family-list { animation: none; }
+        .oqrn-family-list li[aria-hidden="true"] { display: none; }
       }
-      .oqrn-family-list::-webkit-scrollbar { display: none; }
-      .oqrn-family-list.has-left { --fade-l: 20px; }
-      .oqrn-family-list.has-right { --fade-r: 28px; }
-      .oqrn-family-list li { flex: 0 0 auto; scroll-snap-align: start; }
+      .oqrn-family-list li { flex: 0 0 auto; }
       .oqrn-family-list button {
         display: grid; justify-items: center; gap: 3px; width: 54px; padding: 4px 0; border: 0; border-radius: 10px;
         background: none; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer;
@@ -230,16 +232,17 @@
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
     nav.setAttribute("aria-label", "コネクト（ConneQt）");
-    const head = document.createElement("div");
+    // 1行目：名前と、名前だけでは伝わらないので補足をひとこと
+    const head = document.createElement("p");
     head.className = "oqrn-family-head";
-    const label = document.createElement("p");
-    label.className = "oqrn-family-label";
-    label.append("コネクト", Object.assign(document.createElement("small"), { textContent: "〜ConneQt〜" }));
-    // 名前だけでは伝わらないので、補足をひとこと
-    const sub = document.createElement("p");
-    sub.className = "oqrn-family-sub";
-    sub.replaceChildren(...withRuby(lead || "｜Qらし《くらし》を、ひとつなぎ"));
-    head.append(label, sub);
+    head.append(
+      Object.assign(document.createElement("span"), { className: "oqrn-family-label", textContent: "コネクト 〜ConneQt〜" }),
+      Object.assign(document.createElement("span"), { className: "oqrn-family-sep", textContent: "｜" }),
+      ...withRuby(lead || "｜Qらし《くらし》を、ひとつなぎ")
+    );
+    // 2行目：アイコンの帯。同じ並びを2回つないで左へ流し、半分進んだら頭に戻す（終わりなく続いて見える）
+    const viewport = document.createElement("div");
+    viewport.className = "oqrn-family-viewport";
     const list = document.createElement("ul");
     list.className = "oqrn-family-list";
     const oqrn = Object.assign({}, OQRN_ITEM, {
@@ -248,8 +251,8 @@
       url: window.OQRN?.top || BASE.href
     });
     const showTool = sharedToolSheet();
-    [oqrn, ...others].forEach((item) => {
-      if (!item.appIcon || !item.url) return;
+    const items = [oqrn, ...others].filter((item) => item.appIcon && item.url);
+    const addItem = (item, copy) => {
       const li = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
@@ -262,20 +265,24 @@
       button.setAttribute("aria-label", button.title);
       button.append(img, Object.assign(document.createElement("span"), { textContent: item.short || item.name }));
       button.addEventListener("click", () => showTool(item, button));
+      if (copy) {
+        // 2回目の並びは見た目だけ（読み上げ・Tab では1回だけ）
+        li.setAttribute("aria-hidden", "true");
+        button.tabIndex = -1;
+      }
       li.appendChild(button);
       list.appendChild(li);
-    });
-    nav.append(head, list);
-    // 横に流せる続きがある側だけ、薄く消す
-    const edges = () => {
-      const max = list.scrollWidth - list.clientWidth;
-      list.classList.toggle("has-left", list.scrollLeft > 2);
-      list.classList.toggle("has-right", list.scrollLeft < max - 2);
     };
-    list.addEventListener("scroll", edges, { passive: true });
-    if (window.ResizeObserver) new ResizeObserver(edges).observe(list);
-    else window.addEventListener("resize", edges);
-    setTimeout(edges, 0);
+    items.forEach((item) => addItem(item, false));
+    items.forEach((item) => addItem(item, true));
+    // 1つのアイコンが 3 秒くらいで流れる速さ（ふえても同じ速さ）
+    list.style.setProperty("--flow", `${Math.max(items.length, 4) * 3}s`);
+    // 指で触れているあいだは止める（ねらったアイコンを押せるように）
+    const hold = (on) => () => viewport.classList.toggle("is-held", on);
+    viewport.addEventListener("pointerdown", hold(true));
+    ["pointerup", "pointercancel", "pointerleave"].forEach((type) => viewport.addEventListener(type, () => setTimeout(hold(false), 1200)));
+    viewport.appendChild(list);
+    nav.append(head, viewport);
     return nav;
   }
 
