@@ -128,6 +128,21 @@
   }
 
   // LINE アプリで開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
+  // 読み終えたクエリ（ほかのツールから渡された中身）を URL から消す。長い URL がアドレス欄・タブ・履歴に残らないように。
+  // LIFF とログインの戻りに使う印（liff.〜・code・state など）と keep に入れたものは残す。# のあとは触らない
+  const LIFF_KEYS = /^(liff|code$|state$|error|friendship_status_changed$)/i;
+  function tidyUrl(keep = []) {
+    try {
+      const url = new URL(location.href);
+      [...new Set(url.searchParams.keys())].forEach((key) => {
+        if (!keep.includes(key) && !LIFF_KEYS.test(key)) url.searchParams.delete(key);
+      });
+      if (url.search !== location.search) history.replaceState(history.state, "", url);
+    } catch {
+      // 書きかえられなくても、ページはそのまま使える
+    }
+  }
+
   function appUrl(path = "") {
     const liffId = window.LINE_SHARE_CONFIG?.liffId;
     return liffId ? `https://liff.line.me/${liffId}${path}` : "";
@@ -176,5 +191,5 @@
     return true;
   }
 
-  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, isOwner, login, MESSAGES };
+  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, isOwner, login, tidyUrl, MESSAGES };
 })();

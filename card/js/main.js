@@ -29,6 +29,8 @@ async function init() {
   // LINE の外から持ってきた中身（ログインの行き来・LINE アプリで開き直し）がいちばん先
   const carried = takeCarriedDeck();
   const queryStates = carried ? [] : getQueryStates();
+  // 読み終えたら、長いクエリは URL から消す（作りかけは画面の中にある）
+  window.LineShareLiff?.tidyUrl();
   const queryState = queryStates[0] || null;
   startedWithQuery = Boolean(queryState);
   const saved = loadJson(LAST_SENT_KEY);

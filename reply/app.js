@@ -19,15 +19,19 @@ let text = "";
 let mode = "";
 // LINE アプリの中で開いているか（コピーしたらトークに戻る）
 let inClient = false;
+// 開いたときのクエリ（読み終えたら URL から消すので、「LINE アプリで開く」のために覚えておく）
+let initialSearch = "";
 
 document.addEventListener("DOMContentLoaded", async () => {
   for (const id of ["replyText", "replyNote", "status", "outsideHelp", "copyButton", "sendButton", "choiceArea", "choiceTitle", "choices"]) {
     els[id] = document.getElementById(id);
   }
   const params = new URLSearchParams(location.search);
+  initialSearch = location.search;
   text = clean(params.get("text") || "");
   els.replyText.value = text;
   setupChoices(params);
+  window.LineShareLiff.tidyUrl(); // 読み終えたら、長いクエリは URL から消す
   els.replyText.placeholder = "送る内容を入れてください";
   els.replyText.addEventListener("input", () => {
     text = els.replyText.value.trim();
@@ -91,7 +95,7 @@ async function prepare() {
     els.replyNote.hidden = true;
     // ブラウザで開いたとき：同じ候補のまま LINE アプリで開き直せるようにする（返事はトークを選ぶので、ログインでは送れない）
     const helped = window.LineShareLiff.outsideHelp(els.outsideHelp, {
-      appUrl: () => window.LineShareLiff.appUrl(`/reply/${location.search}`),
+      appUrl: () => window.LineShareLiff.appUrl(`/reply/${initialSearch}`),
       canLogin: false
     });
     if (helped) setStatus("ここではコピーだけできます。");

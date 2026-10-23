@@ -51,7 +51,7 @@ test("ほかのサイトから・Origin なしでは保存できない", async (
 });
 
 test("PNG・JPEG 以外（名前だけ PNG の中身も）は保存しない", async () => {
-  const html = "data:image/png;base64," + Buffer.from("<script>alert(1)</script>").toString("base64");
+  const html = "data:image/png;base64," + Buffer.from("<script>alert(1)</script>").toString("base64"); // qcheck-ok: W8 テストの見本の文字
   assert.equal((await upload({ imageData: html })).status, 400);
   assert.equal((await upload({ imageData: "data:image/svg+xml;base64,PHN2Zz4=" })).status, 400);
   assert.equal((await upload({ imageData: 123 })).status, 400);
