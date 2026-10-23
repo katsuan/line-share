@@ -23,6 +23,7 @@
     ["suqsuq:", "すくすく", "suqsuq"],
     ["tuzuq:", "つづく", "tuzuq"],
     ["yuqsaki:", "ゆくさき", "yuqsaki"],
+    ["soraqru:", "そらくる", "soraqru"],
     ["conneqt:", "Qlove", "conneqt"]
   ];
   // 入れないもの：作り直せる一時的なもの（プランの確認結果・ログイン中の持ち越し）
