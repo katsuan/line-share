@@ -2,7 +2,7 @@
 // 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
-// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み：おくるんと、ほかのツールのアイコン）を並べる。タップするとおくるん HOME の「ほかのツール」と同じく、
+// その下に「コネクト 〜ConneQt〜」（Connect＋Q。Q のツールをつなぐ仕組み）を1行で置く：左に名前、右におくるんとほかのツールのアイコンを横1列（ふえても1行のまま、指で横に流す）。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -74,13 +74,29 @@
     const style = document.createElement("style");
     style.textContent = `
       .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
-      .oqrn-family { display: grid; justify-items: center; gap: 6px; font-family: inherit; line-height: 1.4; }
-      .oqrn-family-label { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; }
-      .oqrn-family-sub { margin: -2px 0 2px; color: var(--ls-subtext, #8a877e); font-size: 11px; line-height: 1.9; }
-      .oqrn-family-sub rt { font-size: 8px; font-weight: 700; }
-      .oqrn-family-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 2px; max-width: 340px; margin: 0; padding: 0; list-style: none; }
+      /* コネクト：左に名前、右にアイコンを横1列（ツールがふえても1行。指で横に流す。続きがある側は薄く消える） */
+      .oqrn-family {
+        display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px; width: min(100%, 440px);
+        font-family: inherit; line-height: 1.4;
+      }
+      .oqrn-family-head { display: grid; gap: 1px; padding-right: 8px; border-right: 1px solid var(--ls-line, #e3e0d8); text-align: left; }
+      .oqrn-family-label { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; font-weight: 800; letter-spacing: 0.04em; white-space: nowrap; }
+      .oqrn-family-label small { display: block; font-size: 9px; font-weight: 700; letter-spacing: 0; }
+      .oqrn-family-sub { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 9px; line-height: 1.8; white-space: nowrap; }
+      .oqrn-family-sub rt { font-size: 7px; font-weight: 700; }
+      .oqrn-family-list {
+        display: flex; gap: 0; margin: 0; padding: 0; overflow-x: auto; overscroll-behavior-x: contain; list-style: none;
+        scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        --fade-l: 0px; --fade-r: 0px;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%);
+      }
+      .oqrn-family-list::-webkit-scrollbar { display: none; }
+      .oqrn-family-list.has-left { --fade-l: 20px; }
+      .oqrn-family-list.has-right { --fade-r: 28px; }
+      .oqrn-family-list li { flex: 0 0 auto; scroll-snap-align: start; }
       .oqrn-family-list button {
-        display: grid; justify-items: center; gap: 3px; width: 60px; padding: 4px 0; border: 0; border-radius: 10px;
+        display: grid; justify-items: center; gap: 3px; width: 54px; padding: 4px 0; border: 0; border-radius: 10px;
         background: none; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer;
       }
       .oqrn-family-list button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -214,13 +230,16 @@
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
     nav.setAttribute("aria-label", "コネクト（ConneQt）");
+    const head = document.createElement("div");
+    head.className = "oqrn-family-head";
     const label = document.createElement("p");
     label.className = "oqrn-family-label";
-    label.textContent = "コネクト 〜ConneQt〜";
-    // 名前だけでは伝わらないので、補足の1行
+    label.append("コネクト", Object.assign(document.createElement("small"), { textContent: "〜ConneQt〜" }));
+    // 名前だけでは伝わらないので、補足をひとこと
     const sub = document.createElement("p");
     sub.className = "oqrn-family-sub";
     sub.replaceChildren(...withRuby(lead || "｜Qらし《くらし》を、ひとつなぎ"));
+    head.append(label, sub);
     const list = document.createElement("ul");
     list.className = "oqrn-family-list";
     const oqrn = Object.assign({}, OQRN_ITEM, {
@@ -246,7 +265,17 @@
       li.appendChild(button);
       list.appendChild(li);
     });
-    nav.append(label, sub, list);
+    nav.append(head, list);
+    // 横に流せる続きがある側だけ、薄く消す
+    const edges = () => {
+      const max = list.scrollWidth - list.clientWidth;
+      list.classList.toggle("has-left", list.scrollLeft > 2);
+      list.classList.toggle("has-right", list.scrollLeft < max - 2);
+    };
+    list.addEventListener("scroll", edges, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(edges).observe(list);
+    else window.addEventListener("resize", edges);
+    setTimeout(edges, 0);
     return nav;
   }
 
