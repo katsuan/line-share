@@ -16,7 +16,7 @@ import {
   toUserMessage,
   UserError
 } from "./common.js?v=202610232304";
-import { MAX_URI_LENGTH } from "./config.js?v=202610232304";
+import { MAX_URI_LENGTH } from "./config.js?v=202610242035";
 import { bindHeader } from "./header.js?v=202610232304";
 import { createEventFlex } from "./flex.js?v=202610232304";
 import { bindPlaceSearch } from "./place-search.js?v=202610232304";
