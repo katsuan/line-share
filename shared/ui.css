@@ -28,6 +28,9 @@
   --ls-danger-soft: #fdecec;
   --ls-success: #2f6f44;
   --ls-warn: #9a3412;
+  /* LINE の緑（送るボタン・LINE 版で開くボタン。ツールの色に変えない） */
+  --ls-line-green: #06c755;
+  --ls-line-green-strong: #05a948;
 
   /* プレビューの背景（LINE のトーク画面に近い色） */
   --ls-talk-bg: #8fabd3;
@@ -340,6 +343,24 @@ input[type="time"].ls-input {
 
 .ls-button.is-block {
   width: 100%;
+}
+
+/* 送るボタン（Q の決まり F1：「💬 カードで送る」）。LINE とわかるのは色にまかせ、言葉に LINE を入れない。
+   ls-send（送る帯の大きいボタン）にも付けられる。is-line も同じ */
+.ls-button.line,
+.ls-button.is-line,
+.ls-send.line,
+.ls-send.is-line {
+  border-color: var(--ls-line-green);
+  background: var(--ls-line-green);
+  color: #fff;
+}
+
+.ls-button.line:active:not(:disabled),
+.ls-button.is-line:active:not(:disabled),
+.ls-send.line:active:not(:disabled),
+.ls-send.is-line:active:not(:disabled) {
+  background: var(--ls-line-green-strong);
 }
 
 .ls-icon-button {
@@ -1226,7 +1247,7 @@ body.is-typing .ls-to-preview {
 
 .ls-outside-button.is-app {
   border-color: transparent;
-  background: #06c755;
+  background: var(--ls-line-green);
   color: #fff;
 }
 
