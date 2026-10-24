@@ -1,5 +1,6 @@
 {
   "title": "くらぶ 〜Qlove〜",
+  "logo": { "src": "./shared/qlove/logo.svg", "dark": "./shared/qlove/logo-dark.svg", "caption": "くらぶ" },
   "color": "#6C47FF",
   "lead": "くらしの部室",
   "groups": [
