@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app, sentMessage } from "./common.js?v=202610242337";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610242337";
-import { bindHeader } from "./header.js?v=202610242337";
-import { createPlaceFlex } from "./flex.js?v=202610242337";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app, sentMessage } from "./common.js?v=202610242339";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610242339";
+import { bindHeader } from "./header.js?v=202610242339";
+import { createPlaceFlex } from "./flex.js?v=202610242339";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -476,5 +476,5 @@ function saveTemplates_(templates) {
 
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
-  dom.shareButton.textContent = isSending ? "送っています…" : "💬 カードで送る";
+  dom.shareButton.textContent = isSending ? "送っています…" : "カードで送る";
 }

@@ -21,14 +21,14 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610242337" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610242339" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610242337"></script>
-    <script src="./shared/log.js?v=202610242337"></script>
-    <script src="./shared/credit.js?v=202610242337"></script>
-    <script src="./shared/plan.js?v=202610242337"></script>
-    <script src="./shared/season.js?v=202610242337" defer></script>
-    <script src="./shared/liff.js?v=202610242337"></script>
+    <script src="./config.js?v=202610242339"></script>
+    <script src="./shared/log.js?v=202610242339"></script>
+    <script src="./shared/credit.js?v=202610242339"></script>
+    <script src="./shared/plan.js?v=202610242339"></script>
+    <script src="./shared/season.js?v=202610242339" defer></script>
+    <script src="./shared/liff.js?v=202610242339"></script>
     <style>
       .hub-head {
         display: flex;
@@ -126,6 +126,16 @@
         color: var(--ls-subtext);
         font-size: 12px;
         line-height: 1.6;
+      }
+
+      /* 紹介のシートの「カードで送る」：おくるんのマーク（ui.css の is-oqrn）を紫で */
+      .share-option-title {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .share-option-title.is-oqrn::before {
+        background: var(--ls-accent);
       }
 
       .share-option {
@@ -674,7 +684,7 @@
       <div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
         <p id="shareTitle" class="ls-sheet-title">おくるんを紹介する</p>
         <div class="share-options">
-          <button id="shareCard" class="share-option" type="button">💬 カードで送る<small>紹介カードを、選んだ LINE の友だち・グループに送ります</small></button>
+          <button id="shareCard" class="share-option" type="button"><span class="share-option-title is-oqrn">カードで送る</span><small>紹介カードを、選んだ LINE の友だち・グループに送ります</small></button>
           <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
           <!-- 作成者（config.js の ownerUsers）だけに出す -->
           <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんとツールの紹介カードを横に並べて送ります（ツールが12個をこえたらグループごと）</small></button>

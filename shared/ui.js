@@ -326,7 +326,7 @@
         <p id="afterSentTitle" class="ls-sheet-title"></p>
         <p class="ls-hint after-sent-note" aria-live="polite"></p>
         <div class="after-sent-actions">
-          <button class="ls-button is-primary" type="button" data-act="again">続けて別のトークにも送る</button>
+          <button class="ls-button is-primary is-oqrn" type="button" data-act="again">続けて別のトークにも送る</button>
           <a class="ls-button" data-act="back" hidden></a>
           <button class="ls-button" type="button" data-act="close">閉じる</button>
         </div>
