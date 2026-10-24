@@ -124,6 +124,11 @@
         display: block; min-height: 48px; padding: 13px 16px; border-radius: 999px; color: #fff;
         font-size: 15px; font-weight: 800; line-height: 22px; text-align: center; text-decoration: none;
       }
+      .oqrn-tool-line {
+        display: block; min-height: 48px; padding: 12px 16px; border: 2px solid #06C755; border-radius: 999px; color: #06A148;
+        font-size: 15px; font-weight: 800; line-height: 20px; text-align: center; text-decoration: none;
+      }
+      .oqrn-tool-why { margin: -2px 0 0; color: var(--ls-subtext, #6b6860); font-size: 12px; line-height: 1.6; }
       .oqrn-share-open {
         display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px;
         border: 1px solid ${color}55; border-radius: 999px; background: ${color}14; color: inherit;
@@ -192,6 +197,8 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
+        <a class="oqrn-tool-line" hidden>💬 LINE で開く</a>
+        <p class="oqrn-tool-why" hidden></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
     document.body.appendChild(sheet);
@@ -208,10 +215,17 @@
       $(".oqrn-tool-copy").hidden = !item.copy;
       $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
+      // LINE で開ける版（つづく・しょくじ）：LINE の中ではそちらだけ。外では「💬 LINE で開く」と、その良さ
+      const inLine = / Line\//.test(navigator.userAgent);
+      const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
-      open.href = item.url;
+      open.href = inLine && line ? line : item.url;
       open.textContent = `${item.name}を開く ↗`;
       open.style.background = item.color || "#6C47FF";
+      $(".oqrn-tool-line").hidden = !line || inLine;
+      $(".oqrn-tool-line").href = line || "#";
+      $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
+      $(".oqrn-tool-why").textContent = item.lineWhy ? `💬 ${item.lineWhy}` : "";
       sheet.hidden = false;
       open.focus();
     };

@@ -114,6 +114,20 @@
         text-decoration: none;
       }
 
+      .tool-line {
+        border: 2px solid #06c755;
+        color: #06a148;
+        text-align: center;
+        text-decoration: none;
+      }
+
+      .tool-why {
+        margin: -2px 0 0;
+        color: var(--ls-subtext);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
       .share-option {
         display: grid;
         gap: 2px;
@@ -678,6 +692,8 @@
         <p id="toolCopy" class="tool-copy" hidden></p>
         <p id="toolLead" class="tool-lead"></p>
         <a id="toolOpen" class="ls-button is-primary is-block tool-open" href="#"></a>
+        <a id="toolLine" class="ls-button is-block tool-line" href="#" hidden>💬 LINE で開く</a>
+        <p id="toolWhy" class="tool-why" hidden></p>
         <button id="toolClose" class="ls-sheet-cancel" type="button">閉じる</button>
       </div>
     </div>
@@ -822,8 +838,17 @@
           const lead = document.getElementById("toolLead");
           // 見出しの一文（lead）と説明（intro）を「。」でつなぐ
           lead.textContent = [row.lead, row.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + (row.lead || row.intro ? "。" : "") || row.desc || "";
+          // LINE で開ける版（つづく・しょくじ）：LINE の中ではそちらだけ。外では「💬 LINE で開く」と、その良さ
+          const inLine = / Line\//.test(navigator.userAgent);
+          const line = /^https:\/\/liff\.line\.me\//.test(row.line || "") ? row.line : "";
+          const lineLink = document.getElementById("toolLine");
+          lineLink.hidden = !line || inLine;
+          lineLink.href = line || "#";
+          const why = document.getElementById("toolWhy");
+          why.hidden = !line || !row.lineWhy;
+          why.textContent = row.lineWhy ? `💬 ${row.lineWhy}` : "";
           const open = document.getElementById("toolOpen");
-          open.href = row.url;
+          open.href = inLine && line ? line : row.url;
           open.textContent = `${row.name}を開く ↗`;
           // 「開く」はツールの色（紹介カードと同じ）
           open.style.background = row.color || "";
