@@ -21,14 +21,14 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610242229" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610242259" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610242229"></script>
-    <script src="./shared/log.js?v=202610242229"></script>
-    <script src="./shared/credit.js?v=202610242229"></script>
-    <script src="./shared/plan.js?v=202610242229"></script>
-    <script src="./shared/season.js?v=202610242229" defer></script>
-    <script src="./shared/liff.js?v=202610242229"></script>
+    <script src="./config.js?v=202610242259"></script>
+    <script src="./shared/log.js?v=202610242259"></script>
+    <script src="./shared/credit.js?v=202610242259"></script>
+    <script src="./shared/plan.js?v=202610242259"></script>
+    <script src="./shared/season.js?v=202610242259" defer></script>
+    <script src="./shared/liff.js?v=202610242259"></script>
     <style>
       .hub-head {
         display: flex;
@@ -698,6 +698,13 @@
       })();
     </script>
     <script>
+      // 部（group）のツール。also は兼部（キロっく＝たいいく部とけいぞく部）で、兼部の部にも、その部のツールのあとに並べる
+      function groupMembers(tools, key) {
+        return tools
+          .filter((tool) => tool.group === key || (Array.isArray(tool.also) && tool.also.includes(key)))
+          .sort((a, b) => (a.group !== key) - (b.group !== key));
+      }
+
       // LINE絵文字・ほかのツールの欄を JSON から作る（1行ずつのリンク）
       (function () {
         const storeUrl = (id) => `https://line.me/S/emoji/?id=${encodeURIComponent(id)}`;
@@ -946,10 +953,7 @@
           const out = [];
           const used = new Set();
           for (const group of groups) {
-            // also は兼部（キロっく＝たいいく部とけいぞく部）。兼部の部にも並べる
-            const members = rows
-              .filter((row) => row.group === group.key || (Array.isArray(row.also) && row.also.includes(group.key)))
-              .sort((a, b) => (a.group !== group.key) - (b.group !== group.key)); // 兼部はその部のツールのあと
+            const members = groupMembers(rows, group.key);
             if (!members.length) continue;
             const head = Object.assign(document.createElement("li"), { className: "hub-group-head", textContent: group.label });
             out.push(head, ...members.map(createRow));
@@ -1161,7 +1165,7 @@
             return all.length < MAX_BUBBLES ? [carousel([introCard().contents, ...all])] : [introCard(), carousel(all)];
           }
           // 12個をこえたら、グループごとに分ける
-          const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: tools.filter((t) => t.group === g.key || (Array.isArray(t.also) && t.also.includes(g.key))).sort((a, b) => (a.group !== g.key) - (b.group !== g.key)) })); // also は兼部（その部のツールのあと）
+          const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: groupMembers(tools, g.key) }));
           const rest = tools.filter((t) => !groups.some((g) => g.key === t.group)); // グループのないツール
           if (rest.length) groups.push({ key: "other", label: "🧩 そのほか", tools: rest });
           const carousels = [];
