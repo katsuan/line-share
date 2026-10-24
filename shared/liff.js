@@ -150,7 +150,7 @@
     }
   }
 
-  // LINE アプリで開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
+  // LINE 版で開くリンク。path はサイトのトップからの道筋（例 "/card/?deck=…"）
   function appUrl(path = "") {
     const liffId = window.LINE_SHARE_CONFIG?.liffId;
     return liffId ? `https://liff.line.me/${liffId}${path}` : "";
@@ -159,7 +159,7 @@
   /**
    * 送るボタンの上などに案内を出す。
    *   host        案内を入れる要素
-   *   appUrl()    LINE アプリで開く URL（押した瞬間の中身で作る）
+   *   appUrl()    LINE 版で開く URL（押した瞬間の中身で作る）
    *   loginUrl()  ログインのあとに戻る URL（省略時は今のページ）
    *   beforeLogin() ログインの行き来の前に、入力中の中身を残す
    *   canLogin    LIFF の準備ができたときだけ true（準備できないとログインも始められない）

@@ -19,7 +19,7 @@ let text = "";
 let mode = "";
 // LINE アプリの中で開いているか（コピーしたらトークに戻る）
 let inClient = false;
-// 開いたときのクエリ（読み終えたら URL から消すので、「LINE アプリで開く」のために覚えておく）
+// 開いたときのクエリ（読み終えたら URL から消すので、「LINE 版で開く」のために覚えておく）
 let initialSearch = "";
 
 document.addEventListener("DOMContentLoaded", async () => {

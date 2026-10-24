@@ -31,6 +31,7 @@
   /* LINE の緑（送るボタン・LINE 版で開くボタン。ツールの色に変えない） */
   --ls-line-green: #06c755;
   --ls-line-green-strong: #05a948;
+  --ls-line-green-text: #06a148; /* 枠だけのボタン（LINE 版で開く）の文字 */
 
   /* プレビューの背景（LINE のトーク画面に近い色） */
   --ls-talk-bg: #8fabd3;
