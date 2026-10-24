@@ -1,5 +1,5 @@
 // 送るメッセージ（画像か、画像を大きく見せるカード）を組み立てる（画面には触らない）
-import { BUBBLE_SIZES } from "./constants.js?v=202610242339";
+import { BUBBLE_SIZES } from "./constants.js?v=202610242348";
 
 // 今の LINE ではカード（Flex）の背景は透過しない（元の文字アイコンも同じ）。透過したいときは「画像で送る」
 export function buildMessage(mode, imageUrl, item) {
