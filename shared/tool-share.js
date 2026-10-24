@@ -1,5 +1,5 @@
 // ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
-// 押すとシートを出し、「LINE にカードで送る（おくるん）」か「リンクでシェア」を選べる。
+// 押すとシートを出し、「カードで送る」（おくるんのマーク）か「リンクでシェア」を選べる。
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
 // その下に「くらぶ 〜Qlove〜」（Q＋love。くらしの部室＝Q のツールが集まるところ）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
@@ -78,6 +78,9 @@
     return window.OQRN.cardUrl(params);
   }
 
+  // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
+  const MARK_URL = new URL("shared/mark.svg", BASE).href;
+
   function injectStyle(color) {
     const style = document.createElement("style");
     style.textContent = `
@@ -125,7 +128,7 @@
         font-size: 15px; font-weight: 800; line-height: 22px; text-align: center; text-decoration: none;
       }
       .oqrn-tool-line {
-        display: block; min-height: 48px; padding: 12px 16px; border: 2px solid #06C755; border-radius: 999px; color: #06A148;
+        display: block; min-height: 48px; padding: 12px 16px; border: 2px solid var(--ls-line-green, #06c755); border-radius: 999px; color: var(--ls-line-green-text, #06a148);
         font-size: 15px; font-weight: 800; line-height: 20px; text-align: center; text-decoration: none;
       }
       .oqrn-tool-why { margin: -2px 0 0; color: var(--ls-subtext, #6b6860); font-size: 12px; line-height: 1.6; }
@@ -151,7 +154,7 @@
       }
       .oqrn-sheet-option.is-primary { border-color: ${color}; box-shadow: inset 4px 0 0 ${color}; }
       .oqrn-mark { display: inline-block; width: 1.2em; height: 1.2em; margin-right: 0.2em; vertical-align: -0.22em; background: #6c47ff;
-        -webkit-mask: url("${new URL("shared/mark.svg", BASE).href}") center / contain no-repeat; mask: url("${new URL("shared/mark.svg", BASE).href}") center / contain no-repeat; }
+        -webkit-mask: url("${MARK_URL}") center / contain no-repeat; mask: url("${MARK_URL}") center / contain no-repeat; }
       .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 500; }
       .oqrn-sheet-status { min-height: 1em; margin: 0; color: var(--ls-subtext, #6b6860); font-size: 13px; }
       .oqrn-sheet-close {
