@@ -150,6 +150,8 @@
         text-decoration: none;
       }
       .oqrn-sheet-option.is-primary { border-color: ${color}; box-shadow: inset 4px 0 0 ${color}; }
+      .oqrn-mark { display: inline-block; width: 1.2em; height: 1.2em; margin-right: 0.2em; vertical-align: -0.22em; background: #6c47ff;
+        -webkit-mask: url("${new URL("shared/mark.svg", BASE).href}") center / contain no-repeat; mask: url("${new URL("shared/mark.svg", BASE).href}") center / contain no-repeat; }
       .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 500; }
       .oqrn-sheet-status { min-height: 1em; margin: 0; color: var(--ls-subtext, #6b6860); font-size: 13px; }
       .oqrn-sheet-close {
@@ -424,7 +426,7 @@
     sheet.innerHTML = `
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
-        <a class="oqrn-sheet-option is-primary" data-card>💬 カードで送る<small>おくるんで紹介カードを作って、LINE の友だち・グループに送ります</small></a>
+        <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードで送る</span><small>おくるんで紹介カードを作って、LINE の友だち・グループに送ります</small></a>
         <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
