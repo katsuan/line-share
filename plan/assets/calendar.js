@@ -14,11 +14,11 @@ import {
   setMessage,
   shareFlex,
   toUserMessage,
-  UserError, sentMessage } from "./common.js?v=202610242259";
-import { MAX_URI_LENGTH } from "./config.js?v=202610242259";
-import { bindHeader } from "./header.js?v=202610242259";
-import { createEventFlex } from "./flex.js?v=202610242259";
-import { bindPlaceSearch } from "./place-search.js?v=202610242259";
+  UserError, sentMessage } from "./common.js?v=202610242329";
+import { MAX_URI_LENGTH } from "./config.js?v=202610242329";
+import { bindHeader } from "./header.js?v=202610242329";
+import { createEventFlex } from "./flex.js?v=202610242329";
+import { bindPlaceSearch } from "./place-search.js?v=202610242329";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -237,7 +237,7 @@ export function refreshCalendarTab() {
     } else if (app.canSend) {
       setMessage(dom.statusMessage, "共有先を選んで送れます。");
     } else {
-      setMessage(dom.statusMessage, "リンクの作成とコピーができます。LINEアプリで開くと送れます。");
+      setMessage(dom.statusMessage, "リンクの作成とコピーができます。LINE 版で開くと送れます。");
     }
   } catch (error) {
     dom.generatedUrl.value = "";

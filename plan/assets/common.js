@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610242259";
+import { MAX_URI_LENGTH } from "./config.js?v=202610242329";
 
 export const app = {
   liffReady: false,
@@ -93,7 +93,7 @@ export function sentMessage() {
 
 export async function shareFlex(message) {
   if (!app.canSend) {
-    throw new UserError("LINEアプリで開くと送れます。");
+    throw new UserError("LINE 版で開くと送れます。");
   }
   // 送り先は複数選べる。送れたら、続けて別のトークにも送るか・閉じるかを選んでもらう（shared/ui.js）
   const messages = [window.LineShareCredit.withCredit(message)];

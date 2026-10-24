@@ -6,14 +6,14 @@
 // 10秒たっても終わらないときは timeout で返す（画面が「つないでいます…」のまま止まらないように）
 (function () {
   const MESSAGES = {
-    connecting: "LINEとつないでいます…",
-    failed: "LINEとつながりませんでした。LINEアプリから開きなおすと送れます。",
-    timeout: "LINEとつながりませんでした。電波のよい所で開き直してください（作成・プレビューはできます）。",
+    connecting: "つないでいます…",
+    failed: "つながりませんでした。LINE で開きなおすと送れます。",
+    timeout: "つながりませんでした。電波のよい所で開き直してください（作成・プレビューはできます）。",
     // 送った結果（全ツールでそろえる）
     sent: "送りました。",
     canceled: "送るのをやめました。",
     sendFailed: "送れませんでした。時間をおいてもう一度お試しください。",
-    notInLine: "LINEアプリ内で開くと送れます。"
+    notInLine: "LINE 版で開くと送れます。"
   };
 
   let pending = null;
@@ -171,15 +171,15 @@
     host.className = "ls-outside";
     host.hidden = false;
     host.innerHTML =
-      '<p class="ls-outside-text">LINE の外で開いています。送るには：</p>' +
+      '<p class="ls-outside-text">ブラウザ版です。送るには：</p>' +
       '<div class="ls-outside-actions">' +
       '<button type="button" class="ls-outside-button" data-outside-login>🔑 ログインして送る</button>' +
-      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINEで開く</a>' +
+      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINE 版で開く</a>' +
       "</div>";
     const loginButton = host.querySelector("[data-outside-login]");
     const appLink = host.querySelector("[data-outside-app]");
     loginButton.hidden = !canLogin || env.loggedIn;
-    if (loginButton.hidden) host.querySelector(".ls-outside-text").textContent = "LINE の外で開いています。LINEで開くと送れます：";
+    if (loginButton.hidden) host.querySelector(".ls-outside-text").textContent = "ブラウザ版では見本だけ。送るときは：";
     loginButton.addEventListener("click", () => {
       beforeLogin?.();
       try {
