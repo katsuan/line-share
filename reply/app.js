@@ -91,7 +91,7 @@ async function prepare() {
   const timeout = new Promise((resolve) => setTimeout(() => resolve({ ready: false }), 8000));
   const { ready } = await Promise.race([window.LineShareLiff.init({ login: "none" }), timeout]);
   if (!ready || !liff.isInClient()) {
-    setStatus("LINEアプリのトークから開くと送れます。ここではコピーだけできます。");
+    setStatus("トークから開くと送れます。ここではコピーだけできます。");
     els.replyNote.hidden = true;
     // ブラウザで開いたとき：同じ候補のまま LINE アプリで開き直せるようにする（返事はトークを選ぶので、ログインでは送れない）
     const helped = window.LineShareLiff.outsideHelp(els.outsideHelp, {

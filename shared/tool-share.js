@@ -197,7 +197,7 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
-        <a class="oqrn-tool-line" hidden>💬 LINE で開く</a>
+        <a class="oqrn-tool-line" hidden>💬 LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
@@ -215,7 +215,7 @@
       $(".oqrn-tool-copy").hidden = !item.copy;
       $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
-      // LINE で開ける版（つづく・しょくじ）：LINE の中ではそちらだけ。外では「💬 LINE で開く」と、その良さ
+      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「💬 LINE 版で開く」と、その良さ（lineWhy）
       const inLine = / Line\//.test(navigator.userAgent);
       const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
@@ -424,7 +424,7 @@
     sheet.innerHTML = `
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
-        <a class="oqrn-sheet-option is-primary" data-card>🪧 LINEにカードで送る<small>おくるんで紹介カードを作って、友だち・グループに送ります</small></a>
+        <a class="oqrn-sheet-option is-primary" data-card>💬 カードで送る<small>おくるんで紹介カードを作って、LINE の友だち・グループに送ります</small></a>
         <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>

@@ -84,7 +84,7 @@ test("share：送り先選びが開いている間にもう一度押されても
   assert.equal(opened, 2);
 });
 
-test("share：LINE の外（送り先選びが使えない）ではやさしい言葉の例外", async () => {
+test("share：ブラウザ版（送り先選びが使えない）ではやさしい言葉の例外", async () => {
   const { api } = load("https://katsuan.github.io/line-share/card/", { isApiAvailable: () => false });
-  await assert.rejects(api.share([]), /LINEアプリ内で開くと送れます/);
+  await assert.rejects(api.share([]), /LINE 版で開くと送れます/);
 });
