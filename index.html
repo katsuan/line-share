@@ -21,14 +21,14 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610242339" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610242348" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610242339"></script>
-    <script src="./shared/log.js?v=202610242339"></script>
-    <script src="./shared/credit.js?v=202610242339"></script>
-    <script src="./shared/plan.js?v=202610242339"></script>
-    <script src="./shared/season.js?v=202610242339" defer></script>
-    <script src="./shared/liff.js?v=202610242339"></script>
+    <script src="./config.js?v=202610242348"></script>
+    <script src="./shared/log.js?v=202610242348"></script>
+    <script src="./shared/credit.js?v=202610242348"></script>
+    <script src="./shared/plan.js?v=202610242348"></script>
+    <script src="./shared/season.js?v=202610242348" defer></script>
+    <script src="./shared/liff.js?v=202610242348"></script>
     <style>
       .hub-head {
         display: flex;
@@ -186,6 +186,18 @@
         display: block;
         color: var(--ls-text);
         font-size: 16px;
+      }
+
+      /* あいさつの最後に、おくるんのマーク（吹き出しの Q。shared/mark.svg）を紫で */
+      .hub-mark {
+        display: inline-block;
+        width: 1.15em;
+        height: 1.15em;
+        margin-left: 0.15em;
+        vertical-align: -0.2em;
+        background: var(--ls-accent);
+        -webkit-mask: url("./shared/mark.svg") center / contain no-repeat;
+        mask: url("./shared/mark.svg") center / contain no-repeat;
       }
 
       .hub-tools {
@@ -620,7 +632,7 @@
       </div>
       <!-- キャッチコピーと説明。「紹介する」はその右 -->
       <div class="hub-lead-row">
-        <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。<span id="hubSeason"></span></p>
+        <p class="hub-lead"><strong>つくって、おくるん<span class="hub-mark" aria-hidden="true"></span></strong>写真やボタン付きのカードを、LINEで送れます。<span id="hubSeason"></span></p>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 紹介する</button>
       </div>
       <!-- 最近つかったツール（ConneQt のツールを開くと覚える。なければ出さない） -->
