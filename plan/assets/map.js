@@ -1,7 +1,7 @@
-import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app } from "./common.js?v=202610232304";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610232304";
-import { bindHeader } from "./header.js?v=202610232304";
-import { createPlaceFlex } from "./flex.js?v=202610232304";
+import { assertUriLength, autoGrow, escapeHtml, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, setMessage, shareFlex, titleFromMapUrl, toUserMessage, UserError, app, sentMessage } from "./common.js?v=202610242229";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610242229";
+import { bindHeader } from "./header.js?v=202610242229";
+import { createPlaceFlex } from "./flex.js?v=202610242229";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -265,7 +265,7 @@ async function share_() {
     if (sent) window.LineShareLog?.track("send", { kind: "place" });
     setMessage(
       dom.message,
-      sent ? window.LineShareLiff.MESSAGES.sent : window.LineShareLiff.MESSAGES.canceled,
+      sent ? sentMessage() : window.LineShareLiff.MESSAGES.canceled,
       sent ? "success" : "default"
     );
   } catch (error) {
@@ -432,7 +432,7 @@ function saveTemplate_() {
   saveTemplates_([...loadTemplates_().filter((item) => item.name !== name), template]);
   dom.templateName.value = "";
   renderTemplates_();
-  setMessage(dom.message, `「${name}」として保存しました。`, "success");
+  setMessage(dom.message, window.QSeason?.decorate(`「${name}」として保存しました。`) ?? `「${name}」として保存しました。`, "success");
 }
 
 function deleteTemplate_(name) {

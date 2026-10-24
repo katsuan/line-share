@@ -186,7 +186,7 @@ async function shareOnce() {
     clearDraft(); // 送った内容は「前回送った内容」に残るので、下書きは消す
     window.LineShareLog?.track("send", { kind: [...new Set(cards.map((card) => card.kind))].join("+"), count: cards.length });
     renderTemplates(); // テンプレートの「前回送った内容」を今送ったものにする
-    setStatus(window.LineShareLiff.MESSAGES.sent);
+    setStatus(window.QSeason?.decorate(window.LineShareLiff.MESSAGES.sent) ?? window.LineShareLiff.MESSAGES.sent); // ときどき季節の絵文字
     // すぐ閉じず、続けて別のトークにも送るか・閉じるか・もう少し作るかを選んでもらう
     window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages), back: backTarget });
   } catch (error) {

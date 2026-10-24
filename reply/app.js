@@ -148,7 +148,7 @@ async function send() {
         return;
       }
     }
-    setStatus(window.LineShareLiff.MESSAGES.sent, "success");
+    setStatus(window.QSeason?.decorate(window.LineShareLiff.MESSAGES.sent) ?? window.LineShareLiff.MESSAGES.sent, "success"); // ときどき季節の絵文字
     window.LineShareLog?.track("send", { kind: mode });
     setTimeout(() => liff.closeWindow(), 700);
   } catch (error) {
