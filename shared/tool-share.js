@@ -4,6 +4,7 @@
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
 // その下に「くらぶ 〜Qlove〜」（Q＋love。くらしの部室＝Q のツールが集まるところ）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
+// フッターの名前の後ろに、ときどき季節の絵文字（shared/season.js）。window.QSeason は各ツールの文（トーストなど）にも使える。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
 // 使い方（各ツールの HTML）
@@ -46,6 +47,17 @@
         tag.src = new URL("shared/oqrn.js", BASE).href;
         tag.onload = resolve;
         tag.onerror = reject;
+        document.head.appendChild(tag);
+      });
+
+  // 季節の絵文字（shared/season.js → window.QSeason）。ツールの文にも使えるよう、ここで読んでおく（待たない）
+  const seasonReady = window.QSeason
+    ? Promise.resolve(window.QSeason)
+    : new Promise((resolve) => {
+        const tag = document.createElement("script");
+        tag.src = new URL("shared/season.js?v=20261024", BASE).href;
+        tag.onload = () => resolve(window.QSeason || null);
+        tag.onerror = () => resolve(null);
         document.head.appendChild(tag);
       });
 
@@ -235,6 +247,11 @@
       Object.assign(document.createElement("span"), { className: "oqrn-family-sep", textContent: "｜" }),
       ...withRuby(lead || "くらしの部室")
     );
+    // ときどき、その時期の絵文字をひとつ（イベントの時期は出やすい）
+    seasonReady.then((season) => {
+      const emoji = season && season.maybe();
+      if (emoji) head.append(Object.assign(document.createElement("span"), { className: "oqrn-family-season", textContent: ` ${emoji}` }));
+    });
     // 2行目：アイコンの帯。同じ並びを2回つないで左へ流し、半分進んだら頭に戻す（終わりなく続いて見える）
     const viewport = document.createElement("div");
     viewport.className = "oqrn-family-viewport";
