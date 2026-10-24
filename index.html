@@ -429,6 +429,19 @@
         font-weight: 800;
       }
 
+      /* くらぶ 〜Qlove〜 のロゴ（shared/qlove/logo.svg）と読みがな */
+      .hub-more-title:has(.hub-more-logo) {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .hub-more-logo {
+        display: block;
+        height: 26px;
+        width: auto;
+      }
+
       .hub-links {
         display: grid;
         margin: 0;
@@ -841,10 +854,35 @@
           return parts;
         }
 
+        // 見出しのロゴ（暗い表示では dark の絵に切りかえる）と、横に小さく読みがな
+        function brandLogo(logo, alt) {
+          const pic = document.createElement("picture");
+          if (logo.dark) {
+            const dark = document.createElement("source");
+            dark.srcset = logo.dark;
+            dark.media = "(prefers-color-scheme: dark)";
+            pic.append(dark);
+          }
+          const img = document.createElement("img");
+          img.className = "hub-more-logo";
+          img.src = logo.src;
+          img.alt = alt;
+          pic.append(img);
+          const nodes = [pic];
+          if (logo.caption) {
+            const cap = document.createElement("span");
+            cap.className = "hub-more-caption";
+            cap.textContent = logo.caption;
+            nodes.push(cap);
+          }
+          return nodes;
+        }
+
         function fill({ section, title, lead, list }, data, rows) {
           if (!rows.length) return;
-          // 見出しの「Q」（コネクト 〜ConneQt〜）はおくるんの紫（data.color）
-          document.getElementById(title).replaceChildren(...withBrandQ(data.title || "", data.color));
+          // ロゴがあれば（くらぶ 〜Qlove〜）ロゴの画像＋読みがな。なければ見出しの「Q」をおくるんの紫（data.color）に
+          const logo = data.logo && data.logo.src ? brandLogo(data.logo, data.title || "") : null;
+          document.getElementById(title).replaceChildren(...(logo || withBrandQ(data.title || "", data.color)));
           if (lead && data.lead) {
             document.getElementById(lead).replaceChildren(...withRuby(data.lead));
             document.getElementById(lead).hidden = false;
