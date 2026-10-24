@@ -939,7 +939,10 @@
           const out = [];
           const used = new Set();
           for (const group of groups) {
-            const members = rows.filter((row) => row.group === group.key);
+            // also は兼部（キロっく＝たいいく部とけいぞく部）。兼部の部にも並べる
+            const members = rows
+              .filter((row) => row.group === group.key || (Array.isArray(row.also) && row.also.includes(group.key)))
+              .sort((a, b) => (a.group !== group.key) - (b.group !== group.key)); // 兼部はその部のツールのあと
             if (!members.length) continue;
             const head = Object.assign(document.createElement("li"), { className: "hub-group-head", textContent: group.label });
             out.push(head, ...members.map(createRow));
@@ -1151,7 +1154,7 @@
             return all.length < MAX_BUBBLES ? [carousel([introCard().contents, ...all])] : [introCard(), carousel(all)];
           }
           // 12個をこえたら、グループごとに分ける
-          const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: tools.filter((t) => t.group === g.key) }));
+          const groups = (Array.isArray(data.groups) ? data.groups : []).map((g) => ({ ...g, tools: tools.filter((t) => t.group === g.key || (Array.isArray(t.also) && t.also.includes(g.key))).sort((a, b) => (a.group !== g.key) - (b.group !== g.key)) })); // also は兼部（その部のツールのあと）
           const rest = tools.filter((t) => !groups.some((g) => g.key === t.group)); // グループのないツール
           if (rest.length) groups.push({ key: "other", label: "🧩 そのほか", tools: rest });
           const carousels = [];
