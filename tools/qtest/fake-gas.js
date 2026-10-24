@@ -45,8 +45,12 @@ function formatDate(date, tz, format, offsetHours) {
   const H = d.getUTCHours(), m = d.getUTCMinutes(), s = d.getUTCSeconds();
   const u = d.getUTCDay() || 7;
   const E = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()];
-  return String(format).replace(/yyyy|MM|dd|HH|mm|ss|M|d|H|u|E|'[^']*'/g, (t) => {
+  const sign = offsetHours < 0 ? "-" : "+";
+  const abs = Math.abs(offsetHours);
+  const zone = `${sign}${pad(Math.floor(abs))}:${pad(Math.round((abs % 1) * 60))}`;
+  return String(format).replace(/yyyy|XXX|MM|dd|HH|mm|ss|M|d|H|u|E|'[^']*'/g, (t) => {
     switch (t) {
+      case "XXX": return zone;
       case "yyyy": return Y;
       case "MM": return pad(M);
       case "dd": return pad(D);
