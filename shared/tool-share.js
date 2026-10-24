@@ -39,27 +39,23 @@
     // そのまま
   }
 
-  // おくるんのカードの入口（shared/oqrn.js）。ツールがまだ読んでいなければ、ここで読む
-  const oqrnReady = window.OQRN
-    ? Promise.resolve()
-    : new Promise((resolve, reject) => {
-        const tag = document.createElement("script");
-        tag.src = new URL("shared/oqrn.js", BASE).href;
-        tag.onload = resolve;
-        tag.onerror = reject;
-        document.head.appendChild(tag);
-      });
+  // おくるんの shared/ のファイルを読む（読めたら resolve、読めなければ reject）
+  function loadShared(path) {
+    return new Promise((resolve, reject) => {
+      const tag = document.createElement("script");
+      tag.src = new URL(path, BASE).href;
+      tag.onload = resolve;
+      tag.onerror = reject;
+      document.head.appendChild(tag);
+    });
+  }
 
-  // 季節の絵文字（shared/season.js → window.QSeason）。ツールの文にも使えるよう、ここで読んでおく（待たない）
-  const seasonReady = window.QSeason
-    ? Promise.resolve(window.QSeason)
-    : new Promise((resolve) => {
-        const tag = document.createElement("script");
-        tag.src = new URL("shared/season.js?v=20261024", BASE).href;
-        tag.onload = () => resolve(window.QSeason || null);
-        tag.onerror = () => resolve(null);
-        document.head.appendChild(tag);
-      });
+  // おくるんのカードの入口（shared/oqrn.js）。ツールがまだ読んでいなければ、ここで読む
+  const oqrnReady = window.OQRN ? Promise.resolve() : loadShared("shared/oqrn.js");
+
+  // 季節の絵文字（shared/season.js → window.QSeason）。ツールの文にも使えるよう、ここで読んでおく（待たない。読めなければ null）
+  const seasonReady = (window.QSeason ? Promise.resolve() : loadShared("shared/season.js?v=20261024"))
+    .then(() => window.QSeason || null, () => null);
 
   // おくるんのお知らせカードを、ツールの紹介の中身を入れた状態で開く URL
   function cardUrl(tool) {
@@ -168,6 +164,22 @@
     intro: "場所・予定・お知らせ・文字や手書きを、カードや画像にしてトークに送れます"
   };
 
+  // 下から出るシートの閉じ方をそろえる：閉じるボタン（data-close）・外側を押す・Esc。閉じたら、開いたボタンに戻る
+  function sheetBehavior(sheet, getOpener) {
+    const hide = () => {
+      sheet.hidden = true;
+      getOpener()?.focus();
+    };
+    sheet.querySelector("[data-close]").addEventListener("click", hide);
+    sheet.addEventListener("click", (event) => {
+      if (event.target === sheet) hide();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !sheet.hidden) hide();
+    });
+    return hide;
+  }
+
   // なかまのシート（おくるん HOME の「ほかのツール」をタップしたときと同じ中身）
   function toolSheet() {
     const sheet = document.createElement("div");
@@ -185,17 +197,7 @@
     document.body.appendChild(sheet);
     const $ = (selector) => sheet.querySelector(selector);
     let opener = null;
-    const hide = () => {
-      sheet.hidden = true;
-      opener?.focus();
-    };
-    $("[data-close]").addEventListener("click", hide);
-    sheet.addEventListener("click", (event) => {
-      if (event.target === sheet) hide();
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !sheet.hidden) hide();
-    });
+    sheetBehavior(sheet, () => opener);
     return (item, from) => {
       opener = from;
       $(".oqrn-tool-ogp").src = item.ogp || "";
@@ -424,18 +426,8 @@
       sheet.hidden = false;
       $("[data-card]").focus();
     };
-    const hide = () => {
-      sheet.hidden = true;
-      open.focus();
-    };
     open.addEventListener("click", show);
-    $("[data-close]").addEventListener("click", hide);
-    sheet.addEventListener("click", (event) => {
-      if (event.target === sheet) hide();
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !sheet.hidden) hide();
-    });
+    sheetBehavior(sheet, () => open);
 
     $("[data-link]").addEventListener("click", async () => {
       const data = { title: tool.en ? `${tool.name}（${tool.en}）` : tool.name, text: tool.lead || tool.desc || "", url: tool.url };
