@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610242035";
+import { MAX_URI_LENGTH } from "./config.js?v=202610242229";
 
 export const app = {
   liffReady: false,
@@ -85,6 +85,12 @@ export function titleFromMapUrl(url) {
 /**
  * 送信先を選んで Flex Message を送る。送信したら true、閉じられたら false。
  */
+// 送れたときのひとこと（ときどき季節の絵文字。shared/season.js がなくてもそのまま）
+export function sentMessage() {
+  const text = window.LineShareLiff.MESSAGES.sent;
+  return window.QSeason?.decorate(text) ?? text;
+}
+
 export async function shareFlex(message) {
   if (!app.canSend) {
     throw new UserError("LINEアプリで開くと送れます。");

@@ -1,15 +1,15 @@
 // 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。画面・手書きの操作・送信・送った画像。
 // 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
 // 決まった値は constants.js、描く処理は draw.js、送るメッセージの組み立ては message.js。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610232304";
-import { addSent, deleteSent, listSent, restoreSent } from "./history.js?v=202610232304";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./apng.js?v=202610242229";
+import { addSent, deleteSent, listSent, restoreSent } from "./history.js?v=202610242229";
 
 import {
   ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
   LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
-} from "./constants.js?v=202610232304";
-import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610232304";
-import { buildMessage } from "./message.js?v=202610232304";
+} from "./constants.js?v=202610242229";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./draw.js?v=202610242229";
+import { buildMessage } from "./message.js?v=202610242229";
 
 const config = window.LINE_SHARE_CONFIG || {};
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）
@@ -606,7 +606,7 @@ async function sendImage_(item) {
     setStatus_("");
     const message = window.LineShareCredit?.withCredit(buildMessage(mode, imageUrl, item)) ?? buildMessage(mode, imageUrl, item);
     if (await window.LineShareLiff.share([message])) {
-      setStatus_(window.LineShareLiff.MESSAGES.sent, "success");
+      setStatus_(window.QSeason?.decorate(window.LineShareLiff.MESSAGES.sent) ?? window.LineShareLiff.MESSAGES.sent, "success"); // ときどき季節の絵文字
       window.LineShareLog?.track("send", { kind: item.animated ? `${mode}-motion` : mode });
       await addSent({ blob: item.blob, width: item.width, height: item.height, animated: item.animated, text: item.text || "", mode, size: item.size });
       renderHistory_();

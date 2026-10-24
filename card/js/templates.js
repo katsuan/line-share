@@ -158,7 +158,7 @@ function saveTemplate() {
   saveJson(TEMPLATE_KEY, templates);
   renderTemplates();
   els.templateNameInput.value = "";
-  setStatus(`「${name}」として保存しました。`);
+  setStatus(window.QSeason?.decorate(`「${name}」として保存しました。`) ?? `「${name}」として保存しました。`);
 }
 
 function deleteTemplate(name) {

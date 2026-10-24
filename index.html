@@ -21,13 +21,14 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="おくるん（OQRN）：写真やボタン付きのカードを、LINEで送れます。" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="./shared/ui.css?v=202610232304" />
+    <link rel="stylesheet" href="./shared/ui.css?v=202610242229" />
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="./config.js?v=202610242035"></script>
-    <script src="./shared/log.js?v=202610232304"></script>
-    <script src="./shared/credit.js?v=202610232304"></script>
-    <script src="./shared/plan.js?v=202610232304"></script>
-    <script src="./shared/liff.js?v=202610232304"></script>
+    <script src="./config.js?v=202610242229"></script>
+    <script src="./shared/log.js?v=202610242229"></script>
+    <script src="./shared/credit.js?v=202610242229"></script>
+    <script src="./shared/plan.js?v=202610242229"></script>
+    <script src="./shared/season.js?v=202610242229" defer></script>
+    <script src="./shared/liff.js?v=202610242229"></script>
     <style>
       .hub-head {
         display: flex;
@@ -595,7 +596,7 @@
       </div>
       <!-- キャッチコピーと説明。「紹介する」はその右 -->
       <div class="hub-lead-row">
-        <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。</p>
+        <p class="hub-lead"><strong>つくって、おくるん💬</strong>写真やボタン付きのカードを、LINEで送れます。<span id="hubSeason"></span></p>
         <button id="shareOpen" class="hub-share" type="button" aria-haspopup="dialog">📤 紹介する</button>
       </div>
       <!-- 最近つかったツール（ConneQt のツールを開くと覚える。なければ出さない） -->
@@ -907,6 +908,12 @@
             fill({ section: "hubEmoji", title: "hubEmojiTitle", lead: "hubEmojiLead", list: "hubEmojiList" }, { title: "LINE絵文字", ...data }, rows);
           })
           .catch((error) => console.error("LINE絵文字を読み込めませんでした", error));
+
+        // 季節の絵文字（shared/season.js）。あいさつの後ろに、ときどき1つだけ
+        document.addEventListener("DOMContentLoaded", () => {
+          const emoji = window.QSeason?.maybe() || "";
+          if (emoji) document.getElementById("hubSeason").textContent = ` ${emoji}`;
+        });
 
         // 最近つかったツール：新しい順に3つまで。押すとすぐそのツールを開く（紹介のカードは出さない）
         function showRecent(rows) {
