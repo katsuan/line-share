@@ -89,7 +89,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `ls-tabs`・`ls-tab`（`aria-selected`） | 切りかえ |
 | `ls-chips`・`ls-chip`（`aria-pressed`・`aria-checked`（`role="radio"` のとき）か `is-active`、中に radio・checkbox も可）・`is-small` | 選ぶもの |
 | `ls-field`・`ls-label`・`ls-input`・`ls-row` | 入力欄（16px 以上、iPhone で寄らない） |
-| `ls-button`（`is-primary`・`is-danger`・`is-block`・`line`＝LINE の緑の送るボタン「💬 カードで送る」。`ls-send line` も可）・`ls-icon-button`・`ls-actions` | ボタン |
+| `ls-button`（`is-primary`・`is-danger`・`is-block`・`line`＝LINE の緑の送るボタン。カードを送るボタンは `is-oqrn` も付けて、おくるんのマーク＋「カードで送る」（`shared/mark.svg`）。`ls-send line is-oqrn` も可）・`ls-icon-button`・`ls-actions` | ボタン |
 | `ls-folds`・`ls-fold`（`<details>`）・`ls-fold-icon`・`ls-fold-meta`・`ls-fold-body` | 開閉する設定 |
 | `ls-list`・`ls-list-item`・`ls-list-row` | 一覧から選ぶ |
 | `ls-sheet`・`ls-sheet-card`・`ls-sheet-title`・`ls-sheet-actions`・`ls-sheet-cancel` | 下から出るシート（`hidden` で出し入れ） |
