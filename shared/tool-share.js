@@ -202,7 +202,7 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
-        <a class="oqrn-tool-line" hidden>💬 LINE 版で開く</a>
+        <a class="oqrn-tool-line" hidden>📱 LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
@@ -220,7 +220,7 @@
       $(".oqrn-tool-copy").hidden = !item.copy;
       $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
-      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「💬 LINE 版で開く」と、その良さ（lineWhy）
+      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「📱 LINE 版で開く」と、その良さ（lineWhy）
       const inLine = / Line\//.test(navigator.userAgent);
       const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
@@ -230,7 +230,7 @@
       $(".oqrn-tool-line").hidden = !line || inLine;
       $(".oqrn-tool-line").href = line || "#";
       $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
-      $(".oqrn-tool-why").textContent = item.lineWhy ? `💬 ${item.lineWhy}` : "";
+      $(".oqrn-tool-why").textContent = item.lineWhy ? `📱 ${item.lineWhy}` : "";
       sheet.hidden = false;
       open.focus();
     };

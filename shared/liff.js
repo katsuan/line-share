@@ -174,7 +174,7 @@
       '<p class="ls-outside-text">ブラウザ版です。送るには：</p>' +
       '<div class="ls-outside-actions">' +
       '<button type="button" class="ls-outside-button" data-outside-login>🔑 ログインして送る</button>' +
-      '<a class="ls-outside-button is-app" data-outside-app href="#">💬 LINE 版で開く</a>' +
+      '<a class="ls-outside-button is-app" data-outside-app href="#">📱 LINE 版で開く</a>' +
       "</div>";
     const loginButton = host.querySelector("[data-outside-login]");
     const appLink = host.querySelector("[data-outside-app]");
