@@ -197,18 +197,27 @@ function groupMembers(tools, key) {
     return parts;
   }
 
-  // 見出しのロゴ（暗い表示では dark の絵に切りかえる）と、横に小さく読みがな
+  // 見出しのロゴ（暗い表示では dark の絵に切りかえる）と、横に小さく読みがな。
+  // anim があれば動くロゴ（アイコン → Qlove → Qラブ → Qら部 → くらぶ。tools/qlove_anim.py）。動きを減らす設定の人には止まったロゴ
   function brandLogo(logo, alt) {
     const pic = document.createElement("picture");
-    if (logo.dark) {
-      const dark = document.createElement("source");
-      dark.srcset = logo.dark;
-      dark.media = "(prefers-color-scheme: dark)";
-      pic.append(dark);
+    const source = (srcset, media) => {
+      const el = document.createElement("source");
+      el.srcset = srcset;
+      el.media = media;
+      pic.append(el);
+    };
+    if (logo.anim) {
+      if (logo.dark) source(logo.dark, "(prefers-reduced-motion: reduce) and (prefers-color-scheme: dark)");
+      source(logo.src, "(prefers-reduced-motion: reduce)");
+      if (logo.animDark) source(logo.animDark, "(prefers-color-scheme: dark)");
+    } else if (logo.dark) {
+      source(logo.dark, "(prefers-color-scheme: dark)");
     }
     const img = document.createElement("img");
     img.className = "hub-more-logo";
-    img.src = logo.src;
+    img.src = logo.anim || logo.src;
+    img.loading = "lazy"; // 一覧はページの下のほう
     img.alt = alt;
     pic.append(img);
     const nodes = [pic];
