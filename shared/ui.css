@@ -1363,7 +1363,7 @@ body:not(.ls-has-sendbar) .ls-toast {
 /* ---- 日本語の改行 ----
  * スマホの幅で「〜ま／す。」のように最後の1〜2文字だけが次の行に落ちないようにする。
  * text-wrap: pretty は最後の行が短くなりすぎないよう前の行から字を回す（Safari・Chrome）。
- * word-break: auto-phrase は文節の途中で折らない（Chrome。Safari では効かないが害はない）。見出し・ラベル・ボタンだけ。
+ * word-break: auto-phrase は文節の途中で折らない（Chrome。Safari では効かない）。見出し・ラベル・ボタンだけ（説明の文に使うと右に余白ができる）。
  * ボタンや見出しのような短い文字には balance（行の長さをそろえる）。
  */
 p, li, dd, dt, figcaption, label, .ls-hint, .ls-label, .ls-empty, .ls-tip, .ls-sheet-card {
@@ -1374,8 +1374,8 @@ h1, h2, h3, .ls-sheet-title, .ls-panel-title, .ls-button, .ls-chip, .ls-tab, .ls
   text-wrap: balance;
 }
 
-/* 文節で折るのは短い文字だけ（見出し・ラベル・ボタン・1〜2行の説明。長い本文に使うと右がガタガタになって行が増える） */
-.ls-hint:lang(ja), .ls-panel-note:lang(ja), li:lang(ja), small:lang(ja), .lead:lang(ja), .sub:lang(ja), .hint:lang(ja), .note:lang(ja), .ls-tip:lang(ja), .ls-ask-text:lang(ja), .ls-empty:lang(ja),
+/* 文節で折るのは見出し・ラベル・ボタンだけ。説明の文（.ls-hint・li・.ls-empty など）に使うと、
+   文節の切れ目まで行を早く折るので、枠の右に大きな余白ができる（そらくるの案内などで起きた）。説明の文は pretty だけにする */
 h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(ja), .ls-panel-title:lang(ja), .ls-brand-copy:lang(ja),
 .ls-button:lang(ja), .ls-chip:lang(ja), .ls-tab:lang(ja), .ls-send:lang(ja), .ls-outside-button:lang(ja), summary:lang(ja) {
   word-break: auto-phrase;
