@@ -199,7 +199,8 @@ function groupMembers(tools, key) {
 
   // 見出しのロゴ（暗い表示では dark の絵に切りかえる）と、横に小さく読みがな。
   // anim があれば動くロゴ（アイコン → Qlove → Qラブ → Qら部 → くらぶ。tools/qlove_anim.py）。動きを減らす設定の人には止まったロゴ
-  function brandLogo(logo, alt) {
+  // captionNodes を渡すと、読みがなの代わりにそれを横に出す（動くロゴのときは「くらしの部室」をロゴの行に）
+  function brandLogo(logo, alt, captionNodes) {
     const pic = document.createElement("picture");
     const source = (srcset, media) => {
       const el = document.createElement("source");
@@ -221,10 +222,11 @@ function groupMembers(tools, key) {
     img.alt = alt;
     pic.append(img);
     const nodes = [pic];
-    if (logo.caption) {
+    if (captionNodes || logo.caption) {
       const cap = document.createElement("span");
       cap.className = "hub-more-caption";
-      cap.textContent = logo.caption;
+      if (captionNodes) cap.replaceChildren(...captionNodes);
+      else cap.textContent = logo.caption;
       nodes.push(cap);
     }
     return nodes;
@@ -234,9 +236,11 @@ function groupMembers(tools, key) {
   function fill({ section, title, lead, list }, data, rows) {
     if (!rows.length) return;
     // ロゴがあれば（くらぶ 〜Qlove〜）ロゴの画像＋読みがな。なければ見出しの「Q」をおくるんの紫（data.color）に
-    const logo = data.logo && data.logo.src ? brandLogo(data.logo, data.title || "") : null;
+    // 動くロゴ（最後に「くらぶ」と出る）のときは、説明（くらしの部室）をロゴと同じ行に置き、下の行は使わない
+    const inlineLead = Boolean(data.logo && data.logo.anim && data.lead);
+    const logo = data.logo && data.logo.src ? brandLogo(data.logo, data.title || "", inlineLead ? withRuby(data.lead) : null) : null;
     document.getElementById(title).replaceChildren(...(logo || withBrandQ(data.title || "", data.color)));
-    if (lead && data.lead) {
+    if (lead && data.lead && !inlineLead) {
       document.getElementById(lead).replaceChildren(...withRuby(data.lead));
       document.getElementById(lead).hidden = false;
     }
