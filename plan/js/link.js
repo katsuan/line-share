@@ -1,6 +1,6 @@
 // 場所・予定：リンクの確かめ・地図のリンク・外で開く
-import { MAX_URI_LENGTH } from "./config.js?v=202610251830";
-import { app, UserError } from "./page.js?v=202610251830";
+import { MAX_URI_LENGTH } from "./config.js?v=202610252218";
+import { app, UserError } from "./page.js?v=202610252218";
 
 // http か https の URL か
 export function isHttpUrl(value) {
