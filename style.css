@@ -254,16 +254,20 @@
 }
 
 .hub-foot {
-  margin: 20px 0 0;
+  margin: 12px 0 0;
   text-align: center;
   font-size: 13px;
 }
 
 .hub-foot + .hub-foot {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
+/* 押せる高さは 44px（docs/ux.md C3）。見た目は小さな文字のリンクのまま */
 .hub-foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--ls-tap, 44px);
   color: var(--ls-subtext);
   font-weight: 700;
 }
@@ -512,6 +516,21 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* 兼部の印（くらぶのページの .q-also と同じ見た目） */
+.hub-link-also {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  background: var(--ls-surface-sub);
+  color: var(--ls-subtext);
+  font-size: 10px;
+  font-weight: 700;
+  vertical-align: 2px;
   white-space: nowrap;
 }
 

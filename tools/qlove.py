@@ -182,7 +182,7 @@ def write_ogp(path):
     d = ImageDraw.Draw(img)
     hira = lambda w, size: ImageFont.truetype(f"/System/Library/Fonts/ヒラギノ角ゴシック W{w}.ttc", size)  # noqa: E731
     d.text((W_ / 2, 430), COPY, font=hira(8, 46), fill=INK, anchor="ms")
-    d.text((W_ / 2, 490), "スマホと LINE で使う、くらしの小さなツールたち", font=hira(6, 28), fill=(110, 104, 140), anchor="ms")
+    d.text((W_ / 2, 490), "スマホで使う、くらしの小さなツールたち", font=hira(6, 28), fill=(110, 104, 140), anchor="ms")
     img.convert("RGB").save(path, optimize=True)
 
 

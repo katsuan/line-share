@@ -103,6 +103,10 @@ function groupMembers(tools, key) {
       en.append("〜", ...withBrandQ(row.en, row.qColor || row.color), "〜");
       name.append(" ", en);
     }
+    // 兼部のツール（also）は、どの部でも「兼部」の印（くらぶのページと同じ）
+    if (Array.isArray(row.also) && row.also.length) {
+      name.append(Object.assign(document.createElement("span"), { className: "hub-link-also", textContent: "兼部" }));
+    }
     text.append(name);
     if (row.desc) {
       const desc = document.createElement("span");

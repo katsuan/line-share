@@ -157,6 +157,7 @@
       .oqrn-mark { display: inline-block; width: 1.2em; height: 1.2em; margin-right: 0.2em; vertical-align: -0.22em; background: #6c47ff;
         -webkit-mask: url("${MARK_URL}") center / contain no-repeat; mask: url("${MARK_URL}") center / contain no-repeat; }
       .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 500; }
+      .oqrn-nw { white-space: nowrap; } /* 言葉の途中で折り返さない（Safari でも効くように、文節ごとに包む） */
       .oqrn-sheet-status { min-height: 1em; margin: 0; color: var(--ls-subtext, #6b6860); font-size: 13px; }
       .oqrn-sheet-close {
         min-height: 44px; border: 0; background: transparent; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
@@ -438,8 +439,8 @@
     sheet.innerHTML = `
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
-        <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードで送る</span><small>おくるんで紹介カードを作って、LINE の友だち・グループに送ります</small></a>
-        <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します（共有できないときはコピー）</small></button>
+        <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードで送る</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
+        <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
