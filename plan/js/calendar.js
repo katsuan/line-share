@@ -1,24 +1,9 @@
-import {
-  app,
-  assertUriLength,
-  autoGrow,
-  escapeHtml,
-  formatPlaceLocation,
-  isGoogleMapsUrl,
-  isHttpUrl,
-  isHttpsUrl,
-  jumpAttrs,
-  mapSearchUrl,
-  openExternal,
-  titleFromMapUrl,
-  setMessage,
-  shareFlex,
-  toUserMessage,
-  UserError, sentMessage } from "./common.js?v=202610250902";
-import { MAX_URI_LENGTH } from "./config.js?v=202610250902";
-import { bindHeader } from "./header.js?v=202610250902";
-import { createEventFlex } from "./flex.js?v=202610250902";
-import { bindPlaceSearch } from "./place-search.js?v=202610250902";
+import { app, autoGrow, escapeHtml, formatPlaceLocation, jumpAttrs, setMessage, shareFlex, toUserMessage, UserError, sentMessage } from "./page.js?v=202610251125";
+import { assertUriLength, isGoogleMapsUrl, isHttpUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610251125";
+import { MAX_URI_LENGTH } from "./config.js?v=202610251125";
+import { bindHeader } from "./header.js?v=202610251125";
+import { createEventFlex } from "./card.js?v=202610251125";
+import { bindPlaceSearch } from "./place-search.js?v=202610251125";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};

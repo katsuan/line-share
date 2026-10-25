@@ -1,4 +1,4 @@
-import { MAX_URI_LENGTH } from "./config.js?v=202610250902";
+// 場所・予定：画面の状態・知らせの出し方・送る（2つのタブで共通）
 
 export const app = {
   liffReady: false,
@@ -35,62 +35,13 @@ export function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-export function isHttpUrl(value) {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-export function isHttpsUrl(value) {
-  try {
-    return new URL(value).protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-export function isGoogleMapsUrl(value) {
-  return (
-    isHttpUrl(value) &&
-    (value.includes("google.com/maps") ||
-      value.includes("maps.app.goo.gl") ||
-      value.includes("goo.gl/maps"))
-  );
-}
-
-export function assertUriLength(uri, label) {
-  if (uri.length > MAX_URI_LENGTH) {
-    throw new UserError(`${label}が長すぎてLINEで送れません。詳細などを短くしてください。`);
-  }
-}
-
-/**
- * Google Maps の URL から場所名を読み取る（/maps/place/<名前>/ や ?q=<名前> の形式のみ）。
- * 短縮URL（maps.app.goo.gl）はブラウザから展開できないため空文字を返す。
- */
-export function titleFromMapUrl(url) {
-  try {
-    const parsed = new URL(url);
-    const place = parsed.pathname.match(/\/maps\/place\/([^/]+)/);
-    const raw = place ? place[1] : parsed.searchParams.get("q") || parsed.searchParams.get("query") || "";
-    return decodeURIComponent(raw.replace(/\+/g, " ")).split(",")[0].trim();
-  } catch {
-    return "";
-  }
-}
-
-/**
- * 送信先を選んで Flex Message を送る。送信したら true、閉じられたら false。
- */
 // 送れたときのひとこと（ときどき季節の絵文字。shared/season.js がなくてもそのまま）
 export function sentMessage() {
   const text = window.LineShareLiff.MESSAGES.sent;
   return window.QSeason?.decorate(text) ?? text;
 }
 
+/** 送り先を選んで Flex Message を送る。送れたら true、閉じられたら false */
 export async function shareFlex(message) {
   if (!app.canSend) {
     throw new UserError("LINE 版で開くと送れます。");
@@ -100,21 +51,6 @@ export async function shareFlex(message) {
   const sent = await window.LineShareLiff.share(messages);
   if (sent) window.LineShareUI.afterSent({ resend: () => window.LineShareLiff.share(messages) });
   return sent;
-}
-
-// 場所名から Google Maps の検索リンクを作る（アプリがあれば地図アプリで開く）
-export function mapSearchUrl(name) {
-  const query = String(name || "").trim();
-  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : "";
-}
-
-// LINE 内では外部ブラウザ（地図アプリ）で開き、それ以外は新しいタブで開く
-export function openExternal(url) {
-  if (app.liffReady && window.liff?.openWindow) {
-    liff.openWindow({ url, external: true });
-  } else {
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
 }
 
 export function formatPlaceLocation(place) {

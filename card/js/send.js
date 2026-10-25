@@ -74,7 +74,7 @@ function updateShareButtonState() {
 // ---- 記録用の文字（?sendText=）。カードの後ろに、文字のメッセージを1通足して送る ----
 // LINE のボットには Flex（カード）の中身が届かないので、ボットに記録させたいツール（しょくじなど）が、読みとれる文字を一緒に渡す。
 // 送る前に中身を見せ、チェックを外せば送らない
-// LINE の外で「ログインして送る」と、パラメータなしで戻ってくるので、ログインの前に sessionStorage に残したものも読む（storage.js の keepDeckForLogin）
+// LINE の外で「ログインして送る」と、パラメータなしで戻ってくるので、ログインの前に sessionStorage に残したものも読む（store.js の keepDeckForLogin）
 const SEND_TEXT_KEY = "oqrn:card-send-text";
 const SEND_TEXT = (() => {
   const fromUrl = new URLSearchParams(location.search).get("sendText") || "";

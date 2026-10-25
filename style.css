@@ -1,0 +1,591 @@
+/* おくるんのトップ（HOME）の見た目。共通の部品は shared/ui.css */
+.hub-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hub-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 28px 4px 20px;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+/* キャッチコピーの行：左にコピーと説明、右にシェア */
+.hub-lead-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -10px 4px 16px;
+}
+
+.hub-lead-row .hub-lead {
+  margin: 0;
+}
+
+/* キャッチコピーの右のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
+.hub-share {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--ls-line-strong);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.share-options {
+  display: grid;
+  gap: 8px;
+}
+
+/* ほかのツールをタップしたときのカード：共有画像（OGP）・名前・説明と「開く」 */
+.tool-ogp {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-line);
+}
+
+/* キャッチコピー（hub-links.json の copy）。ツールの色で、名前のすぐ下に */
+.tool-copy {
+  margin: -6px 0 0;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.tool-lead {
+  margin: -4px 0 0;
+  color: var(--ls-subtext);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.tool-open {
+  text-align: center;
+  text-decoration: none;
+}
+
+.tool-line {
+  border: 2px solid var(--ls-line-green);
+  color: var(--ls-line-green-text);
+  text-align: center;
+  text-decoration: none;
+}
+
+.tool-why {
+  margin: -2px 0 0;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 紹介のシートの「カードで送る」：おくるんのマーク（ui.css の is-oqrn）を紫で */
+.share-option-title {
+  display: inline-flex;
+  align-items: center;
+}
+
+.share-option-title.is-oqrn::before {
+  background: var(--ls-accent);
+}
+
+.share-option {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.share-option small {
+  color: var(--ls-subtext);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* 見出しは、ほかのツール（さくせん盤・キロっくなど）と同じく 左にアイコン＋名前、右に横長のロゴ（OQRN） */
+.hub-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+}
+
+.hub-name {
+  white-space: nowrap;
+}
+
+/* 明るい・暗い表示でロゴを切りかえる箱。並びには影響させない */
+.hub-logo-pic {
+  display: contents;
+}
+
+.hub-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  height: 30px; /* アイコン＋名前の行に合わせる */
+}
+
+.hub-lead strong {
+  display: block;
+  color: var(--ls-text);
+  font-size: 16px;
+}
+
+/* あいさつの最後に、おくるんのマーク（吹き出しの Q。shared/mark.svg）を紫で */
+.hub-mark {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  margin-left: 0.15em;
+  vertical-align: -0.2em;
+  background: var(--ls-accent);
+  -webkit-mask: url("./shared/mark.svg") center / contain no-repeat;
+  mask: url("./shared/mark.svg") center / contain no-repeat;
+}
+
+.hub-tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hub-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  min-height: 128px;
+  padding: 14px 6px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-lg);
+  background: var(--ls-surface);
+  box-shadow: var(--ls-shadow);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  word-break: keep-all;
+  text-decoration: none;
+}
+
+/* いちばんよく使うお知らせカードは横長で先頭に置く */
+.hub-tool.is-featured {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 14px;
+  min-height: 96px;
+  padding: 16px 18px;
+  border-color: var(--ls-accent);
+  background: var(--ls-accent-soft);
+  font-size: 17px;
+  text-align: left;
+}
+
+.hub-tools > li:has(.is-featured) {
+  grid-column: 1 / -1;
+}
+
+/* お知らせカードのほかの形式（投票・持ち物・チケット・クーポン）。お知らせの下に小さく横一列で */
+.hub-tools > li.hub-formats-row {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  margin: -2px 0 4px;
+}
+
+.hub-formats-label {
+  margin: 0 4px;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hub-formats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hub-format {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 2px 8px;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hub-foot {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 13px;
+}
+
+.hub-foot + .hub-foot {
+  margin-top: 8px;
+}
+
+.hub-foot a {
+  color: var(--ls-subtext);
+  font-weight: 700;
+}
+
+.hub-format-icon {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.hub-format:active {
+  background: var(--ls-surface-sub);
+}
+
+.hub-format:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+.hub-tool.is-featured .hub-mini {
+  width: 60px;
+  height: 70px;
+}
+
+.hub-tool-body {
+  display: grid;
+  gap: 4px;
+}
+
+.hub-tool.is-featured .hub-tool-desc {
+  color: var(--ls-accent-ink);
+  font-size: 13px;
+}
+
+.hub-tool:active {
+  background: var(--ls-surface-sub);
+}
+
+.hub-tool:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+.hub-lead {
+  margin: -10px 4px 16px;
+  color: var(--ls-subtext);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ツール名の下の一言。何ができるかを名前だけに頼らない */
+.hub-tool-desc {
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* 完成イメージの小さな見本。アイコンの代わりなので大きさはアイコンと同じくらいに抑える */
+.hub-mini {
+  display: grid;
+  flex: none;
+  width: 52px;
+  height: 60px;
+}
+
+.mini-card {
+  align-content: start;
+  gap: 4px;
+  overflow: hidden;
+  padding-bottom: 6px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.16);
+  transform: rotate(-4deg);
+}
+
+.mini-card i {
+  display: block;
+  margin: 0 6px;
+  border-radius: 3px;
+}
+
+.mini-card .mini-head {
+  height: 16px;
+  margin: 0;
+  border-radius: 0;
+  background: linear-gradient(135deg, #f59e0b, #fb7185);
+}
+
+.mini-card .mini-photo {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  margin: 0;
+  border-radius: 0;
+  background: linear-gradient(135deg, #bfe7d4, #9fd3f5);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.mini-card .mini-line {
+  height: 4px;
+  background: #e4e2ea;
+}
+
+.mini-card .mini-line.is-short {
+  width: 55%;
+}
+
+.mini-card .mini-button {
+  height: 9px;
+  margin-top: auto;
+  background: var(--ls-accent);
+}
+
+/* 文字入り画像（白と黒で縁取りした文字）の見本 */
+.mini-sticker {
+  place-items: center;
+}
+
+.mini-sticker svg {
+  width: 100%;
+}
+
+.hub-nowrap {
+  white-space: nowrap;
+}
+
+
+/* メイン機能とは別の、ほかのページへのリンク */
+/* LINE絵文字：説明と、行の左に置く小さな代表画像 */
+.hub-emoji-lead {
+  word-break: auto-phrase;
+  margin: -4px 4px 10px;
+  color: var(--ls-subtext);
+  font-size: 13px;
+}
+
+/* コネクトの補足の行の「Qらし」に振る「くらし」 */
+.hub-emoji-lead rt {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+#hubMoreLead {
+  margin-top: -2px;
+  line-height: 1.9;
+}
+
+.hub-link.has-thumb {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+}
+
+.hub-link-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.hub-more {
+  margin-top: 28px;
+}
+
+.hub-more-title {
+  margin: 0 4px 8px;
+  color: var(--ls-subtext);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* くらぶ 〜Qlove〜 のロゴ（shared/qlove/logo.svg）と読みがな */
+.hub-more-title:has(.hub-more-logo) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hub-more-logo {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+
+.hub-links {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--ls-line);
+  border-radius: var(--ls-radius-lg);
+  background: var(--ls-surface);
+  overflow: hidden;
+}
+
+.hub-links li + li {
+  border-top: 1px solid var(--ls-line);
+}
+
+.hub-link {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.hub-link:active {
+  background: var(--ls-surface-sub);
+}
+
+.hub-link:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: -2px;
+}
+
+.hub-link-icon {
+  font-size: 24px;
+  text-align: center;
+}
+
+/* ツールのアイコン画像（絵文字の代わり。絵文字と同じ幅の列に収める） */
+.hub-link-app-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto;
+}
+
+.hub-link-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 英字の名前の「Q」（ツールの色。js の withBrandQ） */
+.hub-brand-q {
+  font-weight: 900;
+}
+
+.hub-link-en {
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.hub-link-desc {
+  display: block;
+  color: var(--ls-subtext);
+  font-size: 13px;
+}
+
+.hub-link-arrow {
+  color: var(--ls-faint);
+  font-size: 14px;
+}
+
+/* 最近つかったツール（tool-share.js が覚えた conneqt:recent）。続きからすぐ開けるよう、上のほうに小さく */
+.hub-recent {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.hub-recent-title {
+  margin: 0 4px;
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hub-recent-list {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 2px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.hub-recent-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--ls-line);
+  border-radius: 999px;
+  background: var(--ls-surface);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.hub-recent-list img {
+  width: 24px;
+  height: 24px;
+}
+
+/* コネクトの中の分け方（hub-links.json の groups） */
+.hub-group-head {
+  padding: 10px 16px 4px;
+  background: var(--ls-surface-sub);
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.hub-links li.hub-group-head + li {
+  border-top: 0;
+}
+
+.hub-redirect {
+  padding-top: 30vh;
+  color: var(--ls-subtext);
+  text-align: center;
+}
