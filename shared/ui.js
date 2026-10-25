@@ -1,4 +1,4 @@
-// 全ツール共通の画面の振る舞い（Q キット。window.LineShareUI）：入力中は送る帯を隠す・設定へ移る・色の並び・任意の項目の＋／×・
+// 全ツール共通の画面の振る舞い（Q キット。window.LineShareUI）：入力中は送る帯を隠す・設定へ移る・色の並び・任意の項目の＋／×・選ぶボタンつきの入力枠（pickField）・
 // プレビューの見方の切りかえ・プレビューへ戻るボタン・送ったあとのシート・通知（toast）・確認の窓（ask）・はじめての案内・進み具合・ツールの色。
 // おくるんの各ページと、ほかの Q のツールが <script src="…/shared/ui.js"> で読む。
 (function () {
@@ -568,8 +568,68 @@
   const accentFromScript = document.currentScript?.dataset.accent;
   if (accentFromScript) setAccent(accentFromScript);
 
+  /**
+   * 選ぶボタンつきの入力枠（.ls-pickfield）と、その下の選択肢（.ls-picker）の開け閉め（ui.css の ls-pickfield）。
+   * ボタンを押すと開く・閉じる。文字を入れているあいだも開き、入れおわったら閉じる（選択肢を押しているときは閉じない）。
+   * 一度に開くのは1つだけ。開くたびに onOpen（選択肢を作りなおすところ）を呼び、しっぽを押したボタンの位置に合わせる。
+   * 選択肢のボタンを押しても、入力中のキーボードは出したまま（pointerdown をとめる。カスタムの入力欄はとめない）。
+   * 返すもの：{ open(), close(), toggle(), isOpen(), place() }。選んだあとに閉じるかは、ツールが close() で決める
+   */
+  const pickFields = new Set();
+  function pickField({ field, button, input = null, picker, onOpen = () => {}, onClose = () => {}, openWhileTyping = true }) {
+    let opened = false;
+    let pressing = false;
+    // しっぽを、押したボタンのまん中に合わせる
+    const place = () => {
+      if (!opened) return;
+      const x = button.getBoundingClientRect().left + button.offsetWidth / 2 - picker.getBoundingClientRect().left;
+      picker.style.setProperty("--tail-x", `${Math.round(x)}px`);
+    };
+    const set = (on) => {
+      if (on === opened) return place();
+      if (on) pickFields.forEach((other) => other !== api && other.close());
+      opened = on;
+      picker.hidden = !on;
+      field.classList.toggle("is-open", on);
+      button.setAttribute("aria-expanded", String(on));
+      if (on) onOpen();
+      else onClose();
+      place();
+    };
+    const api = {
+      open: () => set(true),
+      close: () => set(false),
+      toggle: () => set(!opened),
+      isOpen: () => opened,
+      place
+    };
+    pickFields.add(api);
+    button.setAttribute("aria-expanded", "false");
+    if (picker.id) button.setAttribute("aria-controls", picker.id);
+    button.addEventListener("click", () => api.toggle());
+    // 選択肢を押しているあいだは、入力欄を離れても閉じない。ボタンを押してもキーボードを出したまま
+    picker.addEventListener("pointerdown", (e) => {
+      pressing = true;
+      if (input && document.activeElement === input && e.target.closest("button")) e.preventDefault();
+    });
+    document.addEventListener("pointerup", () => setTimeout(() => (pressing = false), 0));
+    if (input && openWhileTyping) {
+      input.addEventListener("focus", () => api.open());
+      input.addEventListener("blur", () => {
+        // 選択肢・ボタンへ移ったときは閉じない
+        setTimeout(() => {
+          if (pressing || picker.contains(document.activeElement) || document.activeElement === button) return;
+          api.close();
+        }, 0);
+      });
+    }
+    picker.addEventListener("keydown", (e) => e.key === "Escape" && (api.close(), button.focus()));
+    window.addEventListener("resize", place);
+    return api;
+  }
+
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent, ask
+    afterSent, firstTip, progress, toast, setAccent, ask, pickField
   };
 })();
