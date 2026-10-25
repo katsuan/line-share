@@ -1,4 +1,4 @@
-// 文字・手書きの決まった値（形・書体・色・太さ・縁取り・カードの大きさ）と、はじめの設定。
+// 文字・手書き：決まった値（形・書体・色・太さ・縁取り・カードの大きさ）と、はじめの設定。image/app.js・draw.js・card.js が読む。
 // 色の並びは全ツール共通（shared/ui.js の PALETTE：紫・青・緑・橙・赤）。ui.js は app.js より先に読まれる
 export const LONG_SIDE = 480; // 静止画の長い辺
 export const ANIMATION_LONG_SIDE = 240; // 動く画像は 300KB に収めるため小さめに作る

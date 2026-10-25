@@ -1,13 +1,15 @@
 // 前の名前（2026-11-25 に消す）。LINE の中のブラウザが前の HTML を覚えているときのため、card/js/card.js と同じ中身を置いている（読む順を保つため写し）
-// お知らせカード：送るカード（Flex Message）の組み立て・返事のリンク・写真の形
+// お知らせカード：送るカード（Flex Message）の組み立て・返事のリンク・写真の形。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // LIFF で送るカードに付けられるボタンは URI アクション（リンク）だけ（LIFF の仕様。sendMessages・shareTargetPicker とも）。
 // 投票・完了のボタンは返事のページ（reply/）へのリンクにし、そこで文を確かめて送るかコピーしてもらう。
 // 投票は候補をすべて渡し、返事のページで選び直せるようにする（format の {c} が選んだ候補になる）
 // ボタンのリンクは 1000 文字まで。収まらないときは候補を外し、それでも長ければ文を縮める
 const MAX_URI_LENGTH = 1000;
+// 押すと返事のページ（/reply/）を開くボタンを作る。投票は候補も渡して、そこで選びなおせるようにする
 function replyAction(label, { text, title = "", choices = [], pick = -1, format = "" }) {
   const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/line-share/reply/";
+  // 返事のページの URL を作る（候補を付けると長すぎるときは付けない）
   const build = (body, withChoices) => {
     const params = new URLSearchParams({ text: body });
     if (withChoices && choices.length) {
@@ -27,6 +29,7 @@ function replyAction(label, { text, title = "", choices = [], pick = -1, format 
   return { type: "uri", label: label.slice(0, 40), uri };
 }
 
+// 今のカード1枚分の Flex Message を作る
 function buildFlexMessage() {
   const palette = getPalette();
   const headerContents = [

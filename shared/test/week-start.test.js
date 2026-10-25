@@ -5,6 +5,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const QWeekStart = require("../week-start.js");
 
+// localStorage の偽物
 function memory(init = {}) {
   const data = { ...init };
   return { data, getItem: (k) => (k in data ? data[k] : null), setItem: (k, v) => { data[k] = String(v); } };

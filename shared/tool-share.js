@@ -81,6 +81,7 @@
   // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
   const MARK_URL = new URL("shared/mark.svg", BASE).href;
 
+  // 紹介の欄とシートの見た目を、ページに足す（color はツールの色）
   function injectStyle(color) {
     const style = document.createElement("style");
     style.textContent = `
@@ -176,6 +177,7 @@
 
   // 下から出るシートの閉じ方をそろえる：閉じるボタン（data-close）・外側を押す・Esc。閉じたら、開いたボタンに戻る
   function sheetBehavior(sheet, getOpener) {
+    // シートを閉じて、開いたボタンに戻る
     const hide = () => {
       sheet.hidden = true;
       getOpener()?.focus();
@@ -256,6 +258,7 @@
     return parts;
   }
 
+  // 「くらぶ 〜Qlove〜」の行（名前・補足と、ほかのツールのアイコンの帯）を作る
   function familyRow(tool, others, lead, title) {
     const nav = document.createElement("nav");
     nav.className = "oqrn-family";
@@ -285,6 +288,7 @@
     });
     const showTool = sharedToolSheet();
     const items = [oqrn, ...others].filter((item) => item.appIcon && item.url);
+    // 帯にアイコンのボタンを1つ足す（copy は流すための2回目の並び）
     const addItem = (item, copy) => {
       const li = document.createElement("li");
       const button = document.createElement("button");
@@ -326,7 +330,9 @@
     let heldUntil = 0;
     let touching = false;
     let last = 0;
+    // 並び1回分の幅
     const half = () => list.scrollWidth / 2;
+    // ms ミリ秒のあいだ流すのを止める
     const hold = (ms) => (heldUntil = Math.max(heldUntil, performance.now() + ms));
     // 端まで来たら、半分ずらして続きに見せる。見せる位置は 1〜半分+1 のあいだ
     // （ちょうど 0 と半分の両方を端にすると、ずらした先がまた端になって、行ったり来たりが止まらない）
@@ -351,6 +357,7 @@
       }
       if (!touching) wrap();
     }, { passive: true });
+    // 1コマ分だけ帯を流し、次のコマを予約する
     const step = (now) => {
       const dt = last ? Math.min(now - last, 100) : 0;
       last = now;
@@ -367,6 +374,7 @@
 
   // なかまのシートは1つだけ作って使い回す（「つぎにおすすめ」とアイコンの欄の両方から開く）
   let toolSheetOpen = null;
+  // なかまのシートを1つだけ作って、開く関数を返す
   function sharedToolSheet() {
     toolSheetOpen ||= toolSheet();
     return toolSheetOpen;
@@ -403,6 +411,7 @@
     return link;
   }
 
+  // 紹介の欄（つぎにおすすめ・紹介する・くらぶ・バックアップ）と、紹介のシートを置く
   function build(tool, others = [], lead = "", title = "") {
     injectStyle(tool.color || "#6C47FF");
 
@@ -440,6 +449,7 @@
     $("[data-card]").href = cardUrl(tool);
     const status = $(".oqrn-sheet-status");
 
+    // 紹介のシートを出す
     const show = () => {
       status.textContent = "";
       sheet.hidden = false;

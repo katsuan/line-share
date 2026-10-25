@@ -1,6 +1,6 @@
-// 文字と手書きを1枚に描く（画面には触らない）。look は今の設定（app.js の state）。
+// 文字・手書き：文字と手書きを1枚に描く（画面には触らない）。look は今の設定（app.js の state）。image/app.js が読む。
 //   dims → buildLayer（文字・手書き・縁取り）→ compose（背景と動きをかけて描く）
-import { BASE, BLACK, EDGE_MARGIN, FONTS, WHITE } from "./config.js?v=202610251125";
+import { BASE, BLACK, EDGE_MARGIN, FONTS, WHITE } from "./config.js?v=202610251141";
 
 // 長い辺を longSide にしたときの幅と高さ
 export function dims(look, longSide) {
@@ -10,6 +10,7 @@ export function dims(look, longSide) {
     : { width: Math.round((longSide * w) / h), height: longSide };
 }
 
+// 書体と大きさから、canvas に渡す font の文字を作る
 export function fontOf(look, px) {
   const weight = FONTS.find((option) => option.value === look.font)?.weight ?? 800;
   return `${weight} ${px}px ${look.font}`;
@@ -42,6 +43,7 @@ export function buildLayer(look, width, height) {
   return layer;
 }
 
+// 縁取りの色（白・黒・自分で選んだ色）
 function outlineColor(look) {
   if (look.outline === "custom") return look.outlineColor;
   return look.outline === "white" ? WHITE : BLACK;
@@ -69,6 +71,7 @@ export function compose(look, ctx, width, height, layer, transform = {}) {
   }
 }
 
+// 文字と手書きを描いた1枚を作る（縁取りと背景は compose で付ける）
 function renderContent(look, width, height, scale) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -93,7 +96,9 @@ function renderContent(look, width, height, scale) {
 
   // 手書きの点は「中心からの距離 ÷ 短い辺」で持つので、形を変えても線が伸び縮みしない
   const unit = Math.min(width, height);
+  // 手書きの座標を、キャンバスの横の位置にする
   const toX = (x) => width / 2 + x * unit;
+  // 手書きの座標を、キャンバスの縦の位置にする
   const toY = (y) => height / 2 + y * unit;
   const strokes = look.currentStroke ? [...look.strokes, look.currentStroke] : look.strokes;
   ctx.lineCap = "round";
@@ -116,6 +121,7 @@ function renderContent(look, width, height, scale) {
   return canvas;
 }
 
+// 枠に収まるいちばん大きい文字の大きさを探す
 function fitFontSize(look, ctx, lines, maxWidth, maxHeight) {
   let low = 8;
   let high = Math.floor(maxHeight / (lines.length * 1.15));

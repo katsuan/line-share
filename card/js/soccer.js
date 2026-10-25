@@ -1,4 +1,4 @@
-// お知らせカード：サッカー・フットサルの形式（スタメン・試合結果）。
+// お知らせカード：サッカー・フットサルの形式（スタメン・試合結果）。card/index.html が順に読む（同じ範囲の変数を使う）。
 // 作るのは別のツール（さくせん盤。SOCCER_EDITOR_URL）で、ここへは ?kind=lineup|match&data=<JSON を base64url> で渡される。
 // ここでは中身を確かめて（数・長さ・位置の範囲）、ピッチの図・スコアをプレビューと送るカード（Flex）にする。
 // 選手の配置などを直すときは「さくせん盤で直す」で同じ中身のままさくせん盤に戻る。
@@ -15,6 +15,7 @@ const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
 const PITCH_COLOR = "#2E8B4A";
 const LINE_COLOR = "#FFFFFFAA";
 
+// さくせん盤から渡された中身（base64url の JSON）を読む。読めなければ null
 function decodeSoccerData(text) {
   try {
     const binary = atob(String(text).replace(/-/g, "+").replace(/_/g, "/"));
@@ -24,6 +25,7 @@ function decodeSoccerData(text) {
   }
 }
 
+// 中身を base64url の JSON にする（さくせん盤へ戻すリンクに使う）
 function encodeSoccerData(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   let binary = "";
@@ -31,7 +33,9 @@ function encodeSoccerData(value) {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// 文字にして前後の空白を外し、max 文字で切る
 const cutText = (value, max) => String(value ?? "").trim().slice(0, max);
+// 数にして min〜max に収める（読めなければ 0）
 const clampNum = (value, min, max) => Math.min(max, Math.max(min, Math.round(Number(value) || 0)));
 
 /** スタメンの中身を確かめる。おかしなものは null */
@@ -47,6 +51,7 @@ function sanitizeLineup(source) {
   }));
   const players = toPlayers(source.pl);
   if (!players.length) return null;
+  // 色の文字が "#rrggbb" なら小文字で、ほかは空
   const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || "") ? v.toLowerCase() : "");
   const opp = toPlayers(source.op);
   return {
@@ -58,6 +63,7 @@ function sanitizeLineup(source) {
 /** 試合結果の中身を確かめる。おかしなものは null */
 function sanitizeMatch(source) {
   if (!source || typeof source !== "object") return null;
+  // 点数（空なら空、ほかは 0〜99）
   const score = (value) => (value === "" || value === null || value === undefined ? "" : clampNum(value, 0, 99));
   return {
     t: cutText(source.t, 20),
@@ -90,10 +96,12 @@ function sanitizeMatch(source) {
 const assistText = (match) => (match.as?.length ? `👟 アシスト ${match.as.map(([name, n]) => (n > 1 ? `${name}×${n}` : name)).join("・")}` : "");
 // 交代の行（「🔄 60' たなか → すずき」を改行でつなぐ）。なければ空
 const subsText = (match) => (match.sb?.length ? match.sb.map(([min, out, inn]) => `🔄 ${min ? `${min}' ` : ""}${out || "?"} → ${inn || "?"}`).join("\n") : "");
+// 警告・退場の一覧の文（🟨・🟥 と名前）
 const cardsText = (match) => (match.cd?.length ? match.cd.map(([kind, name, n]) => `${(kind === "r" ? "🟥" : "🟨").repeat(n)} ${name}`).join("　") : "");
 
 // 保存・送り直しのときは、プレビュー用に整えた形から data の形に戻す
 function lineupToData(lineup) {
+  // 選手の一覧を、渡す形（背番号・名前・位置の配列）に戻す
   const toData = (list) => list.map((p) => [p.number, p.name, p.x, p.y]);
   return { ...lineup, pl: toData(lineup.pl), ...(lineup.op ? { op: toData(lineup.op) } : {}) };
 }
@@ -103,6 +111,7 @@ function pitchTeams(lineup, palette) {
   return [...(lineup.op ? [{ list: lineup.op, color: lineup.oc }] : []), { list: lineup.pl, color: lineup.c || palette.start }];
 }
 
+// 試合結果を、渡す形に戻す（得点を配列に）
 function matchToData(match) {
   return { ...match, g: match.g.map((g) => [g.side, g.min, g.name]) };
 }
@@ -122,6 +131,7 @@ const TOOL_LINK_FEATURE = "hideToolLink";
 const TOOL_NAME = "さくせん盤"; // SAQSEN
 const TOOL_TAP_HINT = { lineup: `ピッチをタップすると ${TOOL_NAME} が開きます`, match: `タップすると ${TOOL_NAME} が開きます` };
 
+// カードに「さくせん盤で開く」の案内を出すか（消せるプランで消しているときは出さない）
 function soccerToolLinkShown() {
   return !(state.hideToolLink && window.LineSharePlan?.has?.(TOOL_LINK_FEATURE));
 }
@@ -131,12 +141,16 @@ function soccerToolAction(uri) {
   return soccerToolLinkShown() ? { type: "uri", label: `${TOOL_NAME}を開く`, uri } : null;
 }
 
+// プレビューに出す、タップの案内
 const toolTapHintEl = (kind) => (soccerToolLinkShown() ? [Object.assign(document.createElement("p"), { className: "sc-tap", textContent: TOOL_TAP_HINT[kind] })] : []);
+// カードに入れる、タップの案内
 const toolTapHintFlex = (kind) => (soccerToolLinkShown() ? [{ type: "text", text: TOOL_TAP_HINT[kind], size: "xxs", color: "#9CA3AF", align: "center" }] : []);
 
 // 相手も描くとき（2チーム分）は縦に長くして、選手どうし・名前が重ならないようにする
 const pitchHeight = (lineup) => (lineup.m === "futsal" ? 300 : 360) + (lineup.op ? (lineup.m === "futsal" ? 80 : 120) : 0);
+// 選手の丸の幅（ピッチの幅に対する %）
 const tokenWidth = (lineup) => (lineup.m === "futsal" ? 26 : 19); // %
+// 先頭の選手が GK か
 const isKeeper = (lineup, index) => index === 0; // 先頭は GK
 
 // 選手の丸の色（チームの色。GK も同じ色で、丸の左下に 🧤 を付けて見分ける）と、その上の背番号の色
@@ -144,6 +158,7 @@ const isLightColor = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
 };
+// 選手の丸の色・文字の色・縁の色
 function tokenColors(lineup, index, palette, color) {
   const fill = color || lineup.c || palette.start;
   const light = isLightColor(fill);
@@ -152,6 +167,7 @@ function tokenColors(lineup, index, palette, color) {
 
 // ---- プレビュー ----
 
+// スタメン・試合結果のプレビューを描く（ほかの形式では隠す）
 function renderSoccerPreview(palette) {
   els.lineupArea.hidden = state.kind !== "lineup";
   els.matchArea.hidden = state.kind !== "match";
@@ -161,6 +177,7 @@ function renderSoccerPreview(palette) {
   if (state.kind === "match") renderMatchPreview(palette);
 }
 
+// スタメンのピッチのプレビューを描く
 function renderPitchPreview(palette) {
   const lineup = state.lineup;
   if (!lineup) {
@@ -199,6 +216,7 @@ function renderPitchPreview(palette) {
   els.lineupArea.replaceChildren(...parts);
 }
 
+// 試合結果のプレビューを描く
 function renderMatchPreview(palette) {
   const match = state.match;
   if (!match) {
@@ -244,6 +262,7 @@ function renderMatchPreview(palette) {
   els.matchArea.replaceChildren(box, ...toolTapHintEl("match"));
 }
 
+// 2つとも点が入っているか
 const hasPair = (a, b) => a !== "" && b !== "";
 
 // 前半・後半・延長の内訳（入っているものだけ）
@@ -254,11 +273,14 @@ function periodsText(match) {
     .join("・");
 }
 
+// PK の文（PK がなければ空）
 const pkText = (match) => (hasPair(match.pu, match.pt) ? `PK ${match.pu} - ${match.pt}` : "");
 
 // 勝ち・負けはチームごと（us・them）、引き分けは1つ（draw）。同点で PK があれば PK で決める
 function matchSides(match, palette) {
+  // 勝ちの印
   const win = (pk) => ({ label: pk ? "勝ち（PK）" : "勝ち", color: palette.start });
+  // 負けの印
   const lose = (pk) => ({ label: pk ? "負け（PK）" : "負け", color: "#6B7280" });
   if (match.us > match.th) return { us: win(), them: lose() };
   if (match.us < match.th) return { us: lose(), them: win() };
@@ -268,6 +290,7 @@ function matchSides(match, palette) {
   return { draw: { label: "引き分け", color: "#9CA3AF" } };
 }
 
+// 勝ち・負け・引き分けの印を作る
 function badgeEl(result) {
   const el = Object.assign(document.createElement("span"), { className: "sc-result", textContent: result.label });
   el.style.background = result.color;
@@ -317,6 +340,7 @@ function absBox(props) {
   return { type: "box", layout: "vertical", position: "absolute", contents: [], ...props };
 }
 
+// 丸い線（センターサークル）の箱
 const circleFlex = (size) => ({ type: "box", layout: "vertical", width: `${size}px`, height: `${size}px`, cornerRadius: `${size / 2}px`, borderWidth: "2px", borderColor: LINE_COLOR, contents: [] });
 
 /**
@@ -325,6 +349,7 @@ const circleFlex = (size) => ({ type: "box", layout: "vertical", width: `${size}
  */
 function futsalAreasFlex(height) {
   const d = Math.round(height * 0.15);
+  // D 形のエリアの、上か下の半分の箱
   const inner = (side) => ({ ...absBox({ width: "100%", height: `${d * 2}px`, cornerRadius: `${d}px`, borderWidth: "2px", borderColor: LINE_COLOR }), ...(side === "top" ? { offsetBottom: "0px" } : { offsetTop: "0px" }), offsetStart: "0px" });
   return [
     { type: "box", layout: "vertical", position: "absolute", offsetTop: `${Math.round(height * 0.04)}px`, offsetStart: "15%", width: "70%", height: `${d}px`, contents: [inner("top")] },

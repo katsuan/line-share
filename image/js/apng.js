@@ -1,4 +1,4 @@
-// 動く画像（APNG）の組み立て。文字アイコン（TextIconSender）から移植。
+// 文字・手書き：動く画像（APNG）を作る。image/app.js が読む。
 // LINE の Flex で animated: true の画像は 300KB まで。
 
 export const MOTIONS = [
@@ -15,6 +15,7 @@ const APNG_FRAME_DURATION_MS = 70;
 const APNG_FRAME_COUNTS = [12, 8, 6, 4];
 const APNG_COLOR_LEVELS = [256, 64, 32, 16, 8];
 
+// 動きの種類と時間（0〜1）から、そのコマの動かし方（ずらす・大きさ）を返す
 export function computeMotionTransform(preset, t, width, height = width) {
   const size = Math.min(width, height);
   const shake = size * (10 / 180);
@@ -36,6 +37,7 @@ export function computeMotionTransform(preset, t, width, height = width) {
   }
 }
 
+// キャンバスを PNG の Blob にする
 export function canvasToBlob(canvas) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("PNG の生成に失敗しました。"))), "image/png");
@@ -66,6 +68,7 @@ export async function buildAnimationBlob({ width, height, preset, renderFrame })
   return { blob: last, oversized: true };
 }
 
+// 動きの各コマを描いた PNG を、frameCount 枚作る
 function renderFrames_(width, height, preset, frameCount, renderFrame) {
   const frames = [];
   for (let i = 0; i < frameCount; i += 1) {
@@ -81,6 +84,7 @@ function renderFrames_(width, height, preset, frameCount, renderFrame) {
   return frames;
 }
 
+// コマを PNG にする（colorLevels で色の数を減らして小さくする）
 async function encodeFrames_(frames, width, height, colorLevels) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -96,6 +100,7 @@ async function encodeFrames_(frames, width, height, colorLevels) {
   return blobs;
 }
 
+// 画像の色の段階を levels に減らす（ファイルを小さくするため）
 function quantize_(imageData, levels) {
   const step = 256 / levels;
   const data = imageData.data;
@@ -105,6 +110,7 @@ function quantize_(imageData, levels) {
 }
 
 const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+// CRC32 の表（PNG のかたまりの確かめに使う）
 const CRC32_TABLE = (() => {
   const table = new Uint32Array(256);
   for (let n = 0; n < 256; n += 1) {
@@ -117,6 +123,7 @@ const CRC32_TABLE = (() => {
   return table;
 })();
 
+// バイト列の CRC32
 function crc32_(bytes) {
   let c = 0xffffffff;
   for (let i = 0; i < bytes.length; i += 1) {
@@ -125,6 +132,7 @@ function crc32_(bytes) {
   return (c ^ 0xffffffff) >>> 0;
 }
 
+// PNG のかたまり（長さ・種類・中身・CRC）を作る
 function chunk_(type, data) {
   const chunk = new Uint8Array(12 + data.length);
   const view = new DataView(chunk.buffer);
@@ -135,6 +143,7 @@ function chunk_(type, data) {
   return chunk;
 }
 
+// PNG から、APNG に入れる中身（IHDR と IDAT）を取り出す
 async function frameParts_(blob) {
   const buffer = await blob.arrayBuffer();
   const bytes = new Uint8Array(buffer);
@@ -158,6 +167,7 @@ async function frameParts_(blob) {
   return { ihdr, idatData };
 }
 
+// APNG の1コマの設定（fcTL）を作る
 function fcTL_(sequence, width, height) {
   const data = new Uint8Array(26);
   const view = new DataView(data.buffer);
@@ -169,6 +179,7 @@ function fcTL_(sequence, width, height) {
   return chunk_("fcTL", data);
 }
 
+// PNG のコマをつないで APNG にする
 async function buildApng_(frameBlobs, width, height) {
   const parts = await Promise.all(frameBlobs.map(frameParts_));
   const acTL = new Uint8Array(8);

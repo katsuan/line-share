@@ -1,4 +1,4 @@
-// カード上部の色付きヘッダー（お知らせカードと同じ見た目）。場所・予定の両方で使う。
+// 場所・予定：カードの上の色の帯（見出し・サブタイトル・色）。map.js と calendar.js が bindHeader で入力をつなぎ、card.js が headerFlex で帯を作る。
 
 // 色の並びは全ツール共通（shared/ui.js の PALETTE。先頭はおくるんの紫）。最後に「ほかの色」
 export const HEADER_THEMES = Object.fromEntries(window.LineShareUI.PALETTE.map((color) => [color.key, color]));
@@ -8,6 +8,7 @@ export const HEADER_THEMES = Object.fromEntries(window.LineShareUI.PALETTE.map((
  * prefix は要素 id の頭（mapHeader / eventHeader）。最後に使った見出しと色は端末に残す。
  */
 export function bindHeader({ prefix, defaultTitle, onChange }) {
+  // 要素 id の頭を付けて要素を探す
   const el = (name) => document.getElementById(`${prefix}${name}`);
   const title = el("Title");
   const subtitle = el("Sub");
@@ -52,8 +53,10 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
   custom.append(picker);
   themes.replaceChildren(...buttons, custom);
 
+  // 選んでいる色（グラデーションの始まりと終わり）
   const colors = () => (theme === "custom" ? window.LineShareUI.paletteFromColor(customColor) : HEADER_THEMES[theme]);
 
+  // カードに使う見出し・サブタイトル・色。見出しが空なら null
   function get() {
     const value = title.value.trim();
     if (!value) return null;
@@ -61,6 +64,7 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
     return { title: value, subtitle: subtitle.value.trim(), start, end, theme };
   }
 
+  // 色のボタンの押した見た目と、プレビューの帯の色をそろえる
   function sync() {
     for (const button of buttons) button.setAttribute("aria-pressed", String(button.dataset.theme === theme));
     custom.classList.toggle("is-selected", theme === "custom");
@@ -73,6 +77,7 @@ export function bindHeader({ prefix, defaultTitle, onChange }) {
     band.style.background = on ? `linear-gradient(135deg, ${start}, ${end})` : "";
   }
 
+  // 変わったら端末に残し、見た目をそろえて onChange を呼ぶ
   function changed() {
     save_(storageKey, { title: title.value, subtitle: subtitle.value, theme, customColor });
     sync();
@@ -120,6 +125,7 @@ export function headerFlex(header) {
   };
 }
 
+// 端末に残した見出しと色を読む（読めなければ空）
 function load_(key) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || "{}");
@@ -129,6 +135,7 @@ function load_(key) {
   }
 }
 
+// 見出しと色を端末に残す（残せない端末ではそのまま）
 function save_(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));

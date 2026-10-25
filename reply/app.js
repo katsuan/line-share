@@ -1,4 +1,4 @@
-// カードのボタン（投票・チェックリストの完了など）から開かれ、リンクで渡された文をそのトークに送る。
+// トークに送る（/reply/）の入口（reply/index.html が読む）：カードのボタン（投票・チェックリストの完了など）から開かれ、リンクで渡された文をそのトークに送る。
 // LIFF で送るカードには URI アクション（リンク）しか付けられないので、押すとこのページが開き、
 // liff.sendMessages でテキストを送る（テキストなら送れる）。送ったら閉じる。
 // 他人が作ったカードから意図しない文を送らされないよう、送る前に内容を見せて「この内容で送る」を押してもらう。
@@ -78,12 +78,14 @@ function setupChoices(params) {
     });
     return button;
   });
+  // 候補のボタンの押した見た目を、選んでいる候補にそろえる
   const sync = () => buttons.forEach((b, i) => b.setAttribute("aria-pressed", String(i === picked)));
   sync();
   els.choices.replaceChildren(...buttons);
   els.choiceArea.hidden = false;
 }
 
+// LIFF を用意して、送り方（このトークに送る・送り先を選ぶ・コピーだけ）を決める
 async function prepare() {
   const { MESSAGES } = window.LineShareLiff;
   setStatus(MESSAGES.connecting);
@@ -133,6 +135,7 @@ function fit() {
   els.replyText.style.height = `${els.replyText.scrollHeight}px`;
 }
 
+// 文を送る（このトークか、選んだ送り先に）。送れたら閉じる
 async function send() {
   els.sendButton.disabled = true;
   setStatus(mode === "here" ? "送っています…" : "");
@@ -158,6 +161,7 @@ async function send() {
   }
 }
 
+// 文をコピーする（LINE 版ではコピーしたらトークに戻る）
 async function copy() {
   try {
     await navigator.clipboard.writeText(text);
@@ -169,6 +173,7 @@ async function copy() {
   }
 }
 
+// 案内の欄に文を出す（tone："error"・"success"）
 function setStatus(message, tone = "") {
   els.status.textContent = message;
   els.status.className = `ls-status${tone ? ` is-${tone}` : ""}`;

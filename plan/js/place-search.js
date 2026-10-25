@@ -1,14 +1,18 @@
-import { CONFIG } from "./config.js?v=202610251125";
-import { setMessage, toUserMessage, UserError } from "./page.js?v=202610251125";
-import { isHttpsUrl } from "./link.js?v=202610251125";
+// 場所・予定：Google Maps の場所の検索（Places API。config.js に API キーがあるときだけ出す）。
+// map.js と calendar.js が bindPlaceSearch で検索の欄をつなぐ。
+import { CONFIG } from "./config.js?v=202610251141";
+import { setMessage, toUserMessage, UserError } from "./page.js?v=202610251141";
+import { isHttpsUrl } from "./link.js?v=202610251141";
 
 // Google Maps JavaScript API（Places）で場所を検索する。サーバー不要。
 let mapsLoading = null;
 
+// 場所の検索が使えるか（API キーがあるか）
 export function hasPlaceSearch() {
   return Boolean(CONFIG.googleMapsApiKey);
 }
 
+// Google Maps の JavaScript API を1回だけ読みこむ
 function loadMaps_() {
   if (window.google?.maps?.importLibrary) {
     return Promise.resolve();
@@ -30,6 +34,7 @@ function loadMaps_() {
   return mapsLoading;
 }
 
+// 場所名・住所で検索して、候補（場所名・住所・地図のリンク・写真）を返す
 export async function searchPlaces(query) {
   const textQuery = query.trim();
   if (!textQuery) {
@@ -75,6 +80,7 @@ export function bindPlaceSearch({ input, button, results, message, onSelect }) {
 
   const idleLabel = button.textContent;
 
+  // 検索して、候補を並べる（押すと onSelect で選んだ場所を渡す）
   async function run() {
     button.disabled = true;
     button.textContent = "検索中…";
@@ -120,6 +126,7 @@ export function bindPlaceSearch({ input, button, results, message, onSelect }) {
   });
 }
 
+// 検索の欄の下に出す小さな案内を作る
 function createNote_(text) {
   const note = document.createElement("p");
   note.className = "ls-hint";

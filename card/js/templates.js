@@ -1,5 +1,6 @@
-// お知らせカード：テンプレート（用意済み data/templates.json と、自分で保存したもの）・JSON コピー
+// お知らせカード：テンプレート（用意済み data/templates.json と、自分で保存したもの）・JSON コピー。card/index.html が順に読む（同じ範囲の変数を使う）。
 
+// テンプレートの中の "{top}" を、おくるんのトップの URL にする
 function replaceTop(value) {
   if (typeof value === "string") return value.replaceAll("{top}", TOP_URL);
   if (Array.isArray(value)) return value.map(replaceTop);
@@ -7,6 +8,7 @@ function replaceTop(value) {
   return value;
 }
 
+// data/templates.json の card（用意済みのテンプレート）を読んで並べる。?template= で開いたときは当てはめる
 async function loadPresets() {
   const { card } = await window.LineShareUI.loadTemplates();
   PRESETS = Object.fromEntries((Array.isArray(card) ? card : []).filter((preset) => preset?.state).map((preset, index) => [preset.key || `preset${index}`, replaceTop(preset)]));
@@ -20,6 +22,7 @@ async function loadPresets() {
 
 // ---- テンプレート ----
 
+// 自分で保存したテンプレート（名前のないものは読まない）
 function getTemplates() {
   const templates = loadJson(TEMPLATE_KEY);
   // 壊れた行（名前のないもの）は読まない。中身は当てはめるときに hydrate で形をそろえる
@@ -65,6 +68,7 @@ function getLastSent() {
   return saved && typeof saved === "object" && !Array.isArray(saved) && Object.keys(saved).length ? [saved] : null;
 }
 
+// テンプレートの一覧（前回送った内容・用意済み・自分で保存したもの）を並べる
 function renderTemplates() {
   // 先頭は「前回送った内容」（あれば）。用意済みのテンプレートは横に並べ、保存したものはその下に一覧で出す
   const lastSent = getLastSent();
@@ -124,6 +128,7 @@ function presetTile(iconText, label, description, onClick) {
   return button;
 }
 
+// 保存したテンプレートを選ぶボタンを作る
 function createTemplateButton(title, description, onClick) {
   const button = document.createElement("button");
   button.type = "button";
@@ -137,6 +142,7 @@ function createTemplateButton(title, description, onClick) {
   return button;
 }
 
+// テンプレートの中身を今のカードに当てはめる（大きさはそのまま）
 function applyTemplateState(source) {
   // テンプレートは今のカードにだけ当てはめる。大きさは全カードでそろえたまま
   state = hydrate({ ...source, bubbleSize: state.bubbleSize });
@@ -146,6 +152,7 @@ function applyTemplateState(source) {
   render();
 }
 
+// 今のカードに名前を付けてテンプレートに残す
 function saveTemplate() {
   const name = els.templateNameInput.value.trim();
   if (!name) {
@@ -161,6 +168,7 @@ function saveTemplate() {
   setStatus(window.QSeason?.decorate(`「${name}」として保存しました。`) ?? `「${name}」として保存しました。`);
 }
 
+// 保存したテンプレートを消す（聞かずに消して、「元に戻す」を出す）
 function deleteTemplate(name) {
   // 聞かずに消して、「元に戻す」を出す
   const before = getTemplates();
@@ -175,6 +183,7 @@ function deleteTemplate(name) {
   });
 }
 
+// 送るカードの中身（Flex Message）の JSON をコピーする
 async function copyJson() {
   try {
     await navigator.clipboard.writeText(JSON.stringify(buildDeckMessage({ credit: false }), null, 2));

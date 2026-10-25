@@ -35,6 +35,7 @@ const RULES = [
   { id: "S1", kind: "any", re: /(channel(Access)?Token|CHANNEL_ACCESS_TOKEN|client_secret|CHANNEL_SECRET)\s*[:=]\s*["'][A-Za-z0-9+/=]{30,}["']/, why: "LINE の鍵をコードに書いている（Script Properties に）" },
 ];
 
+// フォルダの中のコードのファイルを集める（見ないフォルダは飛ばす）
 function walk(dir, out) {
   for (const name of fs.readdirSync(dir)) {
     if (SKIP_DIRS.has(name)) continue;
@@ -47,6 +48,7 @@ function walk(dir, out) {
 }
 
 const files = walk(root, []);
+// GAS のファイルか（.gs か、GAS のサービスを使っているもの）
 const isGas = (f, text) => /\.gs$/.test(f) || /\b(SpreadsheetApp|PropertiesService|UrlFetchApp|ContentService)\b/.test(text);
 const findings = [];
 for (const file of files) {

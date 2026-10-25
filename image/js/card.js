@@ -1,5 +1,5 @@
-// 送るメッセージ（画像か、画像を大きく見せるカード）を組み立てる（画面には触らない）
-import { BUBBLE_SIZES } from "./config.js?v=202610251125";
+// 文字・手書き：送るメッセージ（画像か、画像を大きく見せるカード）を組み立てる（画面には触らない）。image/app.js が読む。
+import { BUBBLE_SIZES } from "./config.js?v=202610251141";
 
 // 今の LINE ではカード（Flex）の背景は透過しない（元の文字アイコンも同じ）。透過したいときは「画像で送る」
 export function buildMessage(mode, imageUrl, item) {
@@ -44,6 +44,7 @@ export function buildMessage(mode, imageUrl, item) {
 
 // 縦横比を約分して「横:縦」にする（LINE の上限に合わせて 3 倍までに抑える）
 export function aspectRatio(width, height) {
+  // 最大公約数
   const gcd = (a, b) => (b ? gcd(b, a % b) : a);
   const divisor = gcd(width, height) || 1;
   let w = width / divisor;

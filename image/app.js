@@ -1,15 +1,15 @@
-// 文字アイコン（TextIconSender）と手書き（LIFF Draw Send）の統合版。画面・手書きの操作・送信・送った画像。
-// 文字と手書きを1枚に重ねられ、縁取り・背景・動きは両方に共通でかかる。
-// 決まった値は js/config.js、描く処理は js/draw.js、動く画像は js/apng.js、送った画像は js/history.js、送るメッセージの組み立ては js/card.js。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./js/apng.js?v=202610251125";
-import { addSent, deleteSent, listSent, restoreSent } from "./js/history.js?v=202610251125";
+// 文字・手書き（/image/）の入口：文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動きを付けて、画像かカードで送る。
+// 中身：画面の設定・手書きの操作・プレビュー・送る・送った画像の一覧・設定を端末に残す。image/index.html が type="module" で読む。
+// 部品は js/：決まった値は config.js、描く処理は draw.js、動く画像は apng.js、送った画像は history.js、送るメッセージは card.js。
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./js/apng.js?v=202610251141";
+import { addSent, deleteSent, listSent, restoreSent } from "./js/history.js?v=202610251141";
 
 import {
   ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
   LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
-} from "./js/config.js?v=202610251125";
-import { buildLayer, compose, dims, fontOf, needsWebFont } from "./js/draw.js?v=202610251125";
-import { buildMessage } from "./js/card.js?v=202610251125";
+} from "./js/config.js?v=202610251141";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./js/draw.js?v=202610251141";
+import { buildMessage } from "./js/card.js?v=202610251141";
 
 const config = window.LINE_SHARE_CONFIG || {};
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）
@@ -75,6 +75,7 @@ async function loadWebFont_() {
 
 // 描く前に呼ぶ。まだ読み込まれていなければ読み込み、終わったら描き直す（読み込み済みなら何もしない）
 let fontLoading = "";
+// 手書き風の書体（Web フォント）を使うときは、読みこみを始め、読めたら描きなおす
 function ensureWebFont_() {
   if (!needsWebFont(state) || !document.fonts) return;
   const key = `${fontOf(state, 48)}|${state.text}`;
@@ -89,6 +90,7 @@ function ensureWebFont_() {
 // プレビュー用の layer は内容が変わったときだけ作り直し、アニメーション中は使い回す
 let previewLayer = null;
 
+// 次の描画のタイミングで1回だけ描きなおす（何度呼んでも1回）
 function requestRender() {
   if (renderQueued) return;
   renderQueued = true;
@@ -108,6 +110,7 @@ function isPreviewMoving_() {
   return state.motion !== "none" && state.sendMode === "card" && state.mode !== "draw";
 }
 
+// プレビューを描きなおす。動きがあるときは、動きを付けてくり返し描く
 function restartPreview_() {
   ensureWebFont_();
   cancelAnimationFrame(animationFrame);
@@ -125,6 +128,7 @@ function restartPreview_() {
     return;
   }
   const start = performance.now();
+  // 動きの1コマを描いて、次のコマを予約する
   const loop = (now) => {
     const t = ((now - start) % 900) / 900;
     compose(state, ctx, width, height, previewLayer, computeMotionTransform(state.motion, t, width, height));
@@ -135,6 +139,7 @@ function restartPreview_() {
 
 // ---- 手書き ----
 
+// 指・マウスの位置を、手書きの座標（キャンバスの真ん中が 0、短い辺が 1）にする
 function pointFromEvent_(event) {
   const rect = els.canvas.getBoundingClientRect();
   const unit = Math.min(rect.width, rect.height);
@@ -144,6 +149,7 @@ function pointFromEvent_(event) {
   ];
 }
 
+// 手書きの指・マウスの操作をつなぐ（描く・描き終える）
 function bindDrawing_() {
   const canvas = els.canvas;
 
@@ -178,6 +184,7 @@ function bindDrawing_() {
     requestRender();
   });
 
+  // 描き終えたら、線を残して「元に戻す」に入れる
   const finish = (event) => {
     const stroke = state.currentStroke;
     if (!stroke || stroke.pointerId !== event.pointerId) return;
@@ -191,11 +198,13 @@ function bindDrawing_() {
   canvas.addEventListener("pointercancel", finish);
 }
 
+// 今の線を「元に戻す」の記録に入れる（50回まで）
 function pushUndo_() {
   state.undoStack.push(state.strokes.slice());
   if (state.undoStack.length > 50) state.undoStack.shift();
 }
 
+// 「元に戻す」「全部消す」のボタンと、手書きの案内をそろえる
 function updateUndo_() {
   els.undoButton.disabled = state.undoStack.length === 0;
   els.clearButton.disabled = state.strokes.length === 0;
@@ -205,6 +214,7 @@ function updateUndo_() {
 
 // ---- 画面 ----
 
+// 設定のボタン（書体・色・太さ・縁取り・背景・動き・形）を並べる
 function buildControls_() {
   window.LineShareUI.loadTemplates().then(({ text }) => {
     const presets = Array.isArray(text) ? text.filter((value) => typeof value === "string") : [];
@@ -241,6 +251,7 @@ function buildControls_() {
 
 const choiceGroups = [];
 
+// 選ぶボタンの並びを作る。get で今の値、set で押したときの値を入れる。decorate でボタンの見た目を足せる
 function buildChoices_(container, options, get, set, decorate) {
   const buttons = options.map((option) => {
     const button = document.createElement("button");
@@ -303,6 +314,7 @@ function buildSwatches_(container, colors, get, set, { basics = [], noneLabel = 
   choiceGroups.push({ buttons, get, custom, input });
 }
 
+// 選ぶボタンの押した見た目を、今の設定にそろえる
 function syncChoices_() {
   for (const group of choiceGroups) {
     const current = JSON.stringify(group.get());
@@ -323,6 +335,7 @@ function syncChoices_() {
   }
 }
 
+// 今の設定を画面（タブ・出し分け・プレビュー・送るボタン）にそろえる
 function applyState_() {
   const isDraw = state.mode === "draw";
   els.modeText.setAttribute("aria-selected", String(!isDraw));
@@ -370,6 +383,7 @@ function applyState_() {
 
 // アコーディオンの見出しの右に、今の設定を短く出す
 function updateMeta_() {
+  // 選択肢の値に合う名前（なければ空）
   const labelOf = (options, value) => options.find((option) => option.value === value)?.label || "";
   const text = state.text.trim().replace(/\s+/g, " ");
   els.textMeta.textContent = text ? (text.length > 10 ? `${text.slice(0, 10)}…` : text) : "なし";
@@ -385,6 +399,7 @@ function updateMeta_() {
   els.cardMeta.textContent = state.sendMode === "card" ? `${state.bubbleSize}・${labelOf(MOTIONS, state.motion) || "なし"}` : "—（画像）";
 }
 
+// 送るボタンの文字（送り方に合わせる）
 function sendLabel_() {
   return state.sendMode === "card" ? "カードで送る" : "画像で送る";
 }
@@ -421,11 +436,13 @@ function clearText_() {
   });
 }
 
+// 設定が変わったら、端末に残して画面をそろえる
 function onChange_() {
   savePrefs_();
   applyState_();
 }
 
+// 入力・ボタンの操作をつなぐ
 function bindEvents_() {
   els.cardSizeRange.addEventListener("input", () => {
     state.bubbleSize = BUBBLE_SIZES[Number(els.cardSizeRange.value)] || "giga";
@@ -496,6 +513,7 @@ function bindEvents_() {
   bindDrawing_();
 }
 
+// 文字か手書きが入っているか
 function hasContent_() {
   return Boolean(state.text.trim()) || state.strokes.length > 0;
 }
@@ -505,6 +523,7 @@ function updatePreviewError_() {
   window.LineShareUI.setPreviewError(els.cardFrame, hasContent_() ? "" : "文字を入れるか、手書きで描いてください。");
 }
 
+// 送る帯の上の案内に文を出す（tone："error"・"success"）
 function setStatus_(message, tone = "") {
   els.status.textContent = message;
   els.status.className = `ls-status ${tone ? `is-${tone}` : ""}`;
@@ -512,6 +531,7 @@ function setStatus_(message, tone = "") {
 
 // ---- 書き出し ----
 
+// 送る画像を作る（動きがあってカードで送るときは APNG、ほかは PNG）。{ blob, width, height, animated }
 async function buildImage_() {
   await loadWebFont_();
   if (state.motion === "none" || state.sendMode !== "card") {
@@ -536,6 +556,7 @@ async function buildImage_() {
   return { blob, width, height, animated: true };
 }
 
+// 作った画像を見せて、端末に保存できるシートを出す
 async function openSaveSheet_() {
   if (!hasContent_()) {
     setStatus_("文字を入れるか、手書きで描いてください。", "error");
@@ -549,11 +570,13 @@ async function openSaveSheet_() {
   openSheet_(els.saveSheet);
 }
 
+// シートを出して、最初のボタンに移る
 function openSheet_(sheet) {
   sheet.hidden = false;
   sheet.querySelector("button, a")?.focus();
 }
 
+// シートを閉じる
 function closeSheet_(sheet) {
   sheet.hidden = true;
 }
@@ -571,6 +594,7 @@ async function uploadImage_(blob) {
   return window.LineSharePlan.upload(dataUrl);
 }
 
+// 作った画像を送る（文字も手書きもないときは案内を出す）
 async function send_() {
   if (!hasContent_()) {
     setStatus_("文字を入れるか、手書きで描いてください。", "error");
@@ -629,6 +653,7 @@ async function sendImage_(item) {
 
 let historyUrls = [];
 
+// 送った画像の一覧を並べなおす（押すと送りなおす・× で消す）
 async function renderHistory_() {
   const items = await listSent();
   historyUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -677,6 +702,7 @@ async function renderHistory_() {
   );
 }
 
+// LIFF を用意する（LINE 版でなければログインへ移る）。用意できたら送るボタンを使えるようにする
 async function initLiff_() {
   els.sendButton.disabled = true;
   if (!config.liffId) {
@@ -701,6 +727,7 @@ async function initLiff_() {
 
 // ---- 設定の保存（使えない環境でも動くように） ----
 
+// 端末に残した設定を読む（型や選択肢がおかしいものは使わない）
 function loadPrefs_() {
   try {
     const saved = JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
@@ -719,6 +746,7 @@ function loadPrefs_() {
       bubbleSize: BUBBLE_SIZES,
       outline: [...OUTLINES.map((item) => item.value), "custom"]
     };
+    // その設定を使ってよいか（型が合い、選ぶものは選択肢の中）
     const ok = (key) => fits(key) && (!choices[key] || choices[key].includes(saved[key]));
     return Object.fromEntries(Object.keys(DEFAULT_PREFS).filter((key) => key in saved && ok(key)).map((key) => [key, saved[key]]));
   } catch {
@@ -726,6 +754,7 @@ function loadPrefs_() {
   }
 }
 
+// 今の設定を端末に残す（残せない端末ではそのまま）
 function savePrefs_() {
   try {
     const prefs = Object.fromEntries(Object.keys(DEFAULT_PREFS).map((key) => [key, state[key]]));

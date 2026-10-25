@@ -8,6 +8,7 @@ const { createGas, checkMessages } = require(path.join(__dirname, "fake-gas.js")
 
 // 見本の GAS（本当は createGas({ dir: path.join(__dirname, "../gs") }) のように、リポジトリの GAS を読む）
 const SOURCE = `
+// 見本の入口：LINE の Webhook（合言葉つき）か、画面からの呼び出しを受ける
 function doPost(e) {
   var body = JSON.parse(e.postData.contents);
   if (body.events) {
@@ -22,13 +23,17 @@ function doPost(e) {
   if (!body.idToken) return out({ ok: false, error: 'LINE で開きなおしてね' });
   return out({ ok: true });
 }
+// JSON を返す
 function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+// LINE に返事をする
 function reply(token, messages) {
   UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', { method: 'post', contentType: 'application/json', payload: JSON.stringify({ replyToken: token, messages: messages }) });
 }
+// シートに書く文字が式として動かないようにする
 function safeCell(v) { return typeof v === 'string' && /^[=+\\-@]/.test(v) ? "'" + v : v; }
 `;
 
+// 見本の GAS を偽物の上に用意する
 const make = () => {
   const gas = createGas({ source: SOURCE, properties: { WEBHOOK_KEY: "secret" } });
   gas.seed("logs", [["at", "name"]]);

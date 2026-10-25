@@ -1,7 +1,8 @@
-// お知らせカード：リンクの確かめ（送ってよいリンクか）
+// お知らせカード：リンクの確かめ（送ってよいリンクか）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- URL ----
 
+// protocols のどれかで始まる URL なら整えた URL、ほかは空
 function parseUrl(value, protocols) {
   try {
     const url = new URL(String(value || "").trim());
@@ -11,10 +12,12 @@ function parseUrl(value, protocols) {
   }
 }
 
+// https の URL か
 function isHttpsUrl(value) {
   return Boolean(parseUrl(value, ["https:"]));
 }
 
+// 送ってよい行き先か（katsuan.github.io と、自分たちの LIFF だけ）
 function isAllowedHost(url) {
   try {
     const { hostname, pathname } = new URL(url);
@@ -25,6 +28,7 @@ function isAllowedHost(url) {
   }
 }
 
+// リンクで渡された URL で、送ってよい行き先でないもの（送るときに外す）か
 function isBlockedQueryUrl(value) {
   const url = String(value || "").trim();
   return Boolean(url) && queryUrls.has(url) && !isAllowedHost(url);

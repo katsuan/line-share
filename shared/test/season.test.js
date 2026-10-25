@@ -10,7 +10,9 @@ const QSeason = require("../season.js");
 
 // 日本時間のその日の正午
 const jstDay = (y, m, d) => new Date(Date.UTC(y, m - 1, d, 3));
+// その日のイベントの key の一覧
 const keys = (date) => QSeason.events({ date }).map((e) => e.key);
+// いつも同じ数を返す（rand の代わり）
 const fixed = (v) => () => v;
 
 test("ハロウィンの時期と当日", () => {

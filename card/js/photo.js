@@ -1,9 +1,10 @@
-// お知らせカード：端末の写真（縮めてアップロード。保存先は shared/plan.js が選ぶ）
+// お知らせカード：端末の写真（縮めてアップロード。保存先は shared/plan.js が選ぶ）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- 端末の写真 ----
 
 const PHOTO_MAX_SIDE = 1200;
 
+// 端末の写真を縮めてアップロードし、カードの写真にする
 async function uploadPhoto(file) {
   if (!file.type.startsWith("image/")) {
     setPhotoStatus("画像ファイルを選んでください。", true);
@@ -69,6 +70,7 @@ function resizePhoto(file) {
   });
 }
 
+// 写真の欄の下に案内を出す（isError で赤）
 function setPhotoStatus(message, isError = false) {
   els.photoStatus.textContent = message;
   els.photoStatus.hidden = !message;

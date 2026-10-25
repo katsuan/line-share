@@ -1,4 +1,5 @@
-// 全ツール共通の LIFF の準備。ツールごとに違うのは「LINE の外で開いたときのログインのしかた」だけ。
+// 全ツール共通の LIFF の準備・送る・URL の片づけ（window.LineShareLiff）。おくるんの各ページと、ほかの Q のツールが読む。
+// ツールごとに違うのは「LINE の外で開いたときのログインのしかた」だけ。
 //   login: "redirect" … LINE の外ではログイン画面へ移る（場所・予定）
 //          "external" … LINE の外ではログイン画面へ移る（文字・手書き。redirect と同じ動き）
 //          "none"     … ログインさせない。送るときに LINE アプリ内か確かめる（お知らせカード）
@@ -20,6 +21,7 @@
   let userHash = null; // ログイン中のユーザーIDの SHA-256（Promise）。作成者かどうかを見るのに使う
   const TIMEOUT_MS = 10000;
 
+  // LIFF を1回だけ用意する。{ ready, reason } を返す（10秒で終わらなければ timeout）
   function init({ login = "none" } = {}) {
     if (pending) return pending;
     const timeout = new Promise((resolve) => setTimeout(() => resolve({ ready: false, reason: "timeout" }), TIMEOUT_MS));
@@ -27,6 +29,7 @@
     return pending;
   }
 
+  // liff.init を呼び、ログインが要る開き方ならログインへ移る
   function start(login) {
     return (async () => {
       const liffId = window.LINE_SHARE_CONFIG?.liffId;
@@ -48,6 +51,7 @@
     })();
   }
 
+  // 文字の SHA-256（16進）
   async function sha256(text) {
     const bytes = new TextEncoder().encode(text);
     const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -89,6 +93,7 @@
    * 送り先選びが開いている間にもう一度呼ばれたら（二重押し）、2つ目は開かずに同じ結果を返す
    */
   let picking = null;
+  // 送り先を選んで送る。送れたら true、閉じられたら false
   function share(messages) {
     if (picking) return picking;
     picking = (async () => {
@@ -127,6 +132,7 @@
   // ブラウザで開いたときは「このブラウザのまま LINE でログインする」か「LINE アプリで開き直す」のどちらかで送れるようにする。
   // （キロっくと同じ考え方。LINE アプリの中で送れないときはログインでは直らないので、案内は出さない）
 
+  // LINE 版で開いているか・ログインしているか（LIFF の準備の前でも例外にしない）
   function environment() {
     try {
       return { inClient: Boolean(window.liff?.isInClient?.()), loggedIn: Boolean(window.liff?.isLoggedIn?.()) };
@@ -138,6 +144,7 @@
   // 読み終えたクエリ（ほかのツールから渡された中身）を URL から消す。長い URL がアドレス欄・タブ・履歴に残らないように。
   // LIFF とログインの戻りに使う印（liff.〜・code・state など）と keep に入れたものは残す。# のあとは触らない
   const LIFF_KEYS = /^(liff|code$|state$|error|friendship_status_changed$)/i;
+  // 読み終えたクエリを URL から消す（keep に入れた名前と、LIFF・ログインの戻りの印は残す）
   function tidyUrl(keep = []) {
     try {
       const url = new URL(location.href);

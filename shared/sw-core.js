@@ -1,4 +1,4 @@
-// ConneQt のツール共通の service worker の中身（電波がなくても、一度開いたツールは開けるようにする）。
+// ConneQt（くらぶ）のツール共通の service worker の中身（電波がなくても、一度開いたツールは開けるようにする）。
 // 各ツールの sw.js（ツールのいちばん上の階層）が、ツールの名前を決めてから読み込む：
 //   self.CONNEQT_TOOL = "qji";
 //   importScripts("/line-share/shared/sw-core.js");
@@ -43,11 +43,13 @@
     return url.origin + url.pathname;
   }
 
+  // 保存してあるもの（クエリを外した URL で探す）
   async function fromCache(request) {
     const cache = await caches.open(CACHE);
     return (await cache.match(keyOf(request))) || (await cache.match(keyOf(request), { ignoreSearch: true }));
   }
 
+  // まずネットから取り、保存しなおす。取れない・遅いときだけ保存したものを出す
   async function networkFirst(event) {
     const { request } = event;
     const cache = await caches.open(CACHE);
@@ -75,6 +77,7 @@
     }
   }
 
+  // 保存してあるものを先に使い、なければネットから取って保存する（フォント）
   async function cacheFirst(event) {
     // フォントはクエリ（family=…）で中身が変わるので、URL のまま保存する
     const cache = await caches.open(CACHE);

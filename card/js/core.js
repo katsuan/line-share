@@ -1,6 +1,5 @@
 // 前の名前（2026-11-25 に消す）。LINE の中のブラウザが前の HTML を覚えているときのため、card/js/config.js と同じ中身を置いている（読む順を保つため写し）
-// お知らせカード：決まった値（形式・色・大きさの上限など）と、編集中の状態。
-// 本体は card/js/ に役割ごとに分けてある（読み込み順は card/index.html）。このファイルは定数・設定・編集中の状態。
+// お知らせカード：決まった値（形式・色・大きさの上限など）と、編集中の状態。card/index.html が順に読む（同じ範囲の変数を使う）。
 const config = window.LINE_SHARE_CONFIG || {};
 
 const LAST_SENT_KEY = "flexshare:lastSentState";

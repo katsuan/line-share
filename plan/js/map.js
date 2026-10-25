@@ -1,8 +1,11 @@
-import { autoGrow, escapeHtml, setMessage, shareFlex, toUserMessage, UserError, app, sentMessage } from "./page.js?v=202610251125";
-import { assertUriLength, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610251125";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610251125";
-import { bindHeader } from "./header.js?v=202610251125";
-import { createPlaceFlex } from "./card.js?v=202610251125";
+// 場所・予定の「📍 場所」タブ：Google Maps の場所を、写真・バッジ・コメント付きのカードにして送る。
+// 中身：入力欄のつなぎこみ・場所の検索と地図のリンク・バッジ・テンプレート（端末に残す）・送る。
+// plan/app.js が initMapTab・refreshMapTab・applyMapQuery を呼ぶ。予定タブへは onCreateEvent で場所を渡す。
+import { autoGrow, escapeHtml, setMessage, shareFlex, toUserMessage, UserError, app, sentMessage } from "./page.js?v=202610251141";
+import { assertUriLength, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610251141";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610251141";
+import { bindHeader } from "./header.js?v=202610251141";
+import { createPlaceFlex } from "./card.js?v=202610251141";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -23,6 +26,7 @@ const state = {
   onCreateEvent: () => {}
 };
 
+// 場所タブを用意する（入力欄を探し、操作をつなぎ、テンプレートを読む）。onCreateEvent は「この場所で予定を作る」で呼ぶ
 export function initMapTab({ onCreateEvent }) {
   state.onCreateEvent = onCreateEvent;
 
@@ -98,6 +102,7 @@ export function initMapTab({ onCreateEvent }) {
   loadPlaceTemplates_();
 }
 
+// data/templates.json の place（バッジの候補・用意済みのテンプレート）を読んで並べなおす
 async function loadPlaceTemplates_() {
   const { place } = await window.LineShareUI.loadTemplates();
   DEFAULT_BADGES = Array.isArray(place?.badges) ? place.badges.filter((label) => typeof label === "string") : [];
@@ -153,6 +158,7 @@ export function applyMapQuery(params) {
   refreshMapTab();
 }
 
+// 入力に合わせて、送るボタン・地図のボタン・プレビューをそろえる。入力が変わるたびと、LIFF の準備のあとに呼ぶ
 export function refreshMapTab() {
   const place = getPlace_();
   const hasUrl = isGoogleMapsUrl(place.mapUrl);
@@ -173,6 +179,7 @@ export function refreshMapTab() {
   window.LineShareUI.setPreviewError(dom.preview, hasUrl ? "" : "場所を検索して選ぶか、場所名を入れてください。");
 }
 
+// 入力から場所の中身を集める（地図のリンクがなければ場所名で探すリンク）
 function getPlace_() {
   return {
     mapUrl: dom.mapUrl.value.trim() || mapSearchUrl(dom.title.value),
@@ -185,6 +192,7 @@ function getPlace_() {
   };
 }
 
+// 地図のリンクを書きかえたら、前に選んだ場所の住所と写真は使わない
 function handleMapUrlInput_() {
   const url = dom.mapUrl.value.trim();
   if (url !== state.lastResolvedUrl) {
@@ -197,6 +205,7 @@ function handleMapUrlInput_() {
   refreshMapTab();
 }
 
+// 検索の結果から選んだ場所を、入力欄に入れる
 function selectPlace_(place) {
   dom.mapUrl.value = place.mapUrl;
   dom.title.value = place.title;
@@ -207,6 +216,7 @@ function selectPlace_(place) {
   refreshMapTab();
 }
 
+// 地図を開く（LINE 版では地図アプリ）
 function openMap_() {
   const { mapUrl } = getPlace_();
   if (isGoogleMapsUrl(mapUrl)) {
@@ -214,6 +224,7 @@ function openMap_() {
   }
 }
 
+// 場所名で Google Maps を開いて探す
 function findOnMap_() {
   const name = dom.title.value.trim();
   if (!name) {
@@ -225,6 +236,7 @@ function findOnMap_() {
   setMessage(dom.message, "見つけたら「共有」→「リンクをコピー」して、URL欄に貼り付けてください。");
 }
 
+// コピーしてある Google Maps のリンクを貼りつける（貼れない端末では案内を出す）
 async function pasteMapUrl_() {
   try {
     const text = (await navigator.clipboard.readText()).trim();
@@ -243,6 +255,7 @@ async function pasteMapUrl_() {
   }
 }
 
+// 今の場所で予定タブを開く（「この場所で予定を作る」）
 function createEvent_() {
   const place = getPlace_();
   state.onCreateEvent({
@@ -253,6 +266,7 @@ function createEvent_() {
   });
 }
 
+// 場所のカードを、送り先を選んで送る
 async function share_() {
   setSending_(true);
   try {
@@ -277,6 +291,7 @@ async function share_() {
   }
 }
 
+// バッジの候補を並べなおす（選んでいるものは押した見た目に）
 function renderBadges_() {
   const labels = [
     ...DEFAULT_BADGES,
@@ -296,6 +311,7 @@ function renderBadges_() {
   );
 }
 
+// バッジを押したら、選ぶ・外すを切りかえる
 function toggleBadge_(label) {
   const index = state.selectedBadges.indexOf(label);
   if (index >= 0) {
@@ -312,6 +328,7 @@ function toggleBadge_(label) {
   refreshMapTab();
 }
 
+// 自分で書いたバッジを足す
 function addCustomBadge_() {
   const label = dom.customBadge.value.trim();
   if (!label) return;
@@ -350,6 +367,7 @@ function renderPreview_(place) {
 
 // ---- テンプレート ----
 
+// テンプレートの一覧（用意済みと、自分で保存したもの）を並べる
 function renderTemplates_() {
   const builtIn = PLACE_PRESETS.map((preset) =>
     createTemplateButton_(preset.name, describeTemplate_(preset), () => applyTemplate_(preset))
@@ -371,6 +389,7 @@ function renderTemplates_() {
   dom.templateList.replaceChildren(...builtIn, ...saved);
 }
 
+// テンプレートの中身の短い説明（ボタンの2行目に出す）
 function describeTemplate_(template) {
   const parts = [];
   if (template.headerTitle) parts.push(`🪧${template.headerTitle}`);
@@ -380,6 +399,7 @@ function describeTemplate_(template) {
   return parts.join("　") || "バッジ・コメントなし";
 }
 
+// テンプレートを選ぶボタンを作る
 function createTemplateButton_(title, description, onClick) {
   const button = document.createElement("button");
   button.type = "button";
@@ -393,6 +413,7 @@ function createTemplateButton_(title, description, onClick) {
   return button;
 }
 
+// テンプレートの中身を、入力欄とバッジに入れる
 function applyTemplate_(template) {
   if (template.place?.mapUrl || template.place?.title) {
     loadPlace({
@@ -410,6 +431,7 @@ function applyTemplate_(template) {
   setMessage(dom.message, `「${template.name}」を当てはめました。`);
 }
 
+// 今の場所・見出し・バッジ・コメントを、名前を付けてテンプレートに残す
 function saveTemplate_() {
   const name = dom.templateName.value.trim();
   if (!name) {
@@ -436,6 +458,7 @@ function saveTemplate_() {
   setMessage(dom.message, window.QSeason?.decorate(`「${name}」として保存しました。`) ?? `「${name}」として保存しました。`, "success");
 }
 
+// 保存したテンプレートを消す（聞かずに消して、「元に戻す」を出す）
 function deleteTemplate_(name) {
   // 聞かずに消して、「元に戻す」を出す
   const before = loadTemplates_();
@@ -450,6 +473,7 @@ function deleteTemplate_(name) {
   });
 }
 
+// 端末に残したテンプレートを読む（壊れた行は読まない）
 function loadTemplates_() {
   try {
     const templates = JSON.parse(localStorage.getItem(TEMPLATE_KEY) || "[]");
@@ -467,6 +491,7 @@ function loadTemplates_() {
   }
 }
 
+// テンプレートを端末に残す（残せない端末ではそのまま）
 function saveTemplates_(templates) {
   try {
     localStorage.setItem(TEMPLATE_KEY, JSON.stringify(templates));
@@ -475,6 +500,7 @@ function saveTemplates_(templates) {
   }
 }
 
+// 送っている間は送るボタンを押せなくして、文字を「送っています…」にする
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
   dom.shareButton.textContent = isSending ? "送っています…" : "カードで送る";
