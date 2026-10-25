@@ -42,6 +42,15 @@
       <button class="ls-chip" type="button" aria-pressed="false">間食</button>
     </div>
     <label class="ls-field"><span class="ls-label">食べたもの</span><input class="ls-input" placeholder="例：カレーライス" /></label>
+    <!-- 選ぶボタンつきの入力枠（ls-pickfield）：枠の中の左のボタンを押す・文字を入れると、下に選択肢（しっぽがボタンを指す） -->
+    <div class="ls-field">
+      <span class="ls-label">しるしと名前（ls-pickfield）</span>
+      <div class="ls-pickfield" id="kitPickField">
+        <button class="ls-pickfield-btn" type="button" id="kitPickBtn" aria-label="しるしを選ぶ"><span id="kitPickNow">⚽</span></button>
+        <input id="kitPickText" maxlength="12" placeholder="GOAL!" autocomplete="off" enterkeyhint="done" aria-label="文字" />
+      </div>
+      <div class="ls-picker" id="kitPicker" role="radiogroup" aria-label="しるし" hidden></div>
+    </div>
     <div class="ls-actions">
       <button class="ls-button is-primary" type="button" id="toastButton">トーストを出す</button>
       <button class="ls-button" type="button" id="sheetButton">シートを出す</button>
@@ -101,6 +110,28 @@
     document.getElementById("toastButton").addEventListener("click", () =>
       LineShareUI.toast("カレーライス を記録しました", { actionLabel: "元に戻す", onAction: () => LineShareUI.toast("元に戻しました") })
     );
+    // 選ぶボタンつきの入力枠の見本：7つのしるし・カスタム・なし
+    const now = document.getElementById("kitPickNow");
+    const picker = document.getElementById("kitPicker");
+    const pick = LineShareUI.pickField({
+      field: document.getElementById("kitPickField"),
+      button: document.getElementById("kitPickBtn"),
+      input: document.getElementById("kitPickText"),
+      picker,
+      onOpen: () => {
+        const items = ["⚽", "🏀", "⚾", "🏐", "🏉", "🎾", "🏸"].map((icon) => {
+          const b = Object.assign(document.createElement("button"), { type: "button", className: "ls-picker-item", textContent: icon });
+          b.setAttribute("aria-pressed", String(now.textContent === icon));
+          b.addEventListener("click", () => ((now.textContent = icon), pick.close()));
+          return b;
+        });
+        const custom = Object.assign(document.createElement("input"), { className: "ls-picker-custom", maxLength: 4, placeholder: "✏️" });
+        custom.addEventListener("input", () => custom.value && (now.textContent = custom.value));
+        const none = Object.assign(document.createElement("button"), { type: "button", className: "ls-picker-item is-text", textContent: "なし" });
+        none.addEventListener("click", () => ((now.textContent = ""), pick.close()));
+        picker.replaceChildren(...items, custom, none);
+      }
+    });
     const sheet = document.getElementById("sheet");
     document.getElementById("sheetButton").addEventListener("click", () => (sheet.hidden = false));
     sheet.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => (sheet.hidden = true)));

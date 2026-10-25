@@ -1414,6 +1414,178 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   color: #fff;
 }
 
+/* ---- 選ぶボタンつきの入力枠（ls-pickfield）と、その下の選択肢（ls-picker） ----
+ * 入力枠の中の左にボタン、右に文字（[⚽ GOAL!]・[● チーム名]・[✅ 習慣の名前]）。ボタンを押したとき・文字を入れているあいだは、
+ * 下に選択肢が出る（上のしっぽが押したボタンを指す。--tail-x は ui.js の LineShareUI.pickField が決める）。
+ * 選択肢は横いっぱいに --cols 列（はじめは 9。多いときは段が増える）。さくせん盤・ろくがのチームの色と同じ形・同じ寸法
+ *   <div class="ls-pickfield"><button class="ls-pickfield-btn">⚽</button><input …></div>
+ *   <div class="ls-picker" style="--cols: 9" hidden><button class="ls-picker-item" aria-pressed="true">⚽</button>…</div>
+ */
+.ls-pickfield {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 4px;
+  min-height: 48px;
+  padding: 0 12px 0 2px;
+  border: 2px solid var(--ls-line-strong);
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-surface);
+}
+
+.ls-pickfield.is-open,
+.ls-pickfield:focus-within {
+  border-color: var(--ls-accent);
+}
+
+.ls-pickfield input {
+  min-width: 0;
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ls-text);
+  font: inherit;
+  /* iOS で入力時に拡大されないよう 16px 以上 */
+  font-size: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ls-pickfield input:focus {
+  outline: none;
+}
+
+.ls-pickfield input::placeholder {
+  color: var(--ls-faint);
+}
+
+.ls-pickfield-btn {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ls-text);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 開いているボタンは、まわりに緑（ツールの色）のふち */
+.ls-pickfield-btn > * {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.ls-pickfield-btn[aria-expanded="true"] > * {
+  box-shadow: 0 0 0 2px var(--ls-surface), 0 0 0 4px var(--ls-accent);
+}
+
+/* 何も選んでいない（なし）のとき：小さな字 */
+.ls-pickfield-btn .is-empty {
+  color: var(--ls-subtext);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ls-picker {
+  --cols: 9;
+  --tail-x: 22px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  gap: 2px;
+  margin-top: 10px;
+  padding: 4px;
+  border-radius: var(--ls-radius-md);
+  background: var(--ls-accent-soft);
+}
+
+.ls-picker[hidden] {
+  display: none;
+}
+
+/* しっぽ：押したボタンを指す */
+.ls-picker::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: calc(var(--tail-x) - 9px);
+  border: 9px solid transparent;
+  border-top: 0;
+  border-bottom: 8px solid var(--ls-accent-soft);
+}
+
+.ls-picker-item {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ls-radius-sm);
+  background: none;
+  color: var(--ls-text);
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ls-picker-item[aria-pressed="true"],
+.ls-picker-item[aria-checked="true"] {
+  background: var(--ls-surface);
+  box-shadow: inset 0 0 0 2px var(--ls-accent);
+}
+
+/* なし（字のボタン） */
+.ls-picker-item.is-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ls-subtext);
+}
+
+/* カスタム（好きな絵文字・文字）：2列ぶんの入力欄 */
+.ls-picker-custom {
+  grid-column: span 2;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1px dashed var(--ls-line-strong);
+  border-radius: var(--ls-radius-sm);
+  background: var(--ls-surface);
+  color: var(--ls-text);
+  font: inherit;
+  font-size: 16px;
+  text-align: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.ls-picker-custom:focus {
+  outline: none;
+  border-style: solid;
+  border-color: var(--ls-accent);
+}
+
+.ls-picker-custom.is-selected {
+  border-style: solid;
+  border-color: var(--ls-accent);
+  box-shadow: inset 0 0 0 1px var(--ls-accent);
+}
+
 /* ---- 暗い表示（ダークモード） ----
  * スマホを暗い表示にしているとき、<html data-ls-dark="auto"> を付けたツールだけ暗くなる
  * （ツールごとの CSS に明るい色を直接書いているところを直してから付ける）。
