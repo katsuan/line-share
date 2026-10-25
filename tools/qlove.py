@@ -3,7 +3,7 @@
 
 Q はほかのツールと同じ輪＋しっぽ（中には何も入れない）。love の v をハートにする。
 字は「Q人Q色」：Q・l・o・ハート・e を、ツールたちの色（紫・青・緑・コーラル・オレンジ。少しくすませた色）で1字ずつ塗る。
-アプリのアイコンは白い地に紫の Q。板つきロゴは、Q と同じ紫のグラデーションに白い字。
+アプリのアイコンは白い地に紫の Q と、輪の中にコーラルのハート（Q とハートを組み合わせた形。横長のロゴは love の v がハート）。板つきロゴは、Q と同じ紫のグラデーションに白い字。
   shared/qlove/logo.svg            … 横長のロゴ（Q人Q色。白い地に置く）
   shared/qlove/logo-dark.svg       … 暗い地に置くとき（同じ5色を明るめに）
   shared/qlove/logo-plate.svg      … グラデーションの板に白い字（ほかのツールのロゴと並べるとき）
@@ -51,6 +51,8 @@ Q_SHAPES = [
 ICON_BRAND = Brand((255, 255, 255), (255, 255, 255))
 ICON_SHAPES = [{**sh, "fill": sh.get("fill", COLORS[0])} for sh in Q_SHAPES]
 ICON_SHAPES[0] = {**ICON_SHAPES[0], "alpha": 0.1}
+# 輪の中にコーラルのハート（Q＋love。ほかのツールと同じく、輪の中にそのツールの印）。heart() は下で決める
+ICON_HEART = {"w": 22, "h": 19.5}  # 輪の内側（直径 R*2-W）に収まる大きさ
 
 font = TTFont(str(FONT_PATH))
 GLYPHS, CMAP = font.getGlyphSet(), font.getBestCmap()
@@ -189,7 +191,10 @@ def main():
     (OUT / "logo.svg").write_text(logo(INK, colors=COLORS), encoding="utf-8")
     (OUT / "logo-dark.svg").write_text(logo(INK, colors=COLORS_DARK), encoding="utf-8")
     (OUT / "logo-plate.svg").write_text(logo(plate=True), encoding="utf-8")
-    ICON_BRAND.write_icons(OUT, ICON_SHAPES)
+    # アイコン：Q の輪の真ん中にハート（上のへこみから先までの高さの真ん中を、輪の中心にそろえる）
+    hw, hh = ICON_HEART["w"], ICON_HEART["h"]
+    icon = ICON_SHAPES + [{"t": "poly", "p": heart(C[0], C[1] - hh / 2 + 0.5, hw, hh), "fill": HEART}]
+    ICON_BRAND.write_icons(OUT, icon)
     write_ogp(OUT / "ogp.png")
     print("wrote", OUT)
 
