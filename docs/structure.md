@@ -26,7 +26,7 @@
 | `card.js` | 送るカード（Flex・おくるんのお知らせカード）を作る |
 | `link.js` | URL の受け渡し（ほかのツールへのリンク・受けとったリンクを読む・共有リンク） |
 | `stats.js` | 数える・まとめる（何日つづいた・合計など） |
-| `line-config.js`・`linelog.js` | LINE 版のつなぎ先の設定と、記録ボット・くらぶボットへ送る |
+| `line-config.js`・`linelog.js` | LINE 版のつなぎ先の設定（LIFF の ID）と、そのツールがボットに頼むこと（送る中身・ボットの言葉の読みかえ）。つなぐ・送る・送りなおす・LINE 版の案内は Q キットの `shared/botlink.js`（`window.QBotLink`）を使い、ツールに写さない |
 | そのほか | ツールにしかないものは、中身を表す名詞で（`meteo.js`・`board.js`・`draw.js`） |
 
 - 使わない名前：`main.js`・`script.js`・`common.js`・`utils.js`・`core.js`（何が入っているかわからない）。中身に合わせて分けるか、`app.js` にまとめる
