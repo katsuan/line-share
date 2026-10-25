@@ -1,3 +1,4 @@
+// 前の名前（2026-11-25 に消す）。LINE の中のブラウザが前の HTML を覚えているときのため、card/js/card.js と同じ中身を置いている（読む順を保つため写し）
 // お知らせカード：送るカード（Flex Message）の組み立て・返事のリンク・写真の形
 
 // LIFF で送るカードに付けられるボタンは URI アクション（リンク）だけ（LIFF の仕様。sendMessages・shareTargetPicker とも）。

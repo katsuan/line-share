@@ -36,7 +36,9 @@ def main() -> int:
             continue
         if stamp(html, HTML_REF):
             changed.append(html)
-    for js in sorted(list(ROOT.glob("plan/assets/*.js")) + list(ROOT.glob("image/*.js"))):
+    # ES モジュールの import 先（場所・予定と文字・手書き）。plan/assets/ は前の名前を読むだけなので触らない
+    modules = [ROOT / "plan/app.js", ROOT / "image/app.js", *ROOT.glob("plan/js/*.js"), *ROOT.glob("image/js/*.js")]
+    for js in sorted(modules):
         if stamp(js, JS_IMPORT):
             changed.append(js)
     for path in changed:

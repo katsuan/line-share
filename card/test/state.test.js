@@ -7,7 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FILES = ["core.js", "storage.js", "state.js", "url.js", "soccer.js", "render.js", "templates.js"];
+const FILES = ["config.js", "store.js", "state.js", "url.js", "soccer.js", "render.js", "templates.js"];
 // 色の並び（shared/ui.js の PALETTE）。ui.js は画面を触るので、並びだけ取り出す
 const UI = fs.readFileSync(path.join(__dirname, "../../shared/ui.js"), "utf8");
 const PALETTE = vm.runInNewContext(/const PALETTE = (\[[\s\S]*?\n  \]);/.exec(UI)[1]);

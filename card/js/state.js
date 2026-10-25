@@ -96,7 +96,7 @@ function getQueryState(params = new URLSearchParams(location.search)) {
 
   // template は形式の選択だけなので、カードの中身のパラメータには数えない
   // template（形式の選択）・from（流入口の目印）・credit（Created by の切り替え）はカードの中身ではないので数えない
-  // deck（LINE の外から持ってきた中身。storage.js の takeCarriedDeck が読む）も中身のパラメータではない
+  // deck（LINE の外から持ってきた中身。store.js の takeCarriedDeck が読む）も中身のパラメータではない
   // card（2枚目からのカード。getQueryStates が読む）も、この1枚の中身ではない
   const hasAny = [...params.keys()].some((key) => !key.startsWith("liff.") && !["template", "from", "credit", "deck", "card", "sendText"].includes(key));
   if (!hasAny) return null;
