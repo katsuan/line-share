@@ -12,10 +12,12 @@ var QWeekStart = (function () {
   var KEY = "qlove:weekStart";
   var MONDAY = 1;
 
+  // 0・1（数でも文字でも）なら数、ほかは null
   function normal(value) {
     return value === 0 || value === "0" ? 0 : value === 1 || value === "1" ? 1 : null;
   }
 
+  // 使う保存場所（テストでは opts.storage）
   function storage(opts) {
     if (opts && opts.storage) return opts.storage;
     return typeof localStorage !== "undefined" ? localStorage : null;
@@ -33,6 +35,7 @@ var QWeekStart = (function () {
     return own === null ? MONDAY : own;
   }
 
+  // 週のはじまりを端末に残す（0 なら日曜、ほかは月曜）。残した値を返す
   function set(value, opts) {
     var v = normal(value) === 0 ? 0 : 1;
     try {

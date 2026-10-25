@@ -1,5 +1,5 @@
-// LINE に送る Flex Message の組み立て。色は styles.css のトークンと揃える。
-import { headerFlex } from "./header.js?v=202610251125";
+// 場所・予定：LINE に送るカード（Flex Message）を作る。場所のカードは map.js、予定のカードは calendar.js から呼ぶ。色は style.css の色とそろえる。
+import { headerFlex } from "./header.js?v=202610251141";
 const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",
@@ -8,6 +8,7 @@ const COLOR = {
   badgeBg: "#EFEBFF"
 };
 
+// 場所のカード（写真・場所名・住所・バッジ・コメント・地図を開くボタン）を作る
 export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, badges, header }) {
   const name = title || "Google Maps";
   const bodyContents = [
@@ -82,6 +83,7 @@ export function createPlaceFlex({ mapUrl, title, address, photoUrl, comment, bad
   };
 }
 
+// 予定のカード（日時・場所・メモ・カレンダーに入れるボタン）を作る
 export function createEventFlex(data, calendarUrl, labels) {
   const bodyContents = [
     {
@@ -137,6 +139,7 @@ export function createEventFlex(data, calendarUrl, labels) {
   };
 }
 
+// カードの上の写真（タップで uri を開く）。写真がなければ入れない
 function createHero_(photoUrl, uri) {
   if (!photoUrl) return undefined;
   return {
@@ -149,6 +152,7 @@ function createHero_(photoUrl, uri) {
   };
 }
 
+// カードのボタン（タップで uri を開く）
 function createButton_(label, uri, style) {
   return {
     type: "button",
@@ -174,6 +178,7 @@ function createInfoBlock_(label, value) {
   };
 }
 
+// 「日時」「場所」のような見出しと中身の1行
 function createInfoRow_(label, value) {
   return {
     type: "box",
@@ -189,6 +194,7 @@ function createInfoRow_(label, value) {
   };
 }
 
+// バッジの1つ
 function createBadgeBox_(label) {
   return {
     type: "box",

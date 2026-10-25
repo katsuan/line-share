@@ -12,6 +12,7 @@ export const app = {
  */
 export class UserError extends Error {}
 
+// 画面に出す言葉：UserError ならその言葉、ほかはログに出して fallback
 export function toUserMessage(error, fallback = "時間をおいてもう一度お試しください。") {
   if (error instanceof UserError) {
     return error.message;
@@ -20,12 +21,14 @@ export function toUserMessage(error, fallback = "時間をおいてもう一度�
   return fallback;
 }
 
+// 案内の欄に文を出す（tone："error" で赤・"success" で緑）
 export function setMessage(element, message, tone = "default") {
   element.textContent = message;
   element.classList.toggle("is-error", tone === "error");
   element.classList.toggle("is-success", tone === "success");
 }
 
+// HTML に入れる文字を、タグとして動かないようにする
 export function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -53,6 +56,7 @@ export async function shareFlex(message) {
   return sent;
 }
 
+// 場所名と住所を1つの文にする（住所に場所名が入っていれば場所名だけ）
 export function formatPlaceLocation(place) {
   const title = (place.title || "").trim();
   const address = (place.address || "").trim().replace(/^日本、\s*/, "");

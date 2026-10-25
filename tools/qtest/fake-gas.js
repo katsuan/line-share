@@ -17,11 +17,13 @@ const path = require("path");
 const vm = require("vm");
 const crypto = require("crypto");
 
+// 2けたにそろえる
 const pad = (n) => String(n).padStart(2, "0");
 
 // GAS のファイルを読む順：パスの名前順（clasp と同じく、番号つきのフォルダ・ファイル名がそのまま並ぶ）
 function collectFiles(dir) {
   const out = [];
+  // フォルダの中を名前順にたどって、GAS のファイルを集める
   const walk = (d) => {
     for (const name of fs.readdirSync(d).sort()) {
       const p = path.join(d, name);
@@ -69,14 +71,17 @@ function formatDate(date, tz, format, offsetHours) {
 
 // 呼んだことだけを覚える置きもの（どんな呼び方をしても、自分を返してつなげられる）
 function recorder(name, calls) {
+  // 呼んだことだけを覚える置きもの（どんな名前で呼んでも、また置きものを返す）
   const fn = function () {};
   return new Proxy(fn, {
+    // どの名前を読んでも、置きもの（文字にすると [名前]）を返す
     get(_t, key) {
       if (key === Symbol.toPrimitive) return () => `[${name}]`;
       if (key === "toString") return () => `[${name}]`;
       if (key === "then") return undefined;
       return recorder(`${name}.${String(key)}`, calls);
     },
+    // 呼ばれたら calls に覚えて、置きものを返す
     apply(_t, _this, args) {
       calls.push({ name, args });
       return recorder(`${name}()`, calls);
@@ -84,10 +89,13 @@ function recorder(name, calls) {
   });
 }
 
+// シートの偽物を作る（書いたものは writes に覚える）
 function createSheet(name, book, writes) {
   const rows = [];
   let frozen = 0;
+  // r 行 c 列の値（なければ空）
   const cell = (r, c) => (rows[r - 1] ? rows[r - 1][c - 1] ?? "" : "");
+  // r 行 c 列に値を書き、writes に覚える
   const put = (r, c, v, how) => {
     rows[r - 1] = rows[r - 1] || [];
     rows[r - 1][c - 1] = v;
@@ -112,40 +120,49 @@ function createSheet(name, book, writes) {
       frozen = n;
       return sheet;
     },
+    // 最後に1行足す
     appendRow(values) {
       const r = rows.length + 1;
       values.forEach((v, i) => put(r, i + 1, v, "appendRow"));
       if (!values.length) rows.push([]);
       return sheet;
     },
+    // r 行目を消す
     deleteRow(r) {
       rows.splice(r - 1, 1);
       return sheet;
     },
+    // r 行目から n 行消す
     deleteRows(r, n) {
       rows.splice(r - 1, n);
       return sheet;
     },
+    // 行を足す（偽物では何もしない）
     insertRowAfter() {
       return sheet;
     },
+    // 中身を全部消す
     clear() {
       rows.length = 0;
       return sheet;
     },
+    // 中身を全部消す（書式も残さない偽物なので clear と同じ）
     clearContents() {
       rows.length = 0;
       return sheet;
     },
+    // 入っている範囲（A1 から最後の行・列まで）
     getDataRange() {
       book.reads.count += 1;
       return sheet.getRange(1, 1, Math.max(1, rows.length), Math.max(1, sheet.getLastColumn()));
     },
+    // 範囲を返す（"A1:B2" の形か、行・列・行数・列数）
     getRange(a, b, c, d) {
       let r = a, col = b, nr = c || 1, nc = d || 1;
       if (typeof a === "string") {
         const m = a.match(/^([A-Z]+)(\d+)(?::([A-Z]+)(\d+))?$/);
         if (!m) throw new Error(`fake-gas: getRange("${a}") はまだ使えません`);
+        // 列の名前（A・B・…・AA）を数にする
         const colNum = (s) => [...s].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
         r = Number(m[2]);
         col = colNum(m[1]);
@@ -163,14 +180,17 @@ function createSheet(name, book, writes) {
         getDisplayValues: () => range.getValues().map((row) => row.map((v) => String(v))),
         // シートは = で始まる文字を式として持つ（' で始まれば文字のまま）
         getFormulas: () => range.getValues().map((row) => row.map((v) => (typeof v === "string" && v.startsWith("=") ? v : ""))),
+        // 範囲の左上に1つ書く
         setValue(v) {
           put(r, col, v, "setValue");
           return range;
         },
+        // 範囲に2次元の配列を書く
         setValues(values) {
           values.forEach((row, i) => row.forEach((v, j) => put(r + i, col + j, v, "setValues")));
           return range;
         },
+        // 範囲の中身を消す
         clearContent() {
           for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) if (rows[r - 1 + i]) rows[r - 1 + i][col - 1 + j] = "";
           return range;
@@ -195,6 +215,7 @@ function createSheet(name, book, writes) {
   return sheet;
 }
 
+// スプレッドシートの偽物を作る
 function createBook(id, calls, writes, reads) {
   const book = { id, sheets: {}, calls, reads };
   book.api = {
@@ -217,6 +238,7 @@ function createBook(id, calls, writes, reads) {
   return book;
 }
 
+// Script Properties などの保存場所の偽物を作る
 function createStore(initial) {
   const data = { ...(initial || {}) };
   return {
@@ -240,6 +262,7 @@ function createStore(initial) {
   };
 }
 
+// CacheService の偽物を作る
 function createCache() {
   const data = {};
   return {
@@ -257,6 +280,7 @@ function createCache() {
   };
 }
 
+// UrlFetchApp の返事の偽物を作る（status と中身）
 function response(status, body, headers) {
   const text = typeof body === "string" ? body : JSON.stringify(body ?? {});
   return {
@@ -267,9 +291,11 @@ function response(status, body, headers) {
     getBlob: () => ({
       getBytes: () => [...Buffer.from(text)],
       getContentType: () => (headers && headers["Content-Type"]) || "application/octet-stream",
+      // 中身の種類を決める（偽物では何もしない）
       setContentType() {
         return this;
       },
+      // 名前を決める（偽物では何もしない）
       setName() {
         return this;
       },
@@ -305,6 +331,7 @@ function createGas(o = {}) {
   const logs = [];
   const reads = { count: 0 };
   const books = {};
+  // id のスプレッドシート（なければ作る）
   const getBook = (id) => (books[id] = books[id] || createBook(id, calls, writes, reads));
   const activeId = o.spreadsheetId || "SPREADSHEET_TEST";
   const offset = o.timeZoneOffset ?? 9;
@@ -315,6 +342,7 @@ function createGas(o = {}) {
   };
   const caches = { script: createCache(), user: createCache(), document: createCache() };
 
+  // UrlFetchApp.fetch の偽物：呼んだことを覚え、o.fetch があればその返事を返す
   const fetchImpl = (url, opt = {}) => {
     const entry = { url, method: String(opt.method || "get").toLowerCase(), opt, payload: opt.payload };
     try {
@@ -436,6 +464,7 @@ function createGas(o = {}) {
   const expose = (o.expose || []).map((n) => `try { globalThis[${JSON.stringify(n)}] = ${n}; } catch (e) {}`).join("\n");
   vm.runInContext(`${code}\n;${expose}`, ctx, { filename: "gas-project.js" });
 
+  // ウェブアプリの返事（ContentService）から中身を取り出す（JSON なら読んだもの）
   const parseOutput = (out) => {
     if (out && typeof out === "object" && "__body" in out) {
       try {
@@ -479,6 +508,7 @@ function createGas(o = {}) {
       rows.forEach((r) => sh.rows.push([...r]));
       return sh;
     },
+    // シートの全部の行（テストで中身を確かめる）
     rows(name, bookId = activeId) {
       const sh = getBook(bookId).sheets[name];
       return sh ? sh.rows.map((r) => [...(r || [])]) : null;
@@ -488,6 +518,7 @@ function createGas(o = {}) {
       const contents = typeof body === "string" ? body : JSON.stringify(body);
       return parseOutput(gas.call("doPost", { postData: { contents, type: contentType }, parameter, parameters: {} }));
     },
+    // doGet を呼ぶ（e.parameter に parameter を入れる）。JSON を返すときは中身を返す
     doGet(parameter = {}) {
       return parseOutput(gas.call("doGet", { parameter, parameters: {} }));
     },
@@ -509,6 +540,7 @@ function createGas(o = {}) {
         .forEach((f) => seen.set(f.json.replyToken, (seen.get(f.json.replyToken) || 0) + 1));
       return [...seen].filter(([, n]) => n > 1).map(([token]) => token);
     },
+    // 最後に返した・送ったメッセージ
     lastMessages() {
       const all = gas.replies();
       return all.length ? all[all.length - 1].messages : [];
@@ -521,6 +553,7 @@ function createGas(o = {}) {
     formulaCells() {
       return writes.filter((w) => typeof w.value === "string" && /^[=+\-@]/.test(w.value) && !/^[+-]?\d/.test(w.value));
     },
+    // 覚えた呼び出し・書きこみ・返事を空にする（シートの中身は残す）
     reset() {
       fetches.length = 0;
       logs.length = 0;
@@ -534,6 +567,7 @@ function createGas(o = {}) {
 
 // ---- LINE のメッセージの書き方を確かめる（LINE の validate API が断る形を、手元で先に見つける） ----
 const COLOR = /^#([0-9a-fA-F]{6})$/;
+// LINE のメッセージで、LINE が断る・断ることがある書き方を探す。[{ level, where, why }] を返す
 function checkMessages(messages) {
   const problems = [];
   // level：error は LINE が断る形、warn は断られることがある形（確かめてから使う）
@@ -562,6 +596,7 @@ function checkMessages(messages) {
     }
   });
 
+  // ボタンなどの動き（action）のラベルの長さ・URI の形・中身の長さを確かめる
   function checkAction(a, where, labelMax) {
     if (!a) return;
     if (a.label && [...String(a.label)].length > labelMax) add(where, `ラベルが ${labelMax} 字をこえる（${a.label}）`);
@@ -571,6 +606,7 @@ function checkMessages(messages) {
     if (a.type === "message" && String(a.text || "").length > 300) add(where, "message の text が 300 字をこえる");
   }
 
+  // カードの中身を全部たどって、使えない書き方を探す
   function walk(node, where) {
     if (!node || typeof node !== "object") return;
     if (node.type === "filler") add(where, "filler は使わない（中身のない箱で代える）", "warn");

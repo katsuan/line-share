@@ -1,4 +1,4 @@
-// 利用状況とエラーの記録（どの道具・形式が使われているか、LINE の中で何が起きているかを知るため）。
+// 利用状況とエラーの記録（window.LineShareLog。どの道具・形式が使われているか、LINE の中で何が起きているかを知るため）。おくるんの各ページが読む。
 // 記録するのは「開いた」「送った」「エラー」だけで、LINE のユーザーIDなど個人がわかるものは入れない。
 // どの記録にも、流入口（from：どこから来たか）と足跡（step：そのタブで何ページ目か・prev：直前のページ）を付ける。
 //   from はタブで最初に開いたページで決め、以後は引き継ぐ。リンクの ?from=home などの目印 → 直前のサイト → direct の順
@@ -21,6 +21,7 @@
   let sentCount = 0;
   const seenErrors = new Set();
 
+  // このタブに覚えたものを読む（読めない端末では null）
   const read = (key) => {
     try {
       return sessionStorage.getItem(key);
@@ -28,6 +29,7 @@
       return null;
     }
   };
+  // このタブに覚える（覚えられない端末ではそのまま）
   const write = (key, value) => {
     try {
       sessionStorage.setItem(key, value);
@@ -71,6 +73,7 @@
     write("line-share:last-page", TOOL);
   }
 
+  // LINE 版で開いているか
   const inClient = () => {
     try {
       return Boolean(window.liff?.isInClient?.());
@@ -79,6 +82,7 @@
     }
   };
 
+  // 記録を1つためる（たまったら送る）
   function track(event, { tool = TOOL, kind = "", count = "", message = "" } = {}) {
     if (!enabled || sentCount + queue.length >= MAX_PER_PAGE) return;
     queue.push({
@@ -110,6 +114,7 @@
     }
   }
 
+  // エラーを記録する（同じエラーは1ページで1回だけ）
   function trackError(message, source) {
     const text = `${message}${source ? ` @${source}` : ""}`;
     if (seenErrors.has(text)) return; // 同じエラーは1ページで1回だけ

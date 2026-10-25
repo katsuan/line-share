@@ -1,6 +1,8 @@
-import { app } from "./js/page.js?v=202610251125";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./js/map.js?v=202610251125";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./js/calendar.js?v=202610251125";
+// 場所・予定（/plan/）の入口：タブ（📍 場所・🗓️ 予定）の切りかえ、下の送る帯、LIFF の準備、リンクで渡された中身の読みこみ。
+// 中身の部品は js/（map.js・calendar.js など）。plan/index.html が type="module" で読む。
+import { app } from "./js/page.js?v=202610251141";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./js/map.js?v=202610251141";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./js/calendar.js?v=202610251141";
 
 const TABS = ["map", "calendar"];
 
@@ -54,6 +56,7 @@ function applyQuery_(params) {
   else applyMapQuery(params);
 }
 
+// タブのボタンをつなぐ（押す・左右の矢印キーで切りかえ）
 function bindTabs_() {
   const tabs = document.querySelectorAll("[role=tab]");
   for (const tab of tabs) {
@@ -80,6 +83,7 @@ const EMPTY_HINTS = {
   calendar: "件名と日時を入れると送れます。"
 };
 
+// 下の送る帯を、表示中のタブの送るボタンと案内に合わせて動かす
 function bindSendBar_() {
   const barButton = document.getElementById("sendBarButton");
   const barMessage = document.getElementById("sendBarMessage");
@@ -94,6 +98,7 @@ function bindSendBar_() {
     document.getElementById(SEND_TARGETS[activeTab_()].button).click();
   });
 
+  // 送る帯のボタンと案内を、表示中のタブにそろえる
   function syncSendBar_() {
     const target = SEND_TARGETS[activeTab_()];
     const source = document.getElementById(target.button);
@@ -110,10 +115,12 @@ function bindSendBar_() {
   window.syncSendBar = syncSendBar_;
 }
 
+// 表示中のタブ（"map" か "calendar"）
 function activeTab_() {
   return document.getElementById("tab-map").getAttribute("aria-selected") === "true" ? "map" : "calendar";
 }
 
+// タブを切りかえる（"map" か "calendar"）。送る帯もそろえる
 export function selectTab(name) {
   for (const key of TABS) {
     const selected = key === name;

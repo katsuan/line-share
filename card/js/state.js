@@ -1,7 +1,8 @@
-// お知らせカード：カードの中身（state）の形をそろえる・リンクのパラメータから作る
+// お知らせカード：カードの中身（state）の形をそろえる・リンクのパラメータから作る。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- 状態 ----
 
+// どんな中身でも、カードの中身の形（BLANK_STATE と同じ形）にそろえる。足りない項目ははじめの値
 function hydrate(input = {}) {
   // 端末に残した中身が壊れていても（null・数・配列など）止まらないよう、ふつうのオブジェクトだけ読む
   const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
@@ -41,10 +42,12 @@ function hydrate(input = {}) {
   };
 }
 
+// オブジェクトならそのまま、ほかは空のオブジェクト
 function objectOr(value) {
   return value && typeof value === "object" ? value : {};
 }
 
+// keys の項目のうちあるものだけ、cast で型をそろえて前後の空白を外す
 function pick(source, keys, cast) {
   const result = {};
   for (const key of keys) {
@@ -63,8 +66,11 @@ function getQueryStates() {
   return [first, ...rest].slice(0, MAX_CARDS);
 }
 
+// リンクのパラメータから1枚分のカードの中身を作る。中身のパラメータがなければ null
 function getQueryState(params = new URLSearchParams(location.search)) {
+  // いくつかの名前のうち、最初にあるパラメータの値
   const get = (...keys) => keys.map((key) => params.get(key)).find((value) => value != null) ?? "";
+  // パラメータが "0"・"false"・"off" か
   const isOff = (key, fallback) => ["0", "false", "off"].includes(String(params.get(key) ?? fallback).toLowerCase());
 
   const source = {
@@ -105,6 +111,7 @@ function getQueryState(params = new URLSearchParams(location.search)) {
   return source;
 }
 
+// 今のカードの中身の写し
 function getEditorState() {
   return structuredClone(state);
 }

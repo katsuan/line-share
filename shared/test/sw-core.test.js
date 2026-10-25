@@ -10,8 +10,10 @@ const vm = require("node:vm");
 const ORIGIN = "https://katsuan.github.io";
 const SOURCE = fs.readFileSync(path.join(__dirname, "../sw-core.js"), "utf8");
 
+// 偽の caches・fetch の上で sw-core.js を動かす。{ get, stores, state, listeners }
 function makeWorker({ online = true } = {}) {
   const stores = new Map();
+  // 保存の名前（文字なら sw.js の場所から読んだ URL）
   const keyOf = (req) => (typeof req === "string" ? new URL(req, `${ORIGIN}/line-share/sw.js`).href : req.url);
   const caches = {
     async open(name) {
@@ -42,6 +44,7 @@ function makeWorker({ online = true } = {}) {
     skipWaiting() {},
     clients: { claim: async () => {} }
   };
+  // 偽の fetch（state.online が false なら失敗する）
   const fetch = async (req) => {
     if (!state.online) throw new TypeError("Failed to fetch");
     const res = new Response(`body of ${req.url}`, { status: 200 });
@@ -49,6 +52,7 @@ function makeWorker({ online = true } = {}) {
     return res;
   };
   vm.runInNewContext(SOURCE, { self, caches, fetch, Request, Response, URL, setTimeout, Promise, console });
+  // url を開いたときの service worker の返事を待って返す
   async function get(url, mode = "navigate") {
     let responded;
     const pending = [];
@@ -93,6 +97,7 @@ test("前の版の保存（クエリごとに増えていたもの）は、新�
   assert.ok(sw.stores.has("conneqt-other-v1")); // ほかのツールの保存は触らない
 });
 
+// 前の版の保存の場所を、テストで先に作る
 function caches_open(sw, name) {
   if (!sw.stores.has(name)) sw.stores.set(name, new Map());
   const store = sw.stores.get(name);

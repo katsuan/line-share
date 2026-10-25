@@ -1,4 +1,4 @@
-// 送るカード（Flex）の末尾に「Created by」を付け、タップでこの LIFF のツール一覧を開く。
+// 送るカード（Flex）の末尾に「Created by」を付け、タップでこの LIFF のツール一覧を開く（window.LineShareCredit）。おくるんの各ページが読む。
 // 受け取った人が「どうやって作ったんだろう？」と思ったときに辿れるようにする。
 //
 // 消し方（自分用）
@@ -34,6 +34,7 @@
   // 消せる人は、自分で「付ける」を選んだときだけ付く
   let enabled = privileged ? readStored(CHOICE_KEY) === "on" : true;
 
+  // 端末から1つ読む（読めない端末では null）
   function readStored(key) {
     try {
       return localStorage.getItem(key);
@@ -42,6 +43,7 @@
     }
   }
 
+  // 「Created by」を消せる人にする（スイッチを出す）
   function grantPrivilege() {
     if (privileged) return;
     privileged = true;
@@ -77,15 +79,18 @@
     toggle.querySelector("input").checked = enabled;
   }
 
+  // 付けるかどうかをページに知らせる（<html data-credit>）
   function applyToPage() {
     document.documentElement.dataset.credit = enabled ? "on" : "off";
   }
 
+  // 付けるかどうかを決める
   function setEnabled(value) {
     enabled = Boolean(value);
     applyToPage();
   }
 
+  // 今「Created by」を付けるか
   function isEnabled() {
     return enabled;
   }
@@ -106,10 +111,12 @@
     if (allowList.includes(hash)) grantPrivilege();
   }
 
+  // おくるんのトップの URL（LINE 版で開く）
   function topUrl() {
     return config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
   }
 
+  // カードの末尾に入れる「Created by おくるん ›」の箱
   function creditBox() {
     return {
       type: "box",

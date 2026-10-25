@@ -1,4 +1,4 @@
-// 記録のバックアップ：ConneQt のツールがこの端末（katsuan.github.io の localStorage）に残した記録を、
+// 記録のバックアップ（/backup/）の入口（backup/index.html が読む）：くらぶのツールがこの端末（katsuan.github.io の localStorage）に残した記録を、
 // 1つのファイル（または文字）にまとめて保存し、あとで戻す。
 // どのツールも katsuan.github.io の下にあるので、保存場所は共通。ここに書いた名前のものだけを扱い、
 // LINE のログイン情報など（LIFF_STORE など）は入れない。
@@ -31,11 +31,15 @@
   const FORMAT = "conneqt-backup";
 
   const $ = (id) => document.getElementById(id);
+  // 共通の画面部品（shared/ui.js）
   const ui = () => window.LineShareUI;
 
+  // 記録の名前から、どのツールのものか（[名前の頭, ツール名]）
   const ownerOf = (key) => OWNERS.find(([prefix]) => key.startsWith(prefix));
+  // バックアップに入れる記録か
   const isOurs = (key) => !!ownerOf(key) && !SKIP.includes(key) && !/debug/i.test(key);
 
+  // この端末のツールの記録を集める（{ 名前: 中身 }）
   function collect() {
     const items = {};
     try {
@@ -62,8 +66,10 @@
     return [...groups.values()];
   }
 
+  // 大きさの文（1KB 未満は「少し」）
   const sizeLabel = (bytes) => (bytes < 1024 ? "少し" : `${Math.round(bytes / 1024)} KB`);
 
+  // ツールごとの記録の数と大きさを並べる
   function render() {
     const rows = byTool(collect());
     $("tools").replaceChildren(
@@ -78,16 +84,20 @@
     $("saveFile").disabled = $("copyText").disabled = !rows.length;
   }
 
+  // 記録をバックアップの文字（JSON）にまとめる
   function pack() {
     return JSON.stringify({ format: FORMAT, version: 1, savedAt: new Date().toISOString(), items: collect() });
   }
 
+  // 保存するファイルの名前（conneqt-20261025.json）
   function fileName() {
     const d = new Date();
+    // 2けたにそろえる
     const pad = (n) => String(n).padStart(2, "0");
     return `conneqt-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.json`;
   }
 
+  // バックアップをファイルに保存する（共有できる端末では共有のシート）
   async function saveFile() {
     const text = pack();
     const file = new File([text], fileName(), { type: "application/json" });
@@ -109,6 +119,7 @@
     ui()?.toast("ファイルを保存しました");
   }
 
+  // バックアップを文字でコピーする
   async function copyText() {
     try {
       await navigator.clipboard.writeText(pack());
@@ -121,6 +132,7 @@
     }
   }
 
+  // バックアップの文字を読む（おくるんのバックアップでなければ null）
   function parse(text) {
     try {
       const data = JSON.parse(String(text || "").trim());
@@ -132,6 +144,7 @@
     }
   }
 
+  // バックアップから記録を戻す（上書きしてよいか聞いてから）
   async function restore(text) {
     const data = parse(text);
     if (!data || !Object.keys(data.items).length) {
@@ -176,6 +189,7 @@
     }
   }
 
+  // ブラウザに、記録を消さないようにお願いする（できたら印を出す）
   async function showPersisted() {
     try {
       if (await navigator.storage?.persist?.()) $("persisted").hidden = false;

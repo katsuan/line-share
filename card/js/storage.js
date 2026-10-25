@@ -1,8 +1,9 @@
 // 前の名前（2026-11-25 に消す）。LINE の中のブラウザが前の HTML を覚えているときのため、card/js/store.js と同じ中身を置いている（読む順を保つため写し）
-// お知らせカード：端末に残すもの（下書き・前回送った内容・持っていく中身。localStorage が使えなくても止まらない）
+// お知らせカード：端末に残すもの（下書き・前回送った内容・持っていく中身。localStorage が使えなくても止まらない）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- localStorage（使えない環境でも落ちないように） ----
 
+// 端末から1つ読む（読めない端末では null）
 function localStorageGet(key) {
   try {
     return localStorage.getItem(key);
@@ -11,6 +12,7 @@ function localStorageGet(key) {
   }
 }
 
+// 端末に1つ残す（残せない端末ではログだけ）
 function localStorageSet(key, value) {
   try {
     localStorage.setItem(key, value);
@@ -19,6 +21,7 @@ function localStorageSet(key, value) {
   }
 }
 
+// 端末から1つ消す（消せない端末ではログだけ）
 function localStorageRemove(key) {
   try {
     localStorage.removeItem(key);
@@ -27,6 +30,7 @@ function localStorageRemove(key) {
   }
 }
 
+// 端末から JSON を読む（読めない・壊れているときは null）
 function loadJson(key) {
   try {
     return JSON.parse(localStorageGet(key) || "null");
@@ -35,6 +39,7 @@ function loadJson(key) {
   }
 }
 
+// 端末に JSON で残す
 function saveJson(key, value) {
   localStorageSet(key, JSON.stringify(value));
 }
@@ -47,12 +52,14 @@ let draftTimer = null;
 // 開いた直後の描画では保存しない（init が最後に true にする）
 let draftReady = false;
 
+// 少し間をおいて下書きを残す（打っている間に何度も残さない）
 function saveDraftSoon() {
   if (!draftReady) return;
   clearTimeout(draftTimer);
   draftTimer = setTimeout(saveDraftNow, 600);
 }
 
+// すぐ下書きを残す（空のカードだけ・前回送った内容と同じなら消す）
 function saveDraftNow() {
   clearTimeout(draftTimer);
   if (!draftReady) return;
@@ -70,6 +77,7 @@ function saveDraftNow() {
 const CARRY_KEY = "line-share:card-carry";
 const CARRY_MAX = 6000;
 
+// 今のカードの束を、URL に入れられる文字（base64url の JSON）にする
 function encodeDeck() {
   storeCurrent();
   const bytes = new TextEncoder().encode(JSON.stringify({ cards, current }));
@@ -78,12 +86,14 @@ function encodeDeck() {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// encodeDeck の文字を、カードの束に戻す（読めなければ例外）
 function decodeDeck(text) {
   const b64 = String(text || "").replace(/-/g, "+").replace(/_/g, "/");
   const binary = atob(b64 + "===".slice((b64.length + 3) % 4));
   return JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, (c) => c.charCodeAt(0))));
 }
 
+// ログインで行き来する前に、作りかけのカードと記録用の文字をこのタブに残す
 function keepDeckForLogin() {
   saveDraftNow();
   try {
@@ -101,6 +111,7 @@ function loginReturnUrl() {
   return new URL("./", location.href).toString();
 }
 
+// 作りかけのカードを持って LINE 版で開く URL（長すぎるときはカードを持っていかない）
 function carriedDeckUrl() {
   const deck = encodeDeck();
   // 記録用の文字（?sendText=。send.js）も、LINE アプリで開いたあとに渡す
@@ -138,6 +149,7 @@ function takeCarriedDeck() {
   }
 }
 
+// 中身の中から、リンク（http・https・line:）を全部集める
 function collectUrls(value, found = []) {
   if (typeof value === "string") {
     if (/^(https?:\/\/|line:)/i.test(value.trim())) found.push(value.trim());
@@ -147,6 +159,7 @@ function collectUrls(value, found = []) {
   return found;
 }
 
+// 端末の下書きを読む（壊れていれば null。何枚目かが数でないときは1枚目）
 function loadDraft() {
   const draft = loadJson(DRAFT_KEY);
   if (!Array.isArray(draft?.cards) || !draft.cards.length) return null;
@@ -155,6 +168,7 @@ function loadDraft() {
   return { ...draft, current };
 }
 
+// 下書きを消す
 function clearDraft() {
   clearTimeout(draftTimer);
   localStorageRemove(DRAFT_KEY);
@@ -167,10 +181,12 @@ function lastSentCards() {
   return saved && typeof saved === "object" ? [saved] : [];
 }
 
+// 2つのカードの束が同じ中身か
 function sameDeck(a, b) {
   return a.length === b.length && a.every((card, i) => JSON.stringify(hydrate(card)) === JSON.stringify(hydrate(b[i])));
 }
 
+// カードが1枚だけで、まだ何も入れていないか
 function isBlankDeck(list) {
   if (list.length !== 1) return false;
   const blank = hydrate({ ...BLANK_STATE, kind: list[0].kind, theme: list[0].theme, bubbleSize: list[0].bubbleSize });

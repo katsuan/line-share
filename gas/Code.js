@@ -48,6 +48,7 @@ const PLANS = {
   premium: { longImageStorage: true, hideCredit: true }
 };
 
+// 動いているかの確かめ（ブラウザで開くと { ok: true } を返す）
 function doGet() {
   return jsonResponse_({ ok: true, name: 'line-share-gas' });
 }
@@ -92,18 +93,21 @@ function findPlan_(userHash) {
   return { plan: 'free', expiresAt: '' };
 }
 
+// 期限が空か、まだ来ていないか
 function isActive_(expiresAt) {
   if (!expiresAt) return true;
   const time = new Date(expiresAt).getTime();
   return !isNaN(time) && time > Date.now();
 }
 
+// Script Properties の PREMIUM_USERS（有償の人のハッシュの一覧）
 function premiumUsersFromProperties_() {
   return String(PropertiesService.getScriptProperties().getProperty('PREMIUM_USERS') || '')
     .split(/[\s,]+/)
     .filter(Boolean);
 }
 
+// プランの一覧のシート（PLANS_SHEET_ID がなければ null）
 function sheet_() {
   const id = PropertiesService.getScriptProperties().getProperty('PLANS_SHEET_ID');
   if (!id) return null;
@@ -156,6 +160,7 @@ function upsertRow_(match, fields) {
 //
 // 支払いリンク（Payment Links）には、ページが ?client_reference_id=<ユーザーのハッシュ> を付けて開く（shared/plan.js の checkoutUrl）。
 
+// Stripe の知らせを、イベント ID で Stripe から取り直して処理する（支払い済みなら有償に、解約なら無料に）
 function handleStripeEvent_(eventId) {
   const secret = PropertiesService.getScriptProperties().getProperty('STRIPE_SECRET_KEY');
   if (!secret) return jsonResponse_({ ok: false, error: 'stripe disabled' });
@@ -170,6 +175,7 @@ function handleStripeEvent_(eventId) {
   if (event.id !== eventId || !(Number(event.created) > Date.now() / 1000 - STRIPE_EVENT_MAX_AGE_SECONDS)) {
     return jsonResponse_({ ok: false, error: 'old event' });
   }
+  // Stripe の ID の形（cus_… など）なら、そのまま。ほかは空
   const stripeId = function (value, prefix) {
     return new RegExp('^' + prefix + '_[A-Za-z0-9]{1,64}$').test(String(value || '')) ? String(value) : '';
   };
@@ -198,6 +204,7 @@ function handleStripeEvent_(eventId) {
 // ---- 利用状況の記録 ----
 // ページ（shared/log.js）が sendBeacon でまとめて送ってくる。中身は決まった列だけを短く切って書く（それ以外は捨てる）
 
+// ページから届いた利用状況の記録を、決まった列だけ短く切ってシートに足す。{ ok, count }
 function log_(events) {
   const id = PropertiesService.getScriptProperties().getProperty('LOG_SHEET_ID');
   if (!id || !Array.isArray(events)) return { ok: false };
@@ -228,6 +235,7 @@ function ensureHeader_(sheet, columns) {
   if (sheet.getLastColumn() < columns.length) sheet.getRange(1, 1, 1, columns.length).setValues([columns]);
 }
 
+// シートを探し（なければ作り）、見出しの行をそろえる
 function sheetOf_(book, name, columns) {
   const sheet = book.getSheetByName(name) || book.insertSheet(name);
   if (sheet.getLastRow() === 0) sheet.appendRow(columns);
@@ -311,6 +319,7 @@ function rollupLogs() {
 
 // ---- 画像の保存 ----
 
+// 本人と有償プランを確かめてから、画像を Google ドライブに保存して公開 URL を返す
 function upload_(payload) {
   const userHash = verifyUser_(String(payload.accessToken || ''));
   if (!PLANS[findPlan_(userHash).plan].longImageStorage) throw userError_('有償プランではありません。');
@@ -340,12 +349,14 @@ function verifyUser_(accessToken) {
   return sha256Hex_(profile.userId);
 }
 
+// URL を読んで JSON を返す（200 でなければ null）
 function fetchJson_(url, headers) {
   const response = UrlFetchApp.fetch(url, { headers: headers || {}, muteHttpExceptions: true });
   if (response.getResponseCode() !== 200) return null;
   return JSON.parse(response.getContentText());
 }
 
+// PNG・JPEG の data URL を確かめて、中身・種類・拡張子を返す（ちがうときはやさしい言葉の例外）
 function parseDataUrl_(imageData) {
   const match = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
   if (!match) throw userError_('PNG または JPEG の data URL を送信してください。');
@@ -366,6 +377,7 @@ function buildPublicUrl_(fileId) {
   return 'https://drive.usercontent.google.com/download?id=' + encodeURIComponent(fileId) + '&export=view';
 }
 
+// 文字の SHA-256（16進）
 function sha256Hex_(text) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text, Utilities.Charset.UTF_8)
     .map(function (byte) {
@@ -374,12 +386,14 @@ function sha256Hex_(text) {
     .join('');
 }
 
+// Script Properties の値（なければ例外。setup() を実行してもらう）
 function getProperty_(key) {
   const value = PropertiesService.getScriptProperties().getProperty(key);
   if (!value) throw new Error(key + ' が Script Properties に未設定です。setup() を実行してください。');
   return value;
 }
 
+// JSON を返す（ウェブアプリの返事）
 function jsonResponse_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }

@@ -1,9 +1,12 @@
-import { app, autoGrow, escapeHtml, formatPlaceLocation, jumpAttrs, setMessage, shareFlex, toUserMessage, UserError, sentMessage } from "./page.js?v=202610251125";
-import { assertUriLength, isGoogleMapsUrl, isHttpUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610251125";
-import { MAX_URI_LENGTH } from "./config.js?v=202610251125";
-import { bindHeader } from "./header.js?v=202610251125";
-import { createEventFlex } from "./card.js?v=202610251125";
-import { bindPlaceSearch } from "./place-search.js?v=202610251125";
+// 場所・予定の「🗓️ 予定」タブ：件名・日時・場所などの入力、Google カレンダーに入れるリンク、プレビュー、送る。
+// 中身：入力欄のつなぎこみ・日時（終日・日をまたぐ予定・長さのボタン）・カレンダーのリンク作り・プレビューの描画。
+// plan/app.js が initCalendarTab・refreshCalendarTab・applyEventQuery・applyPlace・focusCalendarTitle を呼ぶ。
+import { app, autoGrow, escapeHtml, formatPlaceLocation, jumpAttrs, setMessage, shareFlex, toUserMessage, UserError, sentMessage } from "./page.js?v=202610251141";
+import { assertUriLength, isGoogleMapsUrl, isHttpUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610251141";
+import { MAX_URI_LENGTH } from "./config.js?v=202610251141";
+import { bindHeader } from "./header.js?v=202610251141";
+import { createEventFlex } from "./card.js?v=202610251141";
+import { bindPlaceSearch } from "./place-search.js?v=202610251141";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -18,6 +21,7 @@ const state = {
   header: null
 };
 
+// 予定タブを用意する（入力欄を探し、はじめの日時を入れ、操作をつなぐ）。はじめに1回だけ呼ぶ
 export function initCalendarTab() {
   cacheDom_();
   setDefaultDateTime_();
@@ -110,12 +114,14 @@ function parseQueryDate_(value) {
   return { date, dateOnly: match[4] === undefined };
 }
 
+// 件名が空なら件名の欄に移る（場所から「この場所で予定を作る」を押したとき）
 export function focusCalendarTitle() {
   if (!dom.title.value.trim()) {
     dom.title.focus();
   }
 }
 
+// 予定タブで使う入力欄・ボタンを探して dom に入れる
 function cacheDom_() {
   dom.form = document.getElementById("eventForm");
   dom.title = document.getElementById("title");
@@ -154,6 +160,7 @@ function cacheDom_() {
   dom.allDayToggle = document.getElementById("allDayToggle");
 }
 
+// 入力・ボタン・プレビューの操作をつなぐ
 function bindEvents_() {
   // プレビューの件名と「予定」の件名は同じもの（どちらで入力してもよい）。form の input より先に写す
   dom.titleInline.addEventListener("input", () => {
@@ -197,6 +204,7 @@ function bindEvents_() {
   dom.shareTargetButton.addEventListener("click", shareToTargetPicker_);
 }
 
+// 入力に合わせて、プレビュー・送るボタン・作ったリンク・案内をそろえる。入力が変わるたびと、LIFF の準備のあとに呼ぶ
 export function refreshCalendarTab() {
   window.LineShareUI.syncOptionals();
   updateOptionalCount_();
@@ -239,6 +247,7 @@ export function refreshCalendarTab() {
   }
 }
 
+// 入力から予定の中身を集めて確かめる。足りない・おかしいときはやさしい言葉の UserError を投げる
 function getFormData_() {
   const title = dom.title.value.trim();
   const start = getStart_();
@@ -300,6 +309,7 @@ function getFormData_() {
   };
 }
 
+// 予定の中身から、Google カレンダーに予定を入れるリンクを作る
 function createGoogleCalendarUrl_(data) {
   const params = new URLSearchParams();
   const detailBlocks = [];
@@ -356,12 +366,14 @@ function createGoogleCalendarUrl_(data) {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+// カードに出す日時の文を作る。{ when }
 function getFlexLabels_(data) {
   const duration = formatDurationLabel_(data.start, data.end).replace("所要時間 ", "");
   // 開始〜終了を1行目に、長さを2行目に（例：2026年10月18日(日) 10:00〜11:30 ⏎（1時間30分））
   return { when: formatWhenLabel_(data, duration) };
 }
 
+// 日時の文：「開始〜終了」の1行目と、「（長さ）」の2行目。終日は日付だけ
 function formatWhenLabel_(data, duration) {
   if (data.allDay) {
     const lastDay = addDays_(data.end, -1);
@@ -400,6 +412,7 @@ function renderPreviewEmpty_() {
   });
 }
 
+// プレビューの各行（日時・場所・メモ）とボタン・写真を描き、タップで設定に移れるようにする
 function renderPreviewParts_({ rows, photoUrl, mapUrl, url }) {
   if (document.activeElement !== dom.titleInline) dom.titleInline.value = dom.title.value;
   // 各行・各ボタンをタップしたときに移る設定
@@ -430,6 +443,7 @@ function renderPreviewParts_({ rows, photoUrl, mapUrl, url }) {
   autoGrow(dom.details);
 }
 
+// 「詳しい設定」に入っている数を、見出しの右に出す
 function updateOptionalCount_() {
   let count = 0;
 
@@ -449,10 +463,12 @@ function updateOptionalFieldStates_() {
   dom.urlState.textContent = dom.url.value.trim() ? hostOf_(dom.url.value.trim()) : "なし";
 }
 
+// 長い文字を max 文字で切って「…」を付ける
 function shorten_(text, max = 10) {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
+// URL のドメイン（www. を外す）。読めなければ空
 function hostOf_(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -461,12 +477,14 @@ function hostOf_(url) {
   }
 }
 
+// 地図のリンクを手で書きかえたら、検索で選んだ場所の写真は使わない
 function handleLocationMapUrlInput_() {
   if (dom.locationMapUrl.value.trim() !== state.place.mapUrl) {
     state.place = { mapUrl: "", photoUrl: "" };
   }
 }
 
+// 日時の下に、予定の長さ（「所要時間 1時間30分 / 同日内の予定です。」など）を出す
 function updateDurationSummary_() {
   const start = getStart_();
   const end = getEnd_();
@@ -498,6 +516,7 @@ function updateDurationSummary_() {
   dom.durationSummary.textContent = `${durationLabel} / ${dateRangeLabel}`;
 }
 
+// 「詳しい設定」の追加パラメータの行を1つ足す
 function addCustomParamRow_(key = "", value = "") {
   const row = document.createElement("div");
   row.className = "param-row";
@@ -509,6 +528,7 @@ function addCustomParamRow_(key = "", value = "") {
   dom.customParamsList.appendChild(row);
 }
 
+// 追加パラメータの行の × を押したら、その行を消す
 function handleCustomParamClick_(event) {
   const removeButton = event.target.closest("[data-remove-param]");
   if (!removeButton) {
@@ -524,6 +544,7 @@ function handleCustomParamClick_(event) {
   refreshCalendarTab();
 }
 
+// 追加パラメータの行から、名前と値の組を集める（名前が空の行は使わない）
 function getCustomParams_() {
   return Array.from(dom.customParamsList.querySelectorAll(".param-row"))
     .map((row) => {
@@ -537,6 +558,7 @@ function getCustomParams_() {
 // 送っている途中か（二重押しで2回送らない）
 let sharing_ = false;
 
+// 予定のカードを、送り先を選んで送る（二重押しでは2回送らない）
 async function shareToTargetPicker_() {
   if (sharing_) return;
   sharing_ = true;
@@ -558,6 +580,7 @@ async function shareToTargetPicker_() {
   }
 }
 
+// 作ったカレンダーのリンクを、新しいタブで開く
 function openGeneratedUrl_() {
   if (!dom.generatedUrl.value) {
     return;
@@ -565,6 +588,7 @@ function openGeneratedUrl_() {
   window.open(dom.generatedUrl.value, "_blank", "noopener,noreferrer");
 }
 
+// 作ったカレンダーのリンクをコピーする
 function copyGeneratedUrl_() {
   if (!dom.generatedUrl.value) {
     return;
@@ -576,6 +600,7 @@ function copyGeneratedUrl_() {
     .catch((error) => setMessage(dom.statusMessage, toUserMessage(error), "error"));
 }
 
+// はじめの日時：いまから1時間後（30分きざみ）に始まる1時間の予定
 function setDefaultDateTime_() {
   const now = new Date();
   now.setMinutes(Math.ceil(now.getMinutes() / 30) * 30, 0, 0);
@@ -591,6 +616,7 @@ function setDefaultDateTime_() {
   updateDurationSummary_();
 }
 
+// 開始を変えたら、選んでいる長さに合わせて終了も動かす（終了を自分で変えたあとは、終了が開始より前のときだけ）
 function handleStartDateTimeChange_() {
   const start = getStart_();
   const end = getEnd_();
@@ -609,6 +635,7 @@ function handleStartDateTimeChange_() {
   refreshCalendarTab();
 }
 
+// 終了を自分で変えたら、長さのボタンには合わせない
 function handleEndDateTimeEdit_() {
   state.endEdited = true;
   state.followStartDuration = false;
@@ -617,6 +644,7 @@ function handleEndDateTimeEdit_() {
   refreshCalendarTab();
 }
 
+// 長さのボタン（30分・1時間…）を押したら、開始からその長さで終了を決める
 function handleDurationButtonClick_(event) {
   const minutes = Number(event.currentTarget.dataset.durationMinutes);
   if (!minutes) {
@@ -637,6 +665,7 @@ function handleDurationButtonClick_(event) {
   refreshCalendarTab();
 }
 
+// 開始から minutes 分あとを終了に入れる。終日は最終日の日付だけ
 function setEndFromStart_(start, minutes) {
   const end = new Date(start.getTime() + minutes * 60 * 1000);
   if (state.allDay) {
@@ -648,10 +677,12 @@ function setEndFromStart_(start, minutes) {
   dom.endTime.value = toTimeInputValue_(end);
 }
 
+// 入力から開始の日時を作る（終日は 0:00）。足りなければ null
 function getStart_() {
   return combineDateTime_(dom.startDate.value, state.allDay ? "00:00" : dom.startTime.value);
 }
 
+// 入力から終了の日時を作る。終日は最終日の次の日の 0:00。足りなければ null
 function getEnd_() {
   if (!state.allDay) {
     return combineDateTime_(dom.endDate.value, dom.endTime.value);
@@ -660,6 +691,7 @@ function getEnd_() {
   return lastDay ? addDays_(lastDay, 1) : null;
 }
 
+// 「終日」を切りかえたら、時刻の欄と長さのボタンを出し分けて、終了を合わせる
 function handleAllDayChange_() {
   state.allDay = dom.allDayToggle.checked;
   dom.startTime.hidden = state.allDay;
@@ -687,6 +719,7 @@ function addDays_(date, days) {
   return next;
 }
 
+// 日付と時刻の文字（"2026-10-25"・"10:00"）から Date を作る。読めなければ null
 function combineDateTime_(dateValue, timeValue) {
   if (!dateValue || !timeValue) {
     return null;
@@ -699,6 +732,7 @@ function combineDateTime_(dateValue, timeValue) {
   return date;
 }
 
+// 件名・日時のどれかが入っているか（何も入れていないときは、足りない理由を出さない）
 function hasAnyRequiredInput_() {
   return Boolean(
     dom.title.value.trim() ||
@@ -709,6 +743,7 @@ function hasAnyRequiredInput_() {
   );
 }
 
+// 今の開始と終了の長さに合う、長さのボタンを選んだ見た目にする
 function syncDurationButtons_() {
   const start = getStart_();
   const end = getEnd_();
@@ -728,10 +763,12 @@ function toGoogleCalendarDay_(date) {
   return toDateInputValue_(date).replaceAll("-", "");
 }
 
+// Google カレンダーのリンクに書く日時（UTC の 20261025T010000Z の形）
 function toGoogleCalendarDate_(date) {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
+// Date を日付の欄の文字（"2026-10-25"）にする
 function toDateInputValue_(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -739,12 +776,14 @@ function toDateInputValue_(date) {
   return `${year}-${month}-${day}`;
 }
 
+// Date を時刻の欄の文字（"10:00"）にする
 function toTimeInputValue_(date) {
   const hour = String(date.getHours()).padStart(2, "0");
   const minute = String(date.getMinutes()).padStart(2, "0");
   return `${hour}:${minute}`;
 }
 
+// 日付の見出し（"2026年10月25日(日)"）
 function formatDateLabel_(date) {
   return new Intl.DateTimeFormat("ja-JP", {
     year: "numeric",
@@ -754,6 +793,7 @@ function formatDateLabel_(date) {
   }).format(date);
 }
 
+// 時刻の見出し（"10:00"）
 function formatTimeLabel_(date) {
   return new Intl.DateTimeFormat("ja-JP", {
     hour: "2-digit",
@@ -761,10 +801,12 @@ function formatTimeLabel_(date) {
   }).format(date);
 }
 
+// 日付と時刻の見出し（"2026年10月25日(日) 10:00"）
 function formatDateTimeLabel_(date) {
   return `${formatDateLabel_(date)} ${formatTimeLabel_(date)}`;
 }
 
+// 開始から終了までの長さの文（"所要時間 1日2時間30分"）
 function formatDurationLabel_(start, end) {
   const totalMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
   const days = Math.floor(totalMinutes / 1440);
@@ -785,6 +827,7 @@ function formatDurationLabel_(start, end) {
   return `所要時間 ${parts.join("")}`;
 }
 
+// 2つの日時が同じ日か（端末の時間で）
 function isSameCalendarDate_(left, right) {
   return (
     left.getFullYear() === right.getFullYear() &&

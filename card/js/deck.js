@@ -1,4 +1,4 @@
-// お知らせカード：複数枚（カルーセル）のタブ・切り替え・左右のチラ見せ
+// お知らせカード：複数枚（カルーセル）のタブ・切り替え・左右のチラ見せ。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- 複数枚（カルーセル） ----
 
@@ -18,6 +18,7 @@ function withCard(card, fn) {
   }
 }
 
+// index 枚目のカードに切りかえる
 function switchCard(index) {
   storeCurrent();
   if (index < 0 || index >= cards.length || index === current) {
@@ -54,6 +55,7 @@ function addCard() {
   setStatus(`カード${current + 1}を足しました。`);
 }
 
+// 今のカードを消す（聞かずに消して、「元に戻す」を出す）
 function removeCard() {
   if (cards.length <= 1) return;
   // 聞かずに消して、「元に戻す」を出す
@@ -97,6 +99,7 @@ function snapshotCard(index) {
   return clone;
 }
 
+// 左右のカードのチラ見せを描く（2枚以上のとき）
 function renderPeeks() {
   const multiple = cards.length > 1;
   els.cardStage.classList.toggle("has-peek", multiple);
@@ -125,6 +128,7 @@ function renderPeeks() {
   });
 }
 
+// カードのタブ（1・2・3…）を描く
 function renderCardTabs() {
   els.cardTabs.replaceChildren(
     ...cards.map((card, index) => {

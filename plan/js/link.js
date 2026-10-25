@@ -1,7 +1,8 @@
 // 場所・予定：リンクの確かめ・地図のリンク・外で開く
-import { MAX_URI_LENGTH } from "./config.js?v=202610251125";
-import { app, UserError } from "./page.js?v=202610251125";
+import { MAX_URI_LENGTH } from "./config.js?v=202610251141";
+import { app, UserError } from "./page.js?v=202610251141";
 
+// http か https の URL か
 export function isHttpUrl(value) {
   try {
     const url = new URL(value);
@@ -11,6 +12,7 @@ export function isHttpUrl(value) {
   }
 }
 
+// https の URL か
 export function isHttpsUrl(value) {
   try {
     return new URL(value).protocol === "https:";
@@ -19,6 +21,7 @@ export function isHttpsUrl(value) {
   }
 }
 
+// Google Maps の URL か
 export function isGoogleMapsUrl(value) {
   return (
     isHttpUrl(value) &&
@@ -28,6 +31,7 @@ export function isGoogleMapsUrl(value) {
   );
 }
 
+// LINE のボタンに入る長さ（1000字）をこえたら、やさしい言葉の UserError を投げる
 export function assertUriLength(uri, label) {
   if (uri.length > MAX_URI_LENGTH) {
     throw new UserError(`${label}が長すぎてLINEで送れません。詳細などを短くしてください。`);

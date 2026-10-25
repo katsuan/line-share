@@ -1,4 +1,4 @@
-// 自分のプランと、プランごとに使える機能を見せる。有償プランへは Stripe の支払いリンクで進む。
+// プラン（/account/）の入口（account/index.html が読む）：自分のプランと、プランごとに使える機能を見せる。有償プランへは Stripe の支払いリンクで進む。
 // プランの判定と機能の表は shared/plan.js（正本は GAS）。ここは表示だけ。
 const config = window.LINE_SHARE_CONFIG || {};
 
@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// 機能の表を描く（current のプランで使えるものに印）
 function renderTable(Plan, current) {
   const rows = Object.entries(Plan.FEATURE_LABELS).map(([key, label]) => {
     const tr = document.createElement("tr");
@@ -64,6 +65,7 @@ function renderTable(Plan, current) {
   document.querySelectorAll("[data-col]").forEach((th) => th.classList.toggle("is-current", th.dataset.col === current));
 }
 
+// 日付を "2026/10/25" の形にする（読めなければそのまま）
 function formatDate(value) {
   const d = new Date(value);
   return isNaN(d) ? value : `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;

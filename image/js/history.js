@@ -1,4 +1,4 @@
-// 送った画像をこの端末（IndexedDB）に残し、あとから選んで送り直せるようにする。
+// 文字・手書き：送った画像をこの端末（IndexedDB）に残し、あとから選んで送り直せるようにする。image/app.js が読む。
 // 画像サーバー（Render）のファイルは消えることがあるため、画像そのものを手元に保存しておく。
 const DB_NAME = "line-share-image";
 const STORE = "sent";
@@ -6,6 +6,7 @@ const MAX_ITEMS = 20;
 
 let dbPromise = null;
 
+// 送った画像を入れておく IndexedDB を1回だけ開く
 function openDb() {
   if (!("indexedDB" in window)) return Promise.reject(new Error("IndexedDB unavailable"));
   dbPromise ??= new Promise((resolve, reject) => {
@@ -19,6 +20,7 @@ function openDb() {
   return dbPromise;
 }
 
+// IndexedDB で1つの操作をする（mode："readonly"・"readwrite"）
 function run(mode, action) {
   return openDb().then(
     (db) =>
@@ -31,6 +33,7 @@ function run(mode, action) {
   );
 }
 
+// 送った画像の一覧（新しい順）。読めなければ空
 export async function listSent() {
   try {
     const items = (await run("readonly", (store) => store.getAll())) || [];
@@ -41,6 +44,7 @@ export async function listSent() {
   }
 }
 
+// 送った画像を足す（多くなったら古いものから消す）
 export async function addSent(item) {
   try {
     await run("readwrite", (store) => store.add({ ...item, sentAt: Date.now() }));
@@ -54,6 +58,7 @@ export async function addSent(item) {
   }
 }
 
+// 送った画像を消す
 export async function deleteSent(id) {
   try {
     await run("readwrite", (store) => store.delete(id));

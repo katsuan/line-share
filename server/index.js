@@ -1,3 +1,6 @@
+// おくるんの画像サーバー（Render で動く Node.js）。無料プランの画像を受けとって保存し、だれでも読める URL を返す。
+// 中身：POST /api/upload（自分のページからの PNG・JPEG だけ。送りすぎは止める）・/uploads/（保存した画像）・/health。
+// Render は line-draw-share リポジトリの server/ から動く（このフォルダと同じ中身にそろえる）。shared/plan.js が呼ぶ。
 const crypto = require("crypto");
 const fs = require("fs/promises");
 const path = require("path");
@@ -35,6 +38,7 @@ const uploadCors = cors({
 
 // 同じ接続元からの送りすぎを止める（覚えるのはこのサーバーが動いている間だけ）
 const recentUploads = new Map();
+// 同じ接続元から、1分のうちに送りすぎていないか（今回の分も数える）
 function tooManyUploads(ip) {
   const now = Date.now();
   const list = (recentUploads.get(ip) || []).filter((time) => now - time < 60 * 1000);
@@ -58,6 +62,7 @@ app.use(
   }),
 );
 
+// 保存した画像の公開 URL の頭（PUBLIC_BASE_URL か、届いたリクエストの宛先）
 function buildPublicBaseUrl(request) {
   if (process.env.PUBLIC_BASE_URL) {
     return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
@@ -66,12 +71,14 @@ function buildPublicBaseUrl(request) {
   return `${request.protocol}://${request.get("host")}`;
 }
 
+// 画面にそのまま見せてよいエラーを作る
 function userError(message) {
   const error = new Error(message);
   error.forUser = true;
   return error;
 }
 
+// PNG・JPEG の data URL を確かめて、中身と拡張子を返す（中身の先頭の印も見る）
 function parseDataUrl(imageData) {
   const match = /^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
 

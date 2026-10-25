@@ -1,4 +1,6 @@
-// 全ツール共通の画面の振る舞い
+// 全ツール共通の画面の振る舞い（Q キット。window.LineShareUI）：入力中は送る帯を隠す・設定へ移る・色の並び・任意の項目の＋／×・
+// プレビューの見方の切りかえ・プレビューへ戻るボタン・送ったあとのシート・通知（toast）・確認の窓（ask）・はじめての案内・進み具合・ツールの色。
+// おくるんの各ページと、ほかの Q のツールが <script src="…/shared/ui.js"> で読む。
 (function () {
   // 文字入力中は下部の送信バーを隠し、スマホのキーボードと重ならないようにする
   const TEXT_FIELD =
@@ -65,8 +67,10 @@
 
   // 1色から グラデーション・薄い色・文字色 を作る（「ほかの色」用）
   function paletteFromColor(hex) {
+    // 色を白に amount だけ近づける
     const mix = (amount) => {
       const num = parseInt(hex.slice(1), 16);
+      // 1つの色の値を白に近づけて、2けたの16進にする
       const channel = (c) => Math.round(c + (255 - c) * amount).toString(16).padStart(2, "0");
       return `#${[(num >> 16) & 255, (num >> 8) & 255, num & 255].map(channel).join("")}`.toUpperCase();
     };
@@ -111,6 +115,7 @@
    */
   const optionals = [];
 
+  // 任意の項目に「＋ ○○」と「×」を付ける。返す関数を呼ぶと、出す・隠すを今の中身にそろえる
   function optional(wrapper, { label, isOn, onAdd, onRemove } = {}) {
     const field = wrapper.querySelector("input, textarea");
     const on = isOn || (() => wrapper.dataset.open === "1" || field.value.trim() !== "");
@@ -134,6 +139,7 @@
     add.textContent = `＋ ${label}`;
     wrapper.after(add);
 
+    // 中身に合わせて、項目と「＋」のどちらを出すかを決める
     function sync() {
       const shown = on();
       wrapper.hidden = !shown;
@@ -169,6 +175,7 @@
     { viewing: true, icon: "👀", name: "完成イメージ" }
   ];
 
+  // 完成イメージで見るか（端末に残した選び方）
   function loadViewing() {
     try {
       return localStorage.getItem(VIEW_KEY) === "1";
@@ -177,6 +184,7 @@
     }
   }
 
+  // 送信プレビューの右上に「📝 編集／👀 完成イメージ」の切りかえを付ける
   function setupPreviewToggles() {
     const previews = [...document.querySelectorAll(".ls-preview")];
     let viewing = loadViewing();
@@ -213,6 +221,7 @@
       return buttons;
     });
 
+    // 選んだ見方を、すべてのプレビューとボタンにそろえる
     function apply() {
       previews.forEach((preview, index) => {
         preview.classList.toggle("is-viewing", viewing);
@@ -242,14 +251,17 @@
     button.hidden = true;
     document.body.append(button);
 
+    // いま画面に出ているプレビュー
     const shown = () => previews.find((preview) => preview.offsetParent !== null);
     let queued = false;
+    // プレビューが見えなくなったら「👀 プレビュー」のボタンを出す
     const update = () => {
       queued = false;
       const preview = shown();
       // プレビューの下の端が画面の上のほうへ消えたら出す
       button.hidden = !preview || preview.getBoundingClientRect().bottom > 60;
     };
+    // 次の描画のタイミングで1回だけ update を呼ぶ
     const schedule = () => {
       if (queued) return;
       queued = true;
@@ -296,6 +308,7 @@
   const DATA_BASE = new URL("../data/", document.currentScript?.src || location.href);
   let templates = null;
 
+  // data/templates.json を1回だけ読む（読めなければ空のもの）
   function loadTemplates() {
     templates ||= fetch(new URL("templates.json", DATA_BASE), { cache: "no-cache" })
       .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
@@ -335,11 +348,13 @@
     const titleEl = sheet.querySelector(".ls-sheet-title");
     const note = sheet.querySelector(".after-sent-note");
     const again = sheet.querySelector('[data-act="again"]');
+    // シートの見出し（何回送ったか）と案内をそろえる
     const update = () => {
       titleEl.textContent = `✅ ${title}${count > 1 ? `（${count}回）` : ""}`;
       note.textContent = "同じ内容を、ほかのトークにも送れます。";
     };
     update();
+    // シートを閉じる
     const hide = () => sheet.remove();
     again.hidden = typeof resend !== "function";
     const backLink = sheet.querySelector('[data-act="back"]');
@@ -390,6 +405,7 @@
     box.className = "ls-toast";
     box.setAttribute("role", "status");
     box.append(Object.assign(document.createElement("span"), { textContent: message }));
+    // 通知を消す
     const hide = () => box.remove();
     if (actionLabel && typeof onAction === "function") {
       const button = Object.assign(document.createElement("button"), { type: "button", textContent: actionLabel });
@@ -440,6 +456,7 @@
         card.append(field);
       }
       const actions = Object.assign(document.createElement("div"), { className: "ls-sheet-actions" });
+      // 窓を閉じて、押したほう（入力欄つきなら入れた文字か null）を返す
       const done = (value) => {
         sheet.remove();
         document.removeEventListener("keydown", onKey);
@@ -464,6 +481,7 @@
       sheet.addEventListener("click", (event) => {
         if (event.target === sheet) done(cancel === null);
       });
+      // Esc で閉じる
       const onKey = (event) => {
         if (event.key === "Escape") done(cancel === null);
       };
@@ -518,6 +536,7 @@
    */
   function progress(label, show, { slowAfter = 6, slowNote = "画像サーバーを起こしています。はじめは30秒ほどかかることがあります。" } = {}) {
     const started = Date.now();
+    // 経過秒数を出す
     const tick = () => {
       const sec = Math.floor((Date.now() - started) / 1000);
       show(`${label}… ${sec}秒${sec >= slowAfter && slowNote ? `\n${slowNote}` : ""}`);
@@ -535,7 +554,9 @@
     if (!/^#[0-9a-f]{6}$/i.test(String(hex || ""))) return;
     const num = parseInt(hex.slice(1), 16);
     const rgb = [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+    // 色の値の並びを "#rrggbb" にする
     const toHex = (values) => `#${values.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
+    // 色を黒に amount だけ近づける
     const shade = (amount) => toHex(rgb.map((c) => c * (1 - amount))); // 黒に寄せる
     const style = document.documentElement.style;
     style.setProperty("--ls-accent", hex);

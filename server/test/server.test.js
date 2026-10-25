@@ -29,6 +29,7 @@ test.after(async () => {
 });
 
 let ip = 0;
+// 手元のサーバーに画像を送る（接続元は毎回変える。from で決められる）。{ status, data, headers }
 async function upload(body, { origin = ORIGIN, from } = {}) {
   const headers = { "Content-Type": "application/json", "X-Forwarded-For": from || `10.0.0.${(ip += 1)}` };
   if (origin) headers.Origin = origin;

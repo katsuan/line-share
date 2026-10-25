@@ -1,4 +1,4 @@
-// プラン（無料・有償）と、プランごとに使える機能を1か所で決める。各ページは「この機能を使えるか」（has）で判定する。
+// プラン（無料・有償）と、プランごとに使える機能を1か所で決める（window.LineSharePlan）。各ページは「この機能を使えるか」（has）で判定する。おくるんの各ページが読む。
 //
 // プランの決め方（上から順に）
 //   1. GAS（gas/）に聞く … LIFF のアクセストークンで本人を確かめ、プランの一覧（シート・Script Properties）で判定した結果。正本
@@ -39,15 +39,18 @@
   let current = { plan: "free", source: "none", userHash: "", expiresAt: "" };
   let checking = Promise.resolve();
 
+  // 今のプランをページに知らせる（<html data-plan> と lineshare:plan イベント）
   function applyToPage() {
     document.documentElement.dataset.plan = current.plan;
     document.dispatchEvent(new CustomEvent("lineshare:plan", { detail: { plan: current.plan, features: features() } }));
   }
 
+  // 今のプランで使える機能の写し
   function features() {
     return { ...(PLANS[current.plan] || PLANS.free).features };
   }
 
+  // このタブに覚えたプラン（同じ人で、10分以内のもの）。なければ null
   function readCache(userHash) {
     try {
       const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
@@ -58,6 +61,7 @@
     return null;
   }
 
+  // プランをこのタブに覚える
   function writeCache(value) {
     try {
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ...value, at: Date.now() }));
@@ -78,6 +82,7 @@
     }
   }
 
+  // config.js の premiumUsers から決めたプラン（GAS に聞けないときの予備）
   function fromConfig(userHash) {
     const list = Array.isArray(config.premiumUsers) ? config.premiumUsers : [];
     return { plan: userHash && list.includes(userHash) ? "premium" : "free", expiresAt: "" };
@@ -100,6 +105,7 @@
     return checking;
   }
 
+  // 今のプランで、その機能が使えるか
   function has(feature) {
     return Boolean(features()[feature]);
   }
@@ -123,6 +129,7 @@
     return data;
   }
 
+  // 画像を無料の画像サーバー（Render）に保存して、公開 URL を返す
   async function uploadToServer(dataUrl) {
     const base = String(config.imageApiBaseUrl || "").replace(/\/$/, "");
     if (!base) throw new Error("画像のアップロード先（config.js の imageApiBaseUrl）が未設定です。");
@@ -139,6 +146,7 @@
     return data.imageUrl;
   }
 
+  // 画像を GAS（Google ドライブ）に保存して、公開 URL を返す（長く保存できるプランだけ）
   async function uploadToGas(dataUrl) {
     const data = await postGas({ action: "upload", imageData: dataUrl, accessToken: liff.getAccessToken() });
     if (!data.ok || !/^https:\/\//.test(data.imageUrl || "")) throw new Error(data.error || "GAS への保存に失敗しました");

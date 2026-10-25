@@ -1,4 +1,4 @@
-// お知らせカード：プレビューと入力欄の描画（バッジ・ボタン・色）
+// お知らせカード：プレビューと入力欄の描画（バッジ・ボタン・色）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // 「カラー」の丸を共通の並びで作る（最後の「ほかの色」は HTML にある）
 function renderThemeSwatches() {
@@ -23,6 +23,7 @@ function renderThemeSwatches() {
 
 // ---- 描画 ----
 
+// 今のカードの中身を、入力欄とスイッチに入れる
 function applyStateToEditor() {
   els.headerInput.value = state.headerTitle;
   els.dateInput.value = state.date;
@@ -41,11 +42,13 @@ function applyStateToEditor() {
   renderButtonList();
 }
 
+// name と value の合うラジオボタンを選んだ状態にする
 function checkRadio(name, value) {
   const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
   if (input) input.checked = true;
 }
 
+// プレビュー・設定の見出しの要約・送るボタンを、今のカードにそろえて描きなおす
 function render() {
   const palette = getPalette();
   const kindTitle = (KINDS[state.kind] || KINDS.notice).title;
@@ -109,6 +112,7 @@ function render() {
 
 // アコーディオンの見出しの右に、今の設定を短く出す（ほかのツールとそろえる）
 function updateFoldMeta() {
+  // 数の要約（0 なら「なし」）
   const count = (n) => (n ? `${n}個` : "なし");
   els.lookMeta.textContent = `${THEMES[state.theme]?.label || "カスタム"}・${state.bubbleSize}`;
   els.photoMeta.textContent = state.imageUrl.trim() || photo.uploading ? "あり" : "なし";
@@ -129,6 +133,7 @@ function renderBadgePreview(palette) {
   els.badgeAddButton.hidden = state.badges.length >= MAX_BADGES;
 }
 
+// プレビューのバッジを1つ作る（タップで書きかえ、× で消す）
 function createBadge(text, index, palette) {
   const badge = document.createElement("span");
   badge.className = "bubble-badge";
@@ -171,6 +176,7 @@ function createBadge(text, index, palette) {
   return badge;
 }
 
+// リンクボタンの設定の一覧を描く
 function renderButtonList() {
   els.buttonList.replaceChildren(
     ...state.buttons.map((button, index) => {
@@ -207,6 +213,7 @@ function renderButtonList() {
   );
 }
 
+// 設定欄の入力を1つ作る
 function createInput(type, value, placeholder, ariaLabel) {
   const input = document.createElement("input");
   input.type = type;
@@ -222,6 +229,7 @@ function createInput(type, value, placeholder, ariaLabel) {
   return input;
 }
 
+// 本文タイトルと詳細の高さを、中身に合わせる
 function autoGrowAll() {
   for (const element of [els.titleInput, els.detailInput]) {
     element.style.height = "auto";
@@ -231,6 +239,7 @@ function autoGrowAll() {
 
 // ---- 色 ----
 
+// 今のカードの色（自分で選んだ色なら、その色から薄い色も作る）
 function getPalette() {
   if (state.theme !== "custom") return THEMES[state.theme];
   const base = normalizeHexColor(state.customColor);
@@ -242,13 +251,16 @@ function getPalette() {
   };
 }
 
+// 色の文字を "#rrggbb" にそろえる（おかしいときははじめの色）
 function normalizeHexColor(value) {
   const match = String(value || "").trim().match(/^#?([0-9a-fA-F]{6})$/);
   return match ? `#${match[1].toLowerCase()}` : DEFAULT_CUSTOM_COLOR;
 }
 
+// 色を白に amount だけ近づける
 function lightenHex(hex, amount) {
   const num = parseInt(normalizeHexColor(hex).slice(1), 16);
+  // 1つの色の値を白に近づける
   const mix = (c) => Math.round(c + (255 - c) * amount);
   return `#${[(num >> 16) & 255, (num >> 8) & 255, num & 255].map((c) => mix(c).toString(16).padStart(2, "0")).join("")}`;
 }

@@ -1,4 +1,4 @@
-// お知らせカード：形式ごとの部品（投票・チェックリスト・チケット・クーポン）
+// お知らせカード：形式ごとの部品（投票・チェックリスト・チケット・クーポン）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- 投票・チェックリスト ----
 
@@ -22,6 +22,7 @@ function splitPasted(text, index) {
   return true;
 }
 
+// 形式（お知らせ・投票…）を切りかえるボタンを並べる
 function renderKindChips() {
   els.kindChips.replaceChildren(
     ...Object.entries(KINDS)
@@ -41,6 +42,7 @@ function renderKindChips() {
   );
 }
 
+// 形式を切りかえる（候補・項目が足りなければ空の欄を用意する）
 function setKind(kind) {
   if (state.kind === kind) return;
   state.kind = kind;
@@ -81,6 +83,7 @@ function renderItemsPreview(palette) {
   els.itemsArea.replaceChildren(...state.items.map((text, index) => createItemRow(text, index, palette)));
 }
 
+// 投票の候補・チェックリストの項目の1行を作る
 function createItemRow(text, index, palette) {
   const kind = KINDS[state.kind];
   const row = document.createElement("div");
@@ -140,6 +143,7 @@ function setValue(input, value) {
   if (document.activeElement !== input) input.value = value;
 }
 
+// チケット・クーポンのプレビューを描く（ほかの形式では隠す）
 function renderTicketPreview(palette) {
   els.ticketArea.hidden = state.kind !== "ticket";
   els.couponArea.hidden = state.kind !== "coupon";
@@ -162,6 +166,7 @@ function renderTicketPreview(palette) {
   }
 }
 
+// チケットの「項目名＋値」の1つを作る
 function createPairCell(pair, index) {
   const cell = document.createElement("div");
   cell.className = "ticket-pair";
@@ -195,6 +200,7 @@ function createPairCell(pair, index) {
 
 // 欠け丸付きのミシン目。幅 10px の箱に直径 20px の丸を寄せて置き、はみ出た半分が切り取られて半円に見える
 function perforationFlex() {
+  // チケットの端の欠け丸（side は "start" か "end"）
   const notch = (side) => ({
     type: "box",
     layout: "vertical",
@@ -227,8 +233,11 @@ function perforationFlex() {
   };
 }
 
+// チケットのカードの中身（出発・到着・ミシン目・項目）を作る
 function ticketFlex(palette) {
+  // 大きい文字
   const big = (text) => ({ type: "text", text: text || " ", size: "xxl", weight: "bold", color: "#111827", wrap: true });
+  // 小さい文字
   const small = (text) => ({ type: "text", text: text || " ", size: "xs", color: "#6B7280", wrap: true });
   const route = {
     type: "box",
@@ -268,6 +277,7 @@ function ticketFlex(palette) {
   return { top: [route], bottom: rows };
 }
 
+// クーポンのカードの中身（特典・コード・期限）を作る
 function couponFlex(palette) {
   const top = [{ type: "text", text: state.coupon.offer || " ", size: "3xl", weight: "bold", color: palette.start, align: "center", wrap: true }];
   const bottom = [];

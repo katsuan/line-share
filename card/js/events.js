@@ -1,4 +1,4 @@
-// お知らせカード：画面の操作（入力・スワイプ・ボタン）を結ぶ
+// お知らせカード：画面の操作（入力・スワイプ・ボタン）を結ぶ。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- イベント ----
 
@@ -7,6 +7,7 @@ function removeOnEdit(ariaLabel, onClick) {
   return window.LineShareUI.removeButton(ariaLabel, onClick, { onEdit: true });
 }
 
+// 画面の操作（入力・ボタン・スワイプ・タップ）をつなぐ。はじめに1回だけ呼ぶ
 function bindEvents() {
   for (const [container, row] of [[els.itemsArea, ".bubble-item"], [els.pairsArea, ".ticket-pair"], [els.badgeRow, ".bubble-badge"]]) {
     window.LineShareUI.keepRemoveVisible(container, row);
@@ -179,6 +180,7 @@ function bindEvents() {
     render();
     els.badgeRow.querySelector(".bubble-badge:last-child .bubble-badge-text")?.focus();
   });
+  // プレビューのボタンを押したら、そのボタンの設定に移る
   const jumpToButton = (event) => {
     const item = event.target.closest(".bubble-action");
     if (!item) return;

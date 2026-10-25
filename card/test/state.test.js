@@ -12,6 +12,7 @@ const FILES = ["config.js", "store.js", "state.js", "url.js", "soccer.js", "rend
 const UI = fs.readFileSync(path.join(__dirname, "../../shared/ui.js"), "utf8");
 const PALETTE = vm.runInNewContext(/const PALETTE = (\[[\s\S]*?\n  \]);/.exec(UI)[1]);
 
+// card/js/ のファイルを、偽の localStorage などの上で読みこむ
 function load(storage = {}) {
   const store = new Map(Object.entries(storage));
   const localStorage = {

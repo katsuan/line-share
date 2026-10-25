@@ -21,11 +21,13 @@ var QloveBotLink = (function () {
   var URL_PATTERN = /^https:\/\/script\.google\.com\/(?:a\/[A-Za-z0-9.-]+\/)?macros\/s\/[A-Za-z0-9_-]{20,120}\/exec$/;
   var TIMEOUT_MS = 15000;
 
+  // 使う保存場所（テストでは opts.storage）
   function storage(opts) {
     if (opts && opts.storage) return opts.storage;
     return typeof localStorage !== "undefined" ? localStorage : null;
   }
 
+  // くらぶボットの URL として使える形なら整えた URL、ほかは空
   function clean(text) {
     var url = String(text == null ? "" : text).trim();
     return URL_PATTERN.test(url) ? url : "";
@@ -41,6 +43,7 @@ var QloveBotLink = (function () {
     }
   }
 
+  // くらぶボットの URL を端末に残す。{ ok, error }
   function set(text, opts) {
     var url = clean(text);
     if (!url) return { ok: false, error: "url" };
@@ -52,6 +55,7 @@ var QloveBotLink = (function () {
     }
   }
 
+  // くらぶボットの URL を消す
   function clear(opts) {
     try {
       storage(opts).removeItem(KEY);
@@ -76,6 +80,7 @@ var QloveBotLink = (function () {
       });
   }
 
+  // くらぶボットに、ツールの出来事を送る
   function call(tool, action, payload, opts) {
     var body = { app: "qlove", v: 1, tool: String(tool), action: String(action) };
     Object.keys(payload || {}).forEach(function (k) {
@@ -84,6 +89,7 @@ var QloveBotLink = (function () {
     return post(get(opts), body, opts);
   }
 
+  // くらぶボットにつながるか確かめる
   function ping(url, opts) {
     return post(url ? clean(url) : get(opts), { app: "qlove", v: 1, tool: "core", action: "ping" }, opts);
   }

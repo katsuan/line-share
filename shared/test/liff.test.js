@@ -9,6 +9,7 @@ const vm = require("node:vm");
 
 const SOURCE = fs.readFileSync(path.join(__dirname, "../liff.js"), "utf8");
 
+// href のページとして liff.js を読みこむ。{ api, location, history }
 function load(href, liff = {}) {
   const location = new URL(href);
   const history = {

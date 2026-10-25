@@ -1,4 +1,4 @@
-// おくるんのトップ（HOME）の動き：LIFF の入口の転送・ツールの一覧・紹介のシート
+// おくるんのトップ（HOME）の動き：LIFF の入口の転送・ツールの一覧・最近つかったツール・紹介のシート。index.html が読む（見た目は style.css）。
 // https://liff.line.me/<LIFF ID>/plan/ のようなリンクは、まずこのトップに liff.state 付きで届く。
 // liff.init() が該当ツールのページへ転送する。
 (function () {
@@ -22,10 +22,14 @@ function groupMembers(tools, key) {
 
 // LINE絵文字・ほかのツールの欄を JSON から作る（1行ずつのリンク）
 (function () {
+  // LINE STORE の絵文字のページ
   const storeUrl = (id) => `https://line.me/S/emoji/?id=${encodeURIComponent(id)}`;
+  // 絵文字の見本の画像
   const imageUrl = (id) => `https://stickershop.line-scdn.net/sticonshop/v1/product/${encodeURIComponent(id)}/iPhone/main.png?v=1`;
+  // 絵文字の作者のページ
   const authorUrl = (id) => `https://line.me/S/shop/emoji/author/${encodeURIComponent(id)}`;
 
+  // JSON を読む（読めなければ reject）
   const loadJson = (path) =>
     fetch(path, { cache: "no-cache" }).then((response) => (response.ok ? response.json() : Promise.reject(response.status)));
 
@@ -47,6 +51,7 @@ function groupMembers(tools, key) {
       });
   }
 
+  // 一覧の1行（ツール・絵文字）を作る。ツールは押すと紹介のシートを出す
   function createRow(row) {
     const li = document.createElement("li");
     const link = document.createElement("a");
@@ -124,6 +129,7 @@ function groupMembers(tools, key) {
   // ほかのツールのカード：共有画像・名前（英字）・説明と「○○を開く」
   const toolSheet = document.getElementById("toolSheet");
   let toolOpener = null;
+  // ほかのツールの紹介のシートを出す
   function openToolSheet(row, opener) {
     toolOpener = opener;
     const ogp = document.getElementById("toolOgp");
@@ -155,6 +161,7 @@ function groupMembers(tools, key) {
     toolSheet.hidden = false;
     open.focus();
   }
+  // 紹介のシートを閉じて、押したところに戻る
   function closeToolSheet() {
     toolSheet.hidden = true;
     toolOpener?.focus();
@@ -210,6 +217,7 @@ function groupMembers(tools, key) {
     return nodes;
   }
 
+  // 一覧の欄（見出し・説明・行）を、JSON の中身で埋める
   function fill({ section, title, lead, list }, data, rows) {
     if (!rows.length) return;
     // ロゴがあれば（くらぶ 〜Qlove〜）ロゴの画像＋読みがな。なければ見出しの「Q」をおくるんの紫（data.color）に
@@ -307,7 +315,9 @@ function groupMembers(tools, key) {
   const status = $("shareStatus");
   if (!sheet || !$("shareOpen")) return;
 
+  // 紹介のシートの案内に文を出す
   const setStatus = (text) => (status.textContent = text);
+  // 紹介のシートを出す
   const open = () => {
     setStatus("");
     sheet.hidden = false;
@@ -339,6 +349,7 @@ function groupMembers(tools, key) {
     setStatus(window.LineShareLiff.MESSAGES.notInLine);
     return false;
   }
+  // 紹介のシートを閉じる
   const close = () => {
     sheet.hidden = true;
     $("shareOpen").focus();
@@ -394,6 +405,7 @@ function groupMembers(tools, key) {
   // ツールの色を白に寄せた色（見出しのグラデーションの終わり）
   function lighten(hex, amount = 0.38) {
     const n = parseInt(String(hex).replace("#", ""), 16);
+    // 1つの色の値を白に近づける
     const mix = (c) => Math.round(c + (255 - c) * amount);
     return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => mix(c).toString(16).padStart(2, "0")).join("").toUpperCase();
   }
@@ -485,6 +497,7 @@ function groupMembers(tools, key) {
     // ツールが12個までは、グループに分けずに全ツールを横に並べて1通に。おくるんの紹介も入るなら先頭に入れる（入らなければ1通目に別で）
     if (tools.length <= MAX_BUBBLES) {
       const all = tools.map(toolBubble);
+      // カードを横に並べた1通
       const carousel = (bubbles) => ({ type: "flex", altText: "Qlove｜Q のツールたち", contents: { type: "carousel", contents: bubbles } });
       return all.length < MAX_BUBBLES ? [carousel([introCard().contents, ...all])] : [introCard(), carousel(all)];
     }
@@ -502,8 +515,10 @@ function groupMembers(tools, key) {
     const messages = carousels.length < MAX_MESSAGES ? [introCard(), ...carousels] : carousels;
     return messages.slice(0, MAX_MESSAGES);
   }
+  // メッセージの中のカードの数
   const bubbleCount = (messages) => messages.reduce((n, m) => n + (m.contents.type === "carousel" ? m.contents.contents.length : 1), 0);
 
+  // 全ツールの紹介カードを送る（作成者だけ）
   async function shareAll() {
     if (!(await window.LineShareLiff.isOwner())) return;
     if (!(await readyToSend())) return;
@@ -518,6 +533,7 @@ function groupMembers(tools, key) {
     }
   }
 
+  // おくるんの紹介カードを、送り先を選んで送る
   async function shareCard() {
     if (!(await readyToSend())) return;
     try {
@@ -530,6 +546,7 @@ function groupMembers(tools, key) {
     }
   }
 
+  // おくるんのリンクを共有する（共有できないときはコピー）
   async function shareLink() {
     const data = { title: "おくるん", text: "つくって、おくるん💬 写真やボタン付きのカードを、LINEで送れます。", url: PAGE_URL };
     if (navigator.share) {

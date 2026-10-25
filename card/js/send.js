@@ -1,7 +1,8 @@
-// お知らせカード：入力チェックと送信（LIFF の準備・送る前の確認）
+// お知らせカード：入力チェックと送信（LIFF の準備・送る前の確認）。card/index.html が順に読む（同じ範囲の変数を使う）。
 
 // ---- 入力チェックと送信 ----
 
+// 今のカードが送れるかを確かめる。足りないときは { message, fieldId か focus }、送れるときは { message: "" }
 function getValidation() {
   if (photo.uploading) return { message: "写真をアップロードしています。少しお待ちください。", fieldId: "photoFileInput" };
   if (!state.headerTitle) return { message: "タイトルを入力してください。", fieldId: "headerInput" };
@@ -61,6 +62,7 @@ function getDeckValidation() {
   return { message: "" };
 }
 
+// 送るボタンと、送れない理由の案内をそろえる
 function updateShareButtonState() {
   const { message } = getDeckValidation();
   window.LineShareUI.setPreviewError(els.bubble, message);
@@ -76,6 +78,7 @@ function updateShareButtonState() {
 // 送る前に中身を見せ、チェックを外せば送らない
 // LINE の外で「ログインして送る」と、パラメータなしで戻ってくるので、ログインの前に sessionStorage に残したものも読む（store.js の keepDeckForLogin）
 const SEND_TEXT_KEY = "oqrn:card-send-text";
+// 記録用の文字（?sendText= か、ログインの前にこのタブに残したもの）。2000字まで
 const SEND_TEXT = (() => {
   const fromUrl = new URLSearchParams(location.search).get("sendText") || "";
   let kept = "";
@@ -93,6 +96,7 @@ function activeSendText() {
   return SEND_TEXT && document.getElementById("sendTextToggle")?.checked ? SEND_TEXT : "";
 }
 
+// 記録用の文字があれば、送る前に中身を見せる欄を出す
 function initSendText() {
   const row = document.getElementById("sendTextRow");
   if (!row || !SEND_TEXT) return;
@@ -100,6 +104,7 @@ function initSendText() {
   row.hidden = false;
 }
 
+// 記録用の文字を送るメッセージ（チェックを外していれば空）
 function sendTextMessages() {
   const text = activeSendText();
   return text ? [{ type: "text", text }] : [];
@@ -113,6 +118,7 @@ let backTarget = null;
 // どのツールから来たか（読みこみのあとに URL のクエリは消すので、先に覚えておく）
 const FROM_PARAM = new URLSearchParams(location.search).get("from") || "";
 
+// 来た元のツール（?from=）がわかれば、送ったあとのシートに「○○に戻る」を出せるよう用意する
 async function loadBackTarget() {
   const from = FROM_PARAM;
   const key = FROM_TOOLS[from] || from.replace(/-intro$/, "");
@@ -135,6 +141,7 @@ async function loadBackTarget() {
   }
 }
 
+// 送る帯の上の案内に文を出す（isError で赤）
 function setStatus(message, isError = false) {
   els.status.textContent = message || "";
   els.status.classList.toggle("is-error", isError);
@@ -143,6 +150,7 @@ function setStatus(message, isError = false) {
 // 送っている途中か（確かめの窓・送り先選びが開いている間に、もう一度押されても2回送らない）
 let sharing = false;
 
+// 送る（送っている間にもう一度押されても、2回送らない）
 async function share() {
   if (sharing) return;
   sharing = true;
@@ -153,6 +161,7 @@ async function share() {
   }
 }
 
+// 全カードを確かめ、送る前の確認のあと、送り先を選んで送る。送れたら前回送った内容に残し、下書きを消す
 async function shareOnce() {
   if (!window.LineShareLiff.canShare()) {
     setStatus(window.LineShareLiff.MESSAGES.notInLine, true);
@@ -195,6 +204,7 @@ async function shareOnce() {
   }
 }
 
+// 足りないところの入力欄を開いて、そこへ移る
 function focusField(validation) {
   if (validation.section) document.getElementById(validation.section).open = true;
   if (validation.focus) {
@@ -208,24 +218,28 @@ function focusField(validation) {
   field.focus({ preventScroll: true });
 }
 
+// 送る前の確認の窓を出す（「もう出さない」を選んでいれば出さない）。送るなら true
 function confirmSendWarning() {
   if (localStorageGet(SEND_WARNING_DISMISSED_KEY) === "true") {
     return Promise.resolve(true);
   }
 
   return new Promise((resolve) => {
+    // 確認の窓を閉じて、選んだ結果を返す
     const close = (result) => {
       els.sendWarningModal.hidden = true;
       els.sendWarningConfirm.removeEventListener("click", onConfirm);
       els.sendWarningCancel.removeEventListener("click", onCancel);
       resolve(result);
     };
+    // 「送る」を押したとき（「もう出さない」を覚える）
     const onConfirm = () => {
       if (els.sendWarningDontShow.checked) {
         localStorageSet(SEND_WARNING_DISMISSED_KEY, "true");
       }
       close(true);
     };
+    // 「やめる」を押したとき
     const onCancel = () => close(false);
 
     els.sendWarningDontShow.checked = false;
@@ -236,6 +250,7 @@ function confirmSendWarning() {
   });
 }
 
+// LIFF を用意して、送るボタンを使えるようにする。LINE の外では「ログインして送る」「LINE 版で開く」の案内を出す
 async function initLiff() {
   if (location.protocol === "file:") {
     setStatus("ローカルプレビュー中です。共有確認は GitHub Pages など https 上で行ってください。");
@@ -269,6 +284,7 @@ async function initLiff() {
   }
 }
 
+// 設定の場所を開いて、入力欄に移る
 function jumpToSection(id, focusTarget) {
   window.LineShareUI.jumpTo(id, focusTarget);
 }

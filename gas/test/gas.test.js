@@ -9,6 +9,7 @@ const { createGas, response } = require(path.join(__dirname, "../../tools/qtest/
 
 const CHANNEL = "1234567890";
 const USERS = { "token-free": "Ufree", "token-premium": "Upremium", "token-other-channel": "Uother" };
+// 文字の SHA-256（GAS と同じ形）
 const hash = (text) => crypto.createHash("sha256").update(text).digest("hex");
 const ONE_PIXEL_PNG =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
@@ -43,6 +44,7 @@ function stripeEvents(now = Date.now() / 1000) {
   };
 }
 
+// テスト用の GAS（LINE・Stripe の返事は偽物、シートは見出しだけ）を用意する
 function make({ stripeKey = "rk_test_x", events = stripeEvents() } = {}) {
   const gas = createGas({
     dir: path.join(__dirname, ".."),
@@ -223,6 +225,7 @@ test("rollupLogs：空の行（書きこみと消すのが重なったとき）�
   const gas = make();
   const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString();
   const recent = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+  // 利用状況の記録の1行
   const row = (at) => [at, at, "open", "card", "", "", 0, "", "s1", "", "", 1];
   const blank = gas.ctx.LOG_COLUMNS.map(() => "");
   gas.seed("events", [gas.ctx.LOG_COLUMNS, row(old), blank, row(old), row(recent)], "LOGS");

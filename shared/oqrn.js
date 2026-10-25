@@ -10,6 +10,7 @@
   const LIFF_ID = "2009927876-DioOJd0z";
   const CARD = `https://liff.line.me/${LIFF_ID}/card/`;
 
+  // 中身を入れた状態でお知らせカードを開く URL（オブジェクトか URLSearchParams を渡す）
   function cardUrl(params) {
     const query = params instanceof URLSearchParams ? params : new URLSearchParams(params || {});
     // 空白は「+」ではなく %20 で書く（liff.line.me を通ると「+」がそのまま残り、カードに「+」が出るため）

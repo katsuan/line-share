@@ -5,6 +5,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const Q = require("../qlove-bot.js");
 
+// localStorage の偽物
 function memory(init = {}) {
   const data = { ...init };
   return { data, getItem: (k) => (k in data ? data[k] : null), setItem: (k, v) => { data[k] = String(v); }, removeItem: (k) => { delete data[k]; } };
@@ -46,6 +47,7 @@ test("call：入れた URL に text/plain の JSON を送る。payload で app�
   const s = memory();
   Q.set(URL_OK, { storage: s });
   let sent = null;
+  // 偽の fetch（送ったものを sent に覚える）
   const fetch = async (url, opt) => {
     sent = { url, opt, body: JSON.parse(opt.body) };
     return { json: async () => ({ ok: true, places: [] }) };
