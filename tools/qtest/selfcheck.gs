@@ -140,9 +140,9 @@ function qCheckLine_(add) {
     if (expected && String(endpoint.endpoint || '').indexOf(expected.split('?')[0]) !== 0) {
       add('⚠️', 'LINE', 'Webhook の URL が ' + config.webAppUrlProperty + ' とちがう');
     } else if (endpoint.active) {
-      add('✅', 'LINE', 'Webhook が使われている' + (/[?&]key=/.test(endpoint.endpoint || '') ? '（合言葉つき）' : ''));
+      add('✅', 'LINE', 'Webhook が使われている' + (/[?&](key|token)=/.test(endpoint.endpoint || '') ? '（合言葉つき）' : ''));
     }
-    if (!/[?&]key=/.test(endpoint.endpoint || '')) add('⚠️', 'LINE', 'Webhook の URL に合言葉（?key=）がない。だれでも偽の知らせを送れる');
+    if (!/[?&](key|token)=/.test(endpoint.endpoint || '')) add('⚠️', 'LINE', 'Webhook の URL に合言葉（?key=）がない。だれでも偽の知らせを送れる');
   }
 }
 
