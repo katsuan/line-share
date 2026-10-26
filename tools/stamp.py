@@ -9,11 +9,13 @@ HTML の <script>/<link> と、JS の import 先に同じ版を付ける。
 """
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = datetime.now().strftime("%Y%m%d%H%M")
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qstamp import next_version  # noqa: E402  付ける番号の決め方は Q のツール共通（今あるいちばん大きい番号より必ず大きく）
+
+VERSION = next_version(ROOT)
 
 # 自分のファイル（./ や ../ で始まる .js / .css）だけを対象にする
 HTML_REF = re.compile(r'((?:src|href)="(?:\./|\.\./)[^"?]+\.(?:js|css))(?:\?v=[^"]*)?"')

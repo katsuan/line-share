@@ -400,7 +400,6 @@
 /* メイン機能とは別の、ほかのページへのリンク */
 /* LINE絵文字：説明と、行の左に置く小さな代表画像 */
 .hub-emoji-lead {
-  word-break: auto-phrase;
   margin: -4px 4px 10px;
   color: var(--ls-subtext);
   font-size: 13px;

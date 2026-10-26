@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""公開する前に、読み込む JS・CSS に版の番号（?v=UTC の年月日時分）を付け直す。Q のツール共通（おくるん自身は tools/stamp.py）。
+"""公開する前に、読み込む JS・CSS に版の番号（?v=。日本時間の年月日時分で、今ある番号より必ず大きく）を付け直す。Q のツール共通（おくるん自身は tools/stamp.py）。
 
 LINE アプリの中のブラウザと GitHub Pages は JS・CSS を強くキャッシュするので、直したのに古いファイルが残り、
 新しい HTML と古い JS が混ざって画面が真っ白になる（「export が見つからない」など）。毎回これを通して防ぐ。
@@ -16,7 +16,32 @@ import re
 import sys
 from pathlib import Path
 
-STAMP = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d%H%M")
+SKIP_DIRS = {"node_modules", ".git", "test", "tests", "tools", "server"}
+VERSION_NUMBER = re.compile(r"\?v=(\d{8,14})(?![0-9])")
+
+
+def next_version(root, now=None):
+    """付ける ?v=：日本時間の年月日時分と、今あるいちばん大きい ?v=（8〜14けたの数）＋1 の、大きいほう。
+    前の番号を UTC で付けていた・手で付けたなどで時刻が小さくても、前より必ず大きくなる"""
+    now = now or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
+    stamp = int(now.strftime("%Y%m%d%H%M"))
+    biggest = 0
+    for path in Path(root).rglob("*"):
+        # テスト・道具の中の見本の番号は数えない（読みこむ URL ではないので）
+        if path.suffix not in (".html", ".js", ".mjs", ".css") or SKIP_DIRS.intersection(path.relative_to(root).parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for m in VERSION_NUMBER.finditer(text):
+            # 8けた（年月日）は 12けた（年月日時分）にそろえて比べる
+            biggest = max(biggest, int(m.group(1).ljust(12, "0")) if len(m.group(1)) < 12 else int(m.group(1)))
+    return str(max(stamp, biggest + 1))
+
+
+# 付ける番号（実行したときに決める。tools/stamp.py から next_version だけを読んでも、ここは動かない）
+STAMP = ""
 LOCAL = r"(?![a-z]+:|//)"  # http: や // で始まらない（このリポジトリの中の）パス
 ATTR = re.compile(r'((?:src|href)=")' + LOCAL + r'([^"?#]+\.(?:js|css))(?:\?v=[^"#]*)?(")')
 IMPORT_CSS = re.compile(r'(@import\s+(?:url\()?["\'])' + LOCAL + r'([^"\'?#]+\.css)(?:\?v=[^"\'#]*)?(["\'])')
@@ -68,5 +93,6 @@ def stamp_html(path):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
+    STAMP = next_version(Path.cwd())
     for name in sys.argv[1:]:
         stamp_html(Path(name))
