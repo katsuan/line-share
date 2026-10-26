@@ -53,3 +53,14 @@ test("シートの中身：未ログイン・つながっていない・電波�
   assert.match(none, /送っていない記録はありません/);
   assert.match(none, /^LINEでログインしています/m, "名前がわからないとき");
 });
+
+test("ボットにつながないツール（キロっく）：ボットの行・送っていない数を出さない。うつし方の言葉を変えられる", () => {
+  const rows = M.describe({ me: { name: "かつ" }, loggedIn: true, connected: true, pending: 5, bot: false, online: true, moveHint: "「💾 この端末の記録をバックアップ」でうつせます" });
+  const text = rows.map((r) => r.text).join("\n");
+  assert.match(text, /かつ さんでログインしています/);
+  assert.doesNotMatch(text, /ボット|送っていない/);
+  assert.ok(!rows.some((r) => r.pending));
+  assert.match(text, /💾 この端末の記録をバックアップ/);
+  const browser = M.describe({ loggedIn: false, bot: false }).map((r) => r.text).join("\n");
+  assert.match(browser, /まだ LINE にログインしていません/);
+});
