@@ -7,7 +7,8 @@
 //   mount(opts) → { update() } / null（ブラウザ版では何も出さない）
 //     opts：{ liffId, host（アイコンを入れる場所。既定は .ls-brand）, botName（例「くらぶボット」）,
 //             connected()（ボットとつながっているか）, pending()（まだ送っていない記録の数）,
-//             retry()（電波がもどったとき・「いま送る」で呼ぶ。Promise でもよい）, onSettings()（「⚙️ ○○とつなぐ」を押したとき） }
+//             retry()（電波がもどったとき・「いま送る」で呼ぶ。Promise でもよい）, onSettings()（「🔗 ○○とつなぐ」を押したとき）,
+//             onPrefs()（「⚙️ 設定」を押したとき。ふつうは QLineMe.openFold("settings")） }
 //     ボットにつながないツール（キロっく）向け：
 //       bot: false … 「ボットとつながっているか」「まだ送っていない数」の行と数の印を出さない
 //       show: true … ブラウザ版でも出す（灰色のふち。キロっくはアイコンから設定を開くため）
@@ -18,6 +19,11 @@
 //   describe(state) … シートに出す行（テストで中身を確かめる）
 //   readMe(storage)・saveMe(profile, storage) … 端末に残した名前とアイコンの URL
 //   initial(name) … 名前の頭の字（アイコンがないとき）
+//   openFold(idOrElement) … たたみ欄（<details>。ふつうはページの下の「⚙️ 設定」id="settings"）を開いて、そこまで動かす
+//
+// 設定の置き場所（Q のツールの決まり。q-oqrn/docs/ux.md の A7）
+//   設定（週のはじまり・表示・目標・記録の控えなど）は、ページの下の「⚙️ 設定」のたたみ欄（id="settings"）に1つにまとめる。
+//   LINE 版はアイコンのシートの「⚙️ 設定」からそこへ。ブラウザ版はアイコンが出ないので、ページの下の欄をそのまま開く
 //   hue(name)     … 頭の字の丸の色あい（0〜359）。同じ名前なら、どのツール・どの端末でも同じ色
 //
 // 守ること（q-oqrn/docs/security.md）
@@ -107,7 +113,7 @@ var QLineMe = (function () {
 
   /**
    * シートに出す行（文字だけ）
-   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「🔒 記録の控え」） }
+   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「⚙️ 設定」の記録の控え） }
    */
   function describe(state) {
     var s = state || {};
@@ -127,7 +133,7 @@ var QLineMe = (function () {
     if (n) rows.push({ icon: "📮", text: "まだ" + bot + "に送っていない記録が " + n + " 件。" + (s.online === false ? "電波がもどったら送ります" : s.connected ? "すぐ送りなおします" : "つながったら送ります"), pending: true });
     else if (s.connected && s.bot !== false) rows.push({ icon: "📮", text: "送っていない記録はありません" });
     if (s.online === false) rows.push({ icon: "📶", text: "いまは電波がありません。記録はこの端末に残っています" });
-    rows.push({ icon: "📱", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「🔒 記録の控え」でうつせます") + "）" });
+    rows.push({ icon: "📱", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「⚙️ 設定」の記録の控えでうつせます") + "）" });
     return rows;
   }
 
@@ -307,11 +313,22 @@ var QLineMe = (function () {
         });
         actions.appendChild(login);
       }
+      if (o.onPrefs) {
+        var prefs = document.createElement("button");
+        prefs.type = "button";
+        prefs.className = "ls-button is-block";
+        prefs.textContent = "⚙️ 設定";
+        prefs.addEventListener("click", function () {
+          close();
+          o.onPrefs();
+        });
+        actions.appendChild(prefs);
+      }
       if (o.onSettings) {
         var settings = document.createElement("button");
         settings.type = "button";
         settings.className = "ls-button is-block";
-        settings.textContent = "⚙️ " + String(o.botName || "ボット") + "とつなぐ";
+        settings.textContent = "🔗 " + String(o.botName || "ボット") + "とつなぐ";
         settings.addEventListener("click", function () {
           close();
           o.onSettings();
@@ -387,7 +404,18 @@ var QLineMe = (function () {
     return handle;
   }
 
-  return { KEY: KEY, mount: mount, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, hue: hue, clean: clean };
+  /** たたみ欄（<details>）を開いて、そこまで動かす。見つからなければ false */
+  function openFold(target) {
+    var el = typeof target === "string" ? document.getElementById(target) : target;
+    if (!el) return false;
+    el.open = true;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    var summary = el.querySelector("summary");
+    if (summary) summary.focus({ preventScroll: true });
+    return true;
+  }
+
+  return { KEY: KEY, mount: mount, openFold: openFold, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, hue: hue, clean: clean };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = QLineMe;
