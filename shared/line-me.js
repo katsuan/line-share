@@ -18,6 +18,7 @@
 //   describe(state) … シートに出す行（テストで中身を確かめる）
 //   readMe(storage)・saveMe(profile, storage) … 端末に残した名前とアイコンの URL
 //   initial(name) … 名前の頭の字（アイコンがないとき）
+//   hue(name)     … 頭の字の丸の色あい（0〜359）。同じ名前なら、どのツール・どの端末でも同じ色
 //
 // 守ること（q-oqrn/docs/security.md）
 //   - 端末に残すのは、表示に使う名前とアイコンの URL だけ（localStorage の qlove:me。LINE の ID・ID トークンは残さない。W7）
@@ -87,6 +88,23 @@ var QLineMe = (function () {
     }
   }
 
+  /** 名前から色あいを決める（FNV-1a。同じ名前ならいつも同じ。前後の空白は見ない）。12色から選ぶ */
+  function hue(name) {
+    var text = String(name || "").trim();
+    var h = 0x811c9dc5;
+    for (var i = 0; i < text.length; i++) {
+      h ^= text.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    // 短い名前でも色がばらけるよう、最後にもう一度かきまぜる（MurmurHash3 の fmix32）
+    h = (h ^ (h >>> 16)) >>> 0;
+    h = Math.imul(h, 0x85ebca6b) >>> 0;
+    h = (h ^ (h >>> 13)) >>> 0;
+    h = Math.imul(h, 0xc2b2ae35) >>> 0;
+    h = (h ^ (h >>> 16)) >>> 0; // >>> 0 で、いつも 0 以上の数に
+    return (h % 12) * 30;
+  }
+
   /**
    * シートに出す行（文字だけ）
    * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「🔒 記録の控え」） }
@@ -119,6 +137,8 @@ var QLineMe = (function () {
     ".qme-avatar{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;overflow:hidden;border-radius:999px;background:var(--ls-accent-soft);color:var(--ls-accent-ink);font-size:15px;font-weight:800;box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px #06c755}" +
     ".qme-button.is-out .qme-avatar{box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px var(--ls-line-strong,#b4bccb)}" +
     ".qme-avatar img{width:100%;height:100%;object-fit:cover}" +
+    ".qme-avatar.is-initial{background:hsl(var(--qme-h) 70% 88%);color:hsl(var(--qme-h) 50% 30%)}" +
+    "@media (prefers-color-scheme: dark){:root[data-ls-dark=auto] .qme-avatar.is-initial{background:hsl(var(--qme-h) 35% 30%);color:hsl(var(--qme-h) 80% 86%)}}" +
     ".qme-badge{position:absolute;top:0;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ec8a16;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--ls-surface,#fff)}" +
     ".qme-head{display:flex;align-items:center;gap:12px}" +
     ".qme-head .qme-avatar{width:48px;height:48px;font-size:20px}" +
@@ -136,6 +156,15 @@ var QLineMe = (function () {
     document.head.appendChild(style);
   }
 
+  /** 頭の字を、名前で決まる色の丸に出す（名前がなければツールの色のまま 👤） */
+  function showInitial(box, name) {
+    box.replaceChildren(document.createTextNode(initial(name)));
+    if (String(name || "").trim()) {
+      box.classList.add("is-initial");
+      box.style.setProperty("--qme-h", String(hue(name)));
+    }
+  }
+
   /** アイコン（img か頭の字）を作る */
   function avatarEl(me) {
     var box = document.createElement("span");
@@ -146,10 +175,10 @@ var QLineMe = (function () {
       img.src = me.picture;
       img.alt = "";
       img.referrerPolicy = "no-referrer";
-      img.addEventListener("error", function () { box.replaceChildren(document.createTextNode(initial(me.name))); });
+      img.addEventListener("error", function () { showInitial(box, me.name); });
       box.appendChild(img);
     } else {
-      box.textContent = initial(me && me.name);
+      showInitial(box, me && me.name);
     }
     return box;
   }
@@ -321,7 +350,7 @@ var QLineMe = (function () {
     return handle;
   }
 
-  return { KEY: KEY, mount: mount, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, clean: clean };
+  return { KEY: KEY, mount: mount, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, hue: hue, clean: clean };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = QLineMe;
