@@ -7,6 +7,7 @@
 //   inLineApp(ua?)                 … LINE のアプリの中か（ブラウザでは LIFF の SDK も読まない）
 //   target({ own, tool })          … つなぎ先を決める（Promise）→ { url, legacy } / null（下の「つなぎ先の決め方」）
 //   start({ liffId, url, tool, legacyApp }) … LINE 版でログインしていれば、送る口（client）を返す（Promise）。ほかは null
+//   liffReady(liffId)              … LIFF を1回だけ起こす（start と shared/line-me.js が同じ約束を使う）
 //   makeClient(url, getIdToken, opts)       … 送る口を作る（テストでは fetch・ID トークンを差しかえる）
 //   body(tool, action, payload, opts)       … ボットに送る中身（下の「送る形」）
 //   outbox(key, opts)              … 送れなかったものを端末に覚えて、次に開いたときに送りなおすための箱
@@ -135,6 +136,26 @@ var QBotLink = (function () {
   }
 
   /**
+   * LIFF を1回だけ起こす（このページで1つの約束を使いまわす。shared/line-me.js のアイコンも同じものを待つ）→ Promise（失敗したら reject）
+   */
+  var liffInits = {};
+  function liffReady(liffId) {
+    var id = String(liffId || "");
+    if (!id) return Promise.reject(new Error("liffId"));
+    if (!liffInits[id]) {
+      liffInits[id] = loadSdk().then(function () {
+        return Promise.race([
+          window.liff.init({ liffId: id }),
+          new Promise(function (_, no) { setTimeout(function () { no(new Error("timeout")); }, INIT_TIMEOUT_MS); })
+        ]);
+      });
+      // 失敗したら、次に呼んだときにやりなおせるように
+      liffInits[id].catch(function () { delete liffInits[id]; });
+    }
+    return liffInits[id];
+  }
+
+  /**
    * LINE 版（LIFF）でログインしていれば、送る口を返す。ブラウザ・URL がない・つながらないときは null
    * opts：{ liffId, url, tool, legacyApp, mapError }
    */
@@ -142,13 +163,7 @@ var QBotLink = (function () {
     var o = opts || {};
     var liffId = String(o.liffId || "");
     if (!liffId || !cleanUrl(o.url) || !inLineApp()) return Promise.resolve(null);
-    return loadSdk()
-      .then(function () {
-        return Promise.race([
-          window.liff.init({ liffId: liffId }),
-          new Promise(function (_, no) { setTimeout(function () { no(new Error("timeout")); }, INIT_TIMEOUT_MS); })
-        ]);
-      })
+    return liffReady(liffId)
       .then(function () {
         if (!window.liff.isInClient() || !window.liff.isLoggedIn()) return null;
         return makeClient(o.url, function () { return window.liff.getIDToken() || ""; }, { tool: o.tool, liffId: liffId, legacyApp: o.legacyApp, mapError: o.mapError });
@@ -317,7 +332,7 @@ var QBotLink = (function () {
     });
   }
 
-  return { cleanUrl: cleanUrl, inLineApp: inLineApp, body: body, makeClient: makeClient, start: start, target: target, outbox: outbox, reopenHidden: reopenHidden, guide: guide };
+  return { cleanUrl: cleanUrl, inLineApp: inLineApp, body: body, makeClient: makeClient, start: start, liffReady: liffReady, target: target, outbox: outbox, reopenHidden: reopenHidden, guide: guide };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = QBotLink;
