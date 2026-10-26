@@ -64,3 +64,12 @@ test("ボットにつながないツール（キロっく）：ボットの行�
   const browser = M.describe({ loggedIn: false, bot: false }).map((r) => r.text).join("\n");
   assert.match(browser, /まだ LINE にログインしていません/);
 });
+
+test("頭の字の色：同じ名前ならいつも同じ色、ちがう名前はばらける", () => {
+  const { hue } = M;
+  assert.strictEqual(hue("かつ"), hue("かつ"));
+  assert.strictEqual(hue("  かつ "), hue("かつ"));
+  const hues = new Set(["かつ", "はな", "たろう", "Mika", "おかあさん", "Ken", "ゆい", "そら"].map(hue));
+  assert.ok(hues.size >= 4, "8人で4色以上にばらける");
+  for (const h of hues) assert.ok(h >= 0 && h < 360 && h % 30 === 0);
+});
