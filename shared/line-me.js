@@ -189,7 +189,7 @@ var QLineMe = (function () {
     function drawButton() {
       var st = state();
       button.classList.toggle("is-out", !st.loggedIn);
-      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版）" : "LINE 版") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
+      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版）" : inLine ? "LINE 版" : "ブラウザ版") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
       var parts = [avatarEl(me)];
       if (st.pending) {
         var badge = document.createElement("span");
