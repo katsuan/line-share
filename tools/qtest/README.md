@@ -5,7 +5,7 @@
 | ファイル | 使いどころ |
 |---|---|
 | `fake-gas.js` | GAS の偽物。node のテストで GAS のコードを動かす |
-| `check-code.mjs` | 危ない書き方を探す（コードを読むだけ）。`docs/security.md` の番号で出す |
+| `check-code.mjs` | 危ない書き方を探す（コードを読むだけ）。`docs/security.md` の番号で出す。同じまちがいも止める：V1 `?v=` が git の前の版より小さくなった・V2 説明の文に `auto-phrase`・`text-wrap: pretty`（`docs/ux.md` の A8・A9）。見つけたら終わりのコードが 1 |
 | `selfcheck.gs` | GAS のプロジェクトに入れて、使う前に GAS エディタで `qCheckAll` を動かす。`safeCell()` もここ |
 | `example.test.js` | テストの書き方の見本 |
 
@@ -65,3 +65,14 @@ node ~/GitHub/q-oqrn/tools/qtest/check-code.mjs .
 ```
 
 出るのは「ここを見てね」の目印です。確かめて問題ないものは、その行（か1つ上の行）に `// qcheck-ok: W1 決まった文字だけ` のように書くと、次から出ません。鍵のような文字（S1）・知らない所の script（W4）・`eval`（W2）があると、終わりの値が 1 になります。
+
+テストから呼ぶとき（各ツールの test/ で。V1・V2 で止める）
+
+```js
+test("同じまちがい（?v= が小さくなる・説明の文の折り返し）がない", async () => {
+  const { checkCode } = await import(path.join(process.env.HOME, "GitHub/q-oqrn/tools/qtest/check-code.mjs"));
+  assert.deepEqual(checkCode(path.join(__dirname, "..")).filter((f) => ["V1", "V2"].includes(f.id)), []);
+});
+```
+
+共通の部品の写し（GAS の `season.gs`・`selfcheck.gs`）がそろっているかは、`node ~/GitHub/q-oqrn/tools/sync-copies.mjs`（`--write` でそろえる）。

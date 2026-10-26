@@ -1373,7 +1373,8 @@ h1, h2, h3, .ls-sheet-title, .ls-panel-title, .ls-button, .ls-chip, .ls-tab, .ls
 }
 
 /* 文節で折るのは見出し・ラベル・ボタンだけ。説明の文（.ls-hint・li・.ls-empty など）に使うと、
-   文節の切れ目まで行を早く折るので、枠の右に大きな余白ができる（そらくるの案内などで起きた）。説明の文は pretty だけにする */
+   文節の切れ目まで行を早く折るので、枠の右に大きな余白ができる（そらくるの案内などで起きた）。説明の文には何も付けない（ふつうに折り返す）。
+   tools/qtest/check-code.mjs の V2 で確かめる */
 h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(ja), .ls-panel-title:lang(ja), .ls-brand-copy:lang(ja),
 .ls-button:lang(ja), .ls-chip:lang(ja), .ls-tab:lang(ja), .ls-send:lang(ja), .ls-outside-button:lang(ja), summary:lang(ja) {
   word-break: auto-phrase;

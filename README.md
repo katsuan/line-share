@@ -53,7 +53,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 **使い心地の決まり**（開いたとき・入力・消す／元に戻す・知らせ・送る・ことば・LINE のボット・ウィジェット）は [docs/ux.md](docs/ux.md)。ここには部品の使い方を書く。
 
-**セキュリティの決まり**は [docs/security.md](docs/security.md)。テストの道具（GAS の偽物・危ない書き方を探すもの・GAS エディタで使う前に動かす確かめ）は [tools/qtest/](tools/qtest/README.md)。
+**セキュリティの決まり**は [docs/security.md](docs/security.md)。テストの道具（GAS の偽物・危ない書き方を探すもの・GAS エディタで使う前に動かす確かめ）は [tools/qtest/](tools/qtest/README.md)。共通の部品の写しをそろえる道具は `tools/sync-copies.mjs`、`?v=` を付けなおす道具は `tools/qstamp.py`（おくるんは `tools/stamp.py`）。道具のテストは `node --test tools/test/`。
 
 ほかの Q のツール（しょくじ・キロっく・さくせん盤・ロクガ・くじ・くろのす・ひっくり・ぽもくる・ジェンダーリビール・くるかな・食事記録）も、おくるんと同じ部品を使えます。中身は `shared/ui.css`（見た目）と `shared/ui.js`（シート・トースト・はじめての案内など）。見本は `shared/kit.html`（ツールの色を切りかえて見られる。検索には出さない）。
 
