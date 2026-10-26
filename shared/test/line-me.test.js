@@ -39,7 +39,7 @@ test("シートの中身：ログイン済み・つながっている・送っ�
   assert.match(text, /くらぶボットとつながっています/);
   assert.match(text, /送っていない記録が 2 件。すぐ送りなおします/);
   assert.ok(rows.find((r) => r.pending));
-  assert.match(text, /ブラウザ版とは別/);
+  assert.match(text, /ブラウザ版とは別.*「⚙️ 設定」の記録の控え/);
 });
 
 test("シートの中身：未ログイン・つながっていない・電波なしでも、記録は端末に残ると伝える", () => {
