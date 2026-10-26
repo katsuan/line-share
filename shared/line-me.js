@@ -107,16 +107,17 @@ var QLineMe = (function () {
 
   /**
    * シートに出す行（文字だけ）
-   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「🔒 記録の控え」） }
+   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「🔒 記録の控え」） }
    */
   function describe(state) {
     var s = state || {};
     var bot = String(s.botName || "ボット");
     var n = Math.max(0, Number(s.pending) || 0);
     var rows = [];
-    rows.push(s.loggedIn
-      ? { icon: "✅", text: (s.me && s.me.name ? s.me.name + " さん" : "LINE") + "でログインしています" }
-      : { icon: "👤", text: "まだ LINE にログインしていません。記録はこの端末に残ります" });
+    var who = s.me && s.me.name ? s.me.name + " さん" : "LINE";
+    if (s.loggedIn && s.verified === false) rows.push({ icon: "⏳", text: who + "（前回のログイン）。電波がもどったら確かめます。記録はこの端末に残ります" });
+    else if (s.loggedIn) rows.push({ icon: "✅", text: who + "でログインしています" });
+    else rows.push({ icon: "👤", text: "まだ LINE にログインしていません。記録はこの端末に残ります" + (s.canLogin ? "。ログインすると、送れるようになります" : "") });
     if (s.bot !== false) {
       rows.push(s.connected
         ? { icon: "🤖", text: bot + "とつながっています" }
@@ -135,6 +136,8 @@ var QLineMe = (function () {
     ".qme-button{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:44px;height:44px;margin:0 -4px 0 -6px;padding:0;border:0;border-radius:999px;background:transparent;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
     ".ls-brand .ls-brand-logo{margin-left:auto}" +
     ".qme-avatar{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;overflow:hidden;border-radius:999px;background:var(--ls-accent-soft);color:var(--ls-accent-ink);font-size:15px;font-weight:800;box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px #06c755}" +
+    ".qme-button.is-unsure .qme-avatar{box-shadow:0 0 0 2px var(--ls-surface,#fff);outline:2px dashed #06c755;outline-offset:1px}" +
+    ".qme-login{border-color:#06c755!important;color:#06a148!important}" +
     ".qme-button.is-out .qme-avatar{box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px var(--ls-line-strong,#b4bccb)}" +
     ".qme-avatar img{width:100%;height:100%;object-fit:cover}" +
     ".qme-avatar.is-initial{background:hsl(var(--qme-h) 70% 88%);color:hsl(var(--qme-h) 50% 30%)}" +
@@ -197,6 +200,11 @@ var QLineMe = (function () {
     var me = readMe() || (o.initial ? clean(o.initial) : null);
     if (me && !me.name && !me.picture) me = null;
     var loggedIn = !!me; // 前にログインした名前があれば、まずはそれで出す（あとで LIFF の答えで直す）
+    var verified = false; // LIFF に確かめたか（電波がない・起こせないあいだは false。前回のログインのまま点線のふち）
+    // ログインのボタンを出せるか：LIFF を起こせて、ログインしていないとき（LINE アプリの中では、いつもログイン済み）
+    function canLogin() {
+      return verified && !loggedIn && !!(window.liff && typeof window.liff.login === "function");
+    }
     var button = document.createElement("button");
     button.type = "button";
     button.className = "qme-button";
@@ -207,6 +215,8 @@ var QLineMe = (function () {
       return {
         me: me,
         loggedIn: loggedIn,
+        verified: verified,
+        canLogin: canLogin(),
         connected: o.bot !== false && !!(o.connected && o.connected()),
         pending: o.bot === false ? 0 : Number(o.pending && o.pending()) || 0,
         bot: o.bot !== false,
@@ -218,7 +228,8 @@ var QLineMe = (function () {
     function drawButton() {
       var st = state();
       button.classList.toggle("is-out", !st.loggedIn);
-      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版）" : inLine ? "LINE 版" : "ブラウザ版") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
+      button.classList.toggle("is-unsure", st.loggedIn && !st.verified);
+      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版" + (st.verified ? "" : "・前回のログイン") + "）" : (inLine ? "LINE 版" : "ブラウザ版") + "・ログインしていません") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
       var parts = [avatarEl(me)];
       if (st.pending) {
         var badge = document.createElement("span");
@@ -281,6 +292,21 @@ var QLineMe = (function () {
         });
         actions.appendChild(again);
       }
+      if (st.canLogin) {
+        var login = document.createElement("button");
+        login.type = "button";
+        login.className = "ls-button is-block qme-login";
+        login.textContent = "🔑 LINE でログイン";
+        login.addEventListener("click", function () {
+          if (o.login) return o.login();
+          try {
+            window.liff.login({ redirectUri: location.href });
+          } catch (e) {
+            // ログインを始められなければ、何もしない（シートはそのまま）
+          }
+        });
+        actions.appendChild(login);
+      }
       if (o.onSettings) {
         var settings = document.createElement("button");
         settings.type = "button";
@@ -317,7 +343,7 @@ var QLineMe = (function () {
     var handle = {
       update: drawButton,
       status: function () {
-        return { me: me, loggedIn: loggedIn };
+        return { me: me, loggedIn: loggedIn, verified: verified, canLogin: canLogin() };
       }
     };
     button.addEventListener("click", function () {
@@ -328,24 +354,35 @@ var QLineMe = (function () {
 
     // 電波がもどったら送りなおす。切れたら印を描きなおす
     window.addEventListener("online", function () {
+      if (!verified) check(true);
       Promise.resolve(o.retry ? o.retry() : null).then(drawButton, drawButton);
     });
     window.addEventListener("offline", drawButton);
 
     drawButton();
-    // LIFF の答えで、名前とアイコンを直す（電波がないときは、残した名前のまま）
-    Promise.resolve(ready)
-      .then(function () {
-        loggedIn = !!(window.liff && window.liff.isLoggedIn && window.liff.isLoggedIn());
-        if (!loggedIn) return null;
-        return window.liff.getProfile().then(function (profile) {
-          me = saveMe(profile);
-        });
-      })
-      .catch(function () {
-        // 起こせない・プロフィールを読めない（scope に profile がないなど）ときは、残した名前のまま
-      })
-      .then(drawButton);
+    // LIFF の答えで、ログインしているか・名前とアイコンを直す（電波がない・起こせないときは、前回のまま点線のふち）
+    function check(again) {
+      var waiting = again && !o.ready && B ? B.liffReady(o.liffId) : ready;
+      return Promise.resolve(waiting)
+        .then(function () {
+          loggedIn = !!(window.liff && window.liff.isLoggedIn && window.liff.isLoggedIn());
+          verified = true;
+          if (!loggedIn) return null;
+          return window.liff.getProfile().then(
+            function (profile) {
+              me = saveMe(profile);
+            },
+            function () {
+              // プロフィールを読めない（scope に profile がないなど）ときは、名前は前のまま（ログインはしている）
+            }
+          );
+        })
+        .catch(function () {
+          verified = false;
+        })
+        .then(drawButton);
+    }
+    check(false);
 
     return handle;
   }

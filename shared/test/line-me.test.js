@@ -73,3 +73,14 @@ test("頭の字の色：同じ名前ならいつも同じ色、ちがう名前�
   assert.ok(hues.size >= 4, "8人で4色以上にばらける");
   for (const h of hues) assert.ok(h >= 0 && h < 360 && h % 30 === 0);
 });
+
+test("ログインの3つの見え方：確かめずみ・前回のまま（電波がないなど）・していない（ログインのボタン）", () => {
+  const ok = M.describe({ me: { name: "かつ" }, loggedIn: true, verified: true, bot: false }).map((r) => r.icon + r.text);
+  assert.match(ok[0], /^✅かつ さんでログインしています$/);
+  const unsure = M.describe({ me: { name: "かつ" }, loggedIn: true, verified: false, bot: false }).map((r) => r.icon + r.text);
+  assert.match(unsure[0], /^⏳かつ さん（前回のログイン）。電波がもどったら確かめます/);
+  const out = M.describe({ loggedIn: false, verified: true, canLogin: true, bot: false }).map((r) => r.icon + r.text);
+  assert.match(out[0], /^👤まだ LINE にログインしていません。記録はこの端末に残ります。ログインすると、送れるようになります$/);
+  const outNoButton = M.describe({ loggedIn: false, verified: false, canLogin: false, bot: false }).map((r) => r.text);
+  assert.doesNotMatch(outNoButton[0], /ログインすると/);
+});
