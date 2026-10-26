@@ -8,6 +8,13 @@
 //     opts：{ liffId, host（アイコンを入れる場所。既定は .ls-brand）, botName（例「くらぶボット」）,
 //             connected()（ボットとつながっているか）, pending()（まだ送っていない記録の数）,
 //             retry()（電波がもどったとき・「いま送る」で呼ぶ。Promise でもよい）, onSettings()（「⚙️ ○○とつなぐ」を押したとき） }
+//     ボットにつながないツール（キロっく）向け：
+//       bot: false … 「ボットとつながっているか」「まだ送っていない数」の行と数の印を出さない
+//       show: true … ブラウザ版でも出す（灰色のふち。キロっくはアイコンから設定を開くため）
+//       ready … LIFF を起こした約束（ツールが自分で起こすとき。なければ botlink.js の liffReady）
+//       initial … 前にツールが覚えていた名前とアイコン（{ name, picture }。qlove:me がまだないときに使う）
+//       onOpen(handle) … 押したときにツールのシートを開く（部品のシートは出さない）。handle.status() で { me, loggedIn }
+//     → { update(), status() }
 //   describe(state) … シートに出す行（テストで中身を確かめる）
 //   readMe(storage)・saveMe(profile, storage) … 端末に残した名前とアイコンの URL
 //   initial(name) … 名前の頭の字（アイコンがないとき）
@@ -82,7 +89,7 @@ var QLineMe = (function () {
 
   /**
    * シートに出す行（文字だけ）
-   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online }
+   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「🔒 記録の控え」） }
    */
   function describe(state) {
     var s = state || {};
@@ -92,13 +99,16 @@ var QLineMe = (function () {
     rows.push(s.loggedIn
       ? { icon: "✅", text: (s.me && s.me.name ? s.me.name + " さん" : "LINE") + "でログインしています" }
       : { icon: "👤", text: "まだ LINE にログインしていません。記録はこの端末に残ります" });
-    rows.push(s.connected
-      ? { icon: "🤖", text: bot + "とつながっています" }
-      : { icon: "🤖", text: bot + "とはつながっていません（つながなくても、記録はこの端末に残ります）" });
+    if (s.bot !== false) {
+      rows.push(s.connected
+        ? { icon: "🤖", text: bot + "とつながっています" }
+        : { icon: "🤖", text: bot + "とはつながっていません（つながなくても、記録はこの端末に残ります）" });
+    }
+    if (s.bot === false) n = 0;
     if (n) rows.push({ icon: "📮", text: "まだ" + bot + "に送っていない記録が " + n + " 件。" + (s.online === false ? "電波がもどったら送ります" : s.connected ? "すぐ送りなおします" : "つながったら送ります"), pending: true });
-    else if (s.connected) rows.push({ icon: "📮", text: "送っていない記録はありません" });
+    else if (s.connected && s.bot !== false) rows.push({ icon: "📮", text: "送っていない記録はありません" });
     if (s.online === false) rows.push({ icon: "📶", text: "いまは電波がありません。記録はこの端末に残っています" });
-    rows.push({ icon: "📱", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（「🔒 記録の控え」でうつせます）" });
+    rows.push({ icon: "📱", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「🔒 記録の控え」でうつせます") + "）" });
     return rows;
   }
 
@@ -148,11 +158,15 @@ var QLineMe = (function () {
   function mount(opts) {
     var o = opts || {};
     var B = typeof window !== "undefined" ? window.QBotLink : null;
-    if (!B || !B.inLineApp() || !o.liffId) return null;
+    var inLine = B ? B.inLineApp() : /\bLine\//i.test(typeof navigator !== "undefined" ? navigator.userAgent : "");
+    if (!o.liffId || !(inLine || o.show)) return null;
+    var ready = o.ready || (B ? B.liffReady(o.liffId) : null);
+    if (!ready) return null;
     var host = o.host || document.querySelector(".ls-brand");
     if (!host) return null;
     addCss();
-    var me = readMe();
+    var me = readMe() || (o.initial ? clean(o.initial) : null);
+    if (me && !me.name && !me.picture) me = null;
     var loggedIn = !!me; // 前にログインした名前があれば、まずはそれで出す（あとで LIFF の答えで直す）
     var button = document.createElement("button");
     button.type = "button";
@@ -164,8 +178,9 @@ var QLineMe = (function () {
       return {
         me: me,
         loggedIn: loggedIn,
-        connected: !!(o.connected && o.connected()),
-        pending: Number(o.pending && o.pending()) || 0,
+        connected: o.bot !== false && !!(o.connected && o.connected()),
+        pending: o.bot === false ? 0 : Number(o.pending && o.pending()) || 0,
+        bot: o.bot !== false,
         botName: o.botName,
         online: typeof navigator !== "undefined" && "onLine" in navigator ? navigator.onLine : true
       };
@@ -174,7 +189,7 @@ var QLineMe = (function () {
     function drawButton() {
       var st = state();
       button.classList.toggle("is-out", !st.loggedIn);
-      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版）" : "LINE 版") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + "。押すとくわしく");
+      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版）" : "LINE 版") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
       var parts = [avatarEl(me)];
       if (st.pending) {
         var badge = document.createElement("span");
@@ -270,7 +285,14 @@ var QLineMe = (function () {
       }
     }
 
+    var handle = {
+      update: drawButton,
+      status: function () {
+        return { me: me, loggedIn: loggedIn };
+      }
+    };
     button.addEventListener("click", function () {
+      if (o.onOpen) return o.onOpen(handle);
       if (sheet) close();
       else drawSheet();
     });
@@ -283,7 +305,7 @@ var QLineMe = (function () {
 
     drawButton();
     // LIFF の答えで、名前とアイコンを直す（電波がないときは、残した名前のまま）
-    B.liffReady(o.liffId)
+    Promise.resolve(ready)
       .then(function () {
         loggedIn = !!(window.liff && window.liff.isLoggedIn && window.liff.isLoggedIn());
         if (!loggedIn) return null;
@@ -296,7 +318,7 @@ var QLineMe = (function () {
       })
       .then(drawButton);
 
-    return { update: drawButton };
+    return handle;
   }
 
   return { KEY: KEY, mount: mount, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, clean: clean };
