@@ -1,15 +1,15 @@
 // 文字・手書き（/image/）の入口：文字入りアイコンと手書きを1枚に重ね、縁取り・背景・動きを付けて、画像かカードで送る。
 // 中身：画面の設定・手書きの操作・プレビュー・送る・送った画像の一覧・設定を端末に残す。image/index.html が type="module" で読む。
 // 部品は js/：決まった値は config.js、描く処理は draw.js、動く画像は apng.js、送った画像は history.js、送るメッセージは card.js。
-import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./js/apng.js?v=202610262144";
-import { addSent, deleteSent, listSent, restoreSent } from "./js/history.js?v=202610262144";
+import { MOTIONS, buildAnimationBlob, canvasToBlob, computeMotionTransform } from "./js/apng.js?v=202610271259";
+import { addSent, deleteSent, listSent, restoreSent } from "./js/history.js?v=202610271259";
 
 import {
   ANIMATION_LONG_SIDE, BACKGROUNDS, BASE, BASIC_BACKGROUNDS, BASIC_COLORS, BUBBLE_SIZES, DEFAULT_PREFS, FONTS, HUES,
   LONG_SIDE, OUTLINES, OUTLINE_COLORS, OUTLINE_WIDTHS, PEN_SIZES, PEN_SIZE_MAX, PEN_SIZE_MIN, PREFS_KEY, SHAPES
-} from "./js/config.js?v=202610262144";
-import { buildLayer, compose, dims, fontOf, needsWebFont } from "./js/draw.js?v=202610262144";
-import { buildMessage } from "./js/card.js?v=202610262144";
+} from "./js/config.js?v=202610271259";
+import { buildLayer, compose, dims, fontOf, needsWebFont } from "./js/draw.js?v=202610271259";
+import { buildMessage } from "./js/card.js?v=202610271259";
 
 const config = window.LINE_SHARE_CONFIG || {};
 // よく使う文字は data/templates.json の text（開いたあとに読み込む）

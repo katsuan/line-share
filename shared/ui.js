@@ -192,7 +192,7 @@
       const group = document.createElement("div");
       group.className = "ls-preview-mode";
       group.setAttribute("role", "group");
-      group.setAttribute("aria-label", "プレビューモード切替");
+      group.setAttribute("aria-label", "プレビューの見え方（編集・完成イメージ）");
       const buttons = MODES.map((mode) => {
         const button = document.createElement("button");
         button.type = "button";

@@ -19,7 +19,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!ready) {
     if (reason === "redirecting") return;
     $("planName").textContent = "確かめられませんでした";
-    $("planNote").textContent = "LINE アプリから開き直すと、プランを確かめられます。";
+    $("planNote").textContent = "LINE 版で開きなおすと、プランを確かめられます。";
+    // 案内のとおりに押せるよう、LINE 版で開くボタンを出す（LIFF ID がないときは出さない）
+    const lineUrl = window.LineShareLiff.appUrl("/account/");
+    if (lineUrl) {
+      $("lineOpenButton").href = lineUrl;
+      $("lineOpenButton").hidden = false;
+    }
     return;
   }
 

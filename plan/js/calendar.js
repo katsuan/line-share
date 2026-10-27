@@ -1,12 +1,12 @@
 // 場所・予定の「🗓️ 予定」タブ：件名・日時・場所などの入力、Google カレンダーに入れるリンク、プレビュー、送る。
 // 中身：入力欄のつなぎこみ・日時（終日・日をまたぐ予定・長さのボタン）・カレンダーのリンク作り・プレビューの描画。
 // plan/app.js が initCalendarTab・refreshCalendarTab・applyEventQuery・applyPlace・focusCalendarTitle を呼ぶ。
-import { app, autoGrow, escapeHtml, formatPlaceLocation, jumpAttrs, setMessage, shareFlex, toUserMessage, UserError, sentMessage } from "./page.js?v=202610262144";
-import { assertUriLength, isGoogleMapsUrl, isHttpUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610262144";
-import { MAX_URI_LENGTH } from "./config.js?v=202610262144";
-import { bindHeader } from "./header.js?v=202610262144";
-import { createEventFlex } from "./card.js?v=202610262144";
-import { bindPlaceSearch } from "./place-search.js?v=202610262144";
+import { app, autoGrow, escapeHtml, formatPlaceLocation, jumpAttrs, setMessage, shareFlex, toUserMessage, UserError, sentMessage } from "./page.js?v=202610271259";
+import { assertUriLength, isGoogleMapsUrl, isHttpUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610271259";
+import { MAX_URI_LENGTH } from "./config.js?v=202610271259";
+import { bindHeader } from "./header.js?v=202610271259";
+import { createEventFlex } from "./card.js?v=202610271259";
+import { bindPlaceSearch } from "./place-search.js?v=202610271259";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dom = {};
@@ -182,7 +182,7 @@ function bindEvents_() {
       return;
     }
     openExternal(mapSearchUrl(name));
-    setMessage(dom.statusMessage, "見つけたら「共有」→「リンクをコピー」して、URL欄に貼り付けてください。");
+    setMessage(dom.statusMessage, "見つけたら「共有」→「リンクをコピー」して、下の「Google Maps のURL」の欄に貼り付けてください。");
   });
   bindPlaceSearch({
     input: document.getElementById("locationSearchInput"),
