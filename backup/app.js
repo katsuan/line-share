@@ -125,10 +125,13 @@
       await navigator.clipboard.writeText(pack());
       ui()?.toast("コピーしました。Keep メモなどに貼っておいてください");
     } catch {
-      $("pasteBox").hidden = false;
-      $("pasteText").value = pack();
-      $("pasteText").select();
-      ui()?.toast("下の欄を長押しして、コピーしてください");
+      // コピーできないときは、選べる文字の窓で出す（docs/ux.md D3）。「📥 戻す」の欄には入れない（戻すボタンと混ざるため）
+      if (ui()?.ask) ui().ask({ title: "長押ししてコピーしてください", input: pack(), readonly: true, ok: "閉じる", cancel: null });
+      else {
+        $("pasteBox").hidden = false;
+        $("pasteText").value = pack();
+        $("pasteText").select();
+      }
     }
   }
 
