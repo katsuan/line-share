@@ -51,47 +51,41 @@ function groupMembers(tools, key) {
       });
   }
 
+  // 絵文字の印（画像が読めないときの代わりにも使う）
+  function iconMark(icon) {
+    const span = document.createElement("span");
+    span.className = "hub-link-icon";
+    span.setAttribute("aria-hidden", "true");
+    span.textContent = icon;
+    return span;
+  }
+
+  // 画像の印。読めないとき（ID の間違い・一時的な不調）は絵文字の印にかえる
+  function imageMark(className, src, fallbackIcon) {
+    const img = document.createElement("img");
+    img.className = className;
+    img.src = src;
+    img.alt = "";
+    img.loading = "lazy";
+    img.addEventListener("error", () => img.replaceWith(iconMark(fallbackIcon)));
+    return img;
+  }
+
+  // 1行の左の印：代表画像（絵文字の商品にしかない）・ツールのアイコン画像・絵文字の順
+  function rowMark(row) {
+    if (row.image) return imageMark("hub-link-thumb", row.image, row.fallbackIcon || "😀");
+    if (row.appIcon) return imageMark("hub-link-app-icon", row.appIcon, row.icon || "🔗");
+    return iconMark(row.icon || "🔗");
+  }
+
   // 一覧の1行（ツール・絵文字）を作る。ツールは押すと紹介のシートを出す
   function createRow(row) {
     const li = document.createElement("li");
     const link = document.createElement("a");
     link.className = "hub-link";
     link.href = row.url;
-    let mark;
-    if (row.image) {
-      link.classList.add("has-thumb");
-      mark = document.createElement("img");
-      mark.className = "hub-link-thumb";
-      mark.src = row.image;
-      mark.alt = "";
-      mark.loading = "lazy";
-      // 代表画像は ID が正しい商品にしかないので、取れないとき（ID の間違い・一時的な不調）は代わりのアイコンにする
-      mark.addEventListener("error", () => {
-        const fallback = document.createElement("span");
-        fallback.className = "hub-link-icon";
-        fallback.setAttribute("aria-hidden", "true");
-        fallback.textContent = row.fallbackIcon || "😀";
-        mark.replaceWith(fallback);
-      });
-    } else if (row.appIcon) {
-      mark = document.createElement("img");
-      mark.className = "hub-link-app-icon";
-      mark.src = row.appIcon;
-      mark.alt = "";
-      mark.loading = "lazy";
-      // 読めないときは絵文字にする
-      mark.addEventListener("error", () => {
-        const fallback = document.createElement("span");
-        fallback.className = "hub-link-icon";
-        fallback.setAttribute("aria-hidden", "true");
-        fallback.textContent = row.icon || "🔗";
-        mark.replaceWith(fallback);
-      });
-    } else {
-      mark = document.createElement("span");
-      mark.className = "hub-link-icon";
-      mark.textContent = row.icon || "🔗";
-    }
+    if (row.image) link.classList.add("has-thumb");
+    const mark = rowMark(row);
     mark.setAttribute("aria-hidden", "true");
     const text = document.createElement("span");
     const name = document.createElement("span");
@@ -232,8 +226,8 @@ function groupMembers(tools, key) {
     return nodes;
   }
 
-  // 一覧の欄（見出し・説明・行）を、JSON の中身で埋める
-  function fill({ section, title, lead, list }, data, rows) {
+  // 一覧の欄（見出し・説明・行）を、JSON の中身で埋める。nodes は並べる行（部ごとの見出し入りなど。ないときは rows を1行ずつ）
+  function fill({ section, title, lead, list }, data, rows, nodes) {
     if (!rows.length) return;
     // ロゴがあれば（くらぶ 〜Qlove〜）ロゴの画像＋読みがな。なければ見出しの「Q」をおくるんの紫（data.color）に
     // 動くロゴ（最後に「くらぶ」と出る）のときは、説明（くらしの部室）をロゴと同じ行に置き、下の行は使わない
@@ -244,7 +238,7 @@ function groupMembers(tools, key) {
       document.getElementById(lead).replaceChildren(...withRuby(data.lead));
       document.getElementById(lead).hidden = false;
     }
-    document.getElementById(list).replaceChildren(...rows.map(createRow));
+    document.getElementById(list).replaceChildren(...(nodes || rows.map(createRow)));
     document.getElementById(section).hidden = false;
   }
 
@@ -315,8 +309,7 @@ function groupMembers(tools, key) {
   loadJson("./data/hub-links.json")
     .then((data) => {
       const rows = (Array.isArray(data.items) ? data.items : []).filter((item) => item && item.url && item.name);
-      fill({ section: "hubMore", title: "hubMoreTitle", lead: "hubMoreLead", list: "hubMoreList" }, { title: "ほかのツール", ...data }, rows);
-      if (rows.length) document.getElementById("hubMoreList").replaceChildren(...grouped(data, rows));
+      fill({ section: "hubMore", title: "hubMoreTitle", lead: "hubMoreLead", list: "hubMoreList" }, { title: "ほかのツール", ...data }, rows, grouped(data, rows));
       showRecent(rows);
     })
     .catch((error) => console.error("ほかのツールを読み込めませんでした", error));
@@ -419,9 +412,12 @@ function groupMembers(tools, key) {
   // ---- 全ツールのカード（作成者だけ）。おくるん＋ほかのツール（hub-links.json の紹介の中身があるもの）をカルーセル1通に ----
   const MAX_BUBBLES = 12; // カルーセルに入るカードの数の上限（LINE の決まり）
 
-  // ツールの色を白に寄せた色（見出しのグラデーションの終わり）
+  // ツールの色を白に寄せた色（見出しのグラデーションの終わり）。#RGB は #RRGGBB にのばす。色でなければそのまま
   function lighten(hex, amount = 0.38) {
-    const n = parseInt(String(hex).replace("#", ""), 16);
+    let digits = String(hex).replace("#", "");
+    if (/^[0-9a-f]{3}$/i.test(digits)) digits = digits.replace(/./g, "$&$&");
+    if (!/^[0-9a-f]{6}$/i.test(digits)) return hex;
+    const n = parseInt(digits, 16);
     // 1つの色の値を白に近づける
     const mix = (c) => Math.round(c + (255 - c) * amount);
     return "#" + [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => mix(c).toString(16).padStart(2, "0")).join("").toUpperCase();
