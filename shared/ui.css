@@ -1031,6 +1031,33 @@ body.is-typing .ls-sendbar {
   outline-offset: 2px;
 }
 
+.ls-remove:focus-visible,
+.ls-optional-add:focus-visible,
+.ls-fold > summary:focus-visible {
+  outline: 2px solid var(--ls-text);
+  outline-offset: 2px;
+}
+
+/* プレビューの上（色の上）にあるので、文字と同じ色の枠 */
+.ls-preview-mode button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* ---- 押せる範囲（見た目は小さいまま、指で押せる範囲だけ 44px ほどに広げる）。
+   プレビューの右上にあって、まわりにほかの部品がない「編集／完成イメージ」の切りかえ（高さ 22px）だけ。
+   消す × と「＋ ○○」は広げない（となりの入力欄にかぶり、入れようとして押してしまうため） ---- */
+
+.ls-preview-mode button {
+  position: relative;
+}
+
+.ls-preview-mode button::after {
+  content: "";
+  position: absolute;
+  inset: -11px 0;
+}
+
 @media (min-width: 600px) {
   .ls-page {
     padding-top: 12px;
