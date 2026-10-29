@@ -419,6 +419,34 @@
     setTimeout(hide, ms);
   }
 
+  // ---- コピー ----
+
+  /**
+   * 文字をコピーする。できたら知らせ、できない端末（LINE の中の古いブラウザなど）では、長押しで選べる文字の窓を出す（docs/ux.md D3）。
+   * コピーできたかを Promise で返す（true / false）。
+   *   copy(url, { done: "🔗 リンクをコピーしました" })        … できたらトースト
+   *   copy(url, { button })                                  … できたらボタンの文字を2秒だけ「コピーしました！」に
+   *   copy(url, { done, title: "結果のリンク", hint: "長押しでコピーしてね" })   … できないときの窓の見出しと説明
+   * done は文字か関数（関数ならできたときに呼ぶ。トーストは出さない）
+   */
+  async function copy(text, { done = "", button = null, title = "長押ししてコピーしてね", hint = "" } = {}) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      ask({ title, text: hint, input: text, readonly: true, ok: "閉じる", cancel: null });
+      return false;
+    }
+    if (button) {
+      // 2秒だけ「コピーしました！」にして、元のボタン名に戻す
+      const label = button.dataset.label || (button.dataset.label = button.textContent);
+      button.textContent = "コピーしました！";
+      clearTimeout(button._lsCopied);
+      button._lsCopied = setTimeout(() => (button.textContent = label), 2000);
+    } else if (typeof done === "function") done();
+    else if (done) toast(done);
+    return true;
+  }
+
   // ---- 確認の窓 ----
 
   /**
@@ -630,6 +658,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent, ask, pickField
+    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy
   };
 })();
