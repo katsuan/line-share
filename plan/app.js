@@ -1,8 +1,8 @@
 // 場所・予定（/plan/）の入口：タブ（📍 場所・🗓️ 予定）の切りかえ、下の送る帯、LIFF の準備、リンクで渡された中身の読みこみ。
 // 中身の部品は js/（map.js・calendar.js など）。plan/index.html が type="module" で読む。
-import { app } from "./js/page.js?v=202610271259";
-import { applyMapQuery, initMapTab, refreshMapTab } from "./js/map.js?v=202610271259";
-import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./js/calendar.js?v=202610271259";
+import { app } from "./js/page.js?v=202610291711";
+import { applyMapQuery, initMapTab, refreshMapTab } from "./js/map.js?v=202610291711";
+import { applyEventQuery, applyPlace, focusCalendarTitle, initCalendarTab, refreshCalendarTab } from "./js/calendar.js?v=202610291711";
 
 const TABS = ["map", "calendar"];
 
