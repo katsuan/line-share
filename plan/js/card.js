@@ -1,5 +1,5 @@
 // 場所・予定：LINE に送るカード（Flex Message）を作る。場所のカードは map.js、予定のカードは calendar.js から呼ぶ。色は style.css の色とそろえる。
-import { headerFlex } from "./header.js?v=202610291757";
+import { headerFlex } from "./header.js?v=202610291813";
 const COLOR = {
   text: "#1F1F1C",
   subtext: "#6B6860",
