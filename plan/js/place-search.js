@@ -1,8 +1,8 @@
 // 場所・予定：Google Maps の場所の検索（Places API。config.js に API キーがあるときだけ出す）。
 // map.js と calendar.js が bindPlaceSearch で検索の欄をつなぐ。
-import { CONFIG } from "./config.js?v=202610271259";
-import { setMessage, toUserMessage, UserError } from "./page.js?v=202610271259";
-import { isHttpsUrl } from "./link.js?v=202610271259";
+import { CONFIG } from "./config.js?v=202610291711";
+import { setMessage, toUserMessage, UserError } from "./page.js?v=202610291711";
+import { isHttpsUrl } from "./link.js?v=202610291711";
 
 // Google Maps JavaScript API（Places）で場所を検索する。サーバー不要。
 let mapsLoading = null;

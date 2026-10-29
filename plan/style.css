@@ -205,15 +205,6 @@
   color: var(--ls-text);
 }
 
-.preview-empty {
-  margin: 0;
-  padding: 24px 16px;
-  color: var(--ls-subtext);
-  font-size: 13px;
-  line-height: 1.7;
-  text-align: center;
-}
-
 /* 完成イメージ（送信プレビューの切り替え）：点線の枠と入力の案内を隠し、送らないヘッダーも出さない */
 .ls-preview.is-viewing .talk-card {
   pointer-events: none;
