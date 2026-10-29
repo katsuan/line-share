@@ -1,6 +1,6 @@
 // 文字・手書き：文字と手書きを1枚に描く（画面には触らない）。look は今の設定（app.js の state）。image/app.js が読む。
 //   dims → buildLayer（文字・手書き・縁取り）→ compose（背景と動きをかけて描く）
-import { BASE, BLACK, EDGE_MARGIN, FONTS, WHITE } from "./config.js?v=202610291712";
+import { BASE, BLACK, EDGE_MARGIN, FONTS, WHITE } from "./config.js?v=202610291757";
 
 // 長い辺を longSide にしたときの幅と高さ
 export function dims(look, longSide) {

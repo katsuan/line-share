@@ -35,6 +35,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `LineShareUI.firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方を出す（「わかった」で消え、その端末では二度と出さない） |
 | お知らせカードの下書き（`card/js/store.js`） | 編集するたびに少し間をおいて端末に残し、ページが隠れる・閉じるときもすぐ残す。次に開いたら「前回の続きから開きました［新しく作る］」。送ったら消す（送った内容は「前回送った内容」に残る） |
 | `LineShareUI.toast(message, { actionLabel, onAction })` | 画面下に数秒だけ出る通知。お知らせカードでは、テンプレート・前回送った内容・入力をぜんぶ消す・カードを消すのあとに、文字・手書きでは、文字を消す・手書きを全部消す・送った画像を履歴から消すのあとに「元に戻す」を出す。消す操作は、聞かずに消してここで「元に戻す」を出すのが基本 |
+| `LineShareUI.copy(text, { done, button, title, hint })` | 文字をコピーする。できたら `done` のトースト（`button` を渡すとボタンの文字を2秒だけ「コピーしました！」に）、できない端末では長押しで選べる文字の窓（見出し `title`・説明 `hint`）。コピーできたかを Promise で返す。Q のツールのコピーのボタンはこれを使う |
 | `LineShareUI.ask({ title, text, ok, cancel, danger, input })` | ブラウザ標準の `confirm`・`alert`・`prompt` の代わり（LINE の中で標準の窓を出すと、上にドメイン名が出て浮くため）。下から出るシートで聞き、Promise で返す（OK なら `true`。`input` を渡すと入れた文字か `null`）。`cancel: null` でお知らせだけ、`danger: true` で赤いボタン、`readonly: true` でコピー用の欄。Q のツールはどれもこれを使う |
 | プレビューへ戻るボタン（`shared/ui.js` が自動で付ける） | 下の設定までスクロールしてプレビューが見えなくなったら右下に「👀 プレビュー」を出す。`.ls-preview` があるページすべて（場所・予定は表示中のタブのプレビューへ） |
 | `LineShareUI.progress(label, show)` | 時間のかかる処理（画像の保存）に、経過秒数と、長引いたときの理由を出す |
