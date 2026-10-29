@@ -231,11 +231,20 @@ var QLineMe = (function () {
       };
     }
 
+    // アイコンの読み上げの名前（だれか・LINE 版か・送っていない記録・押すと何が出るか）
+    function buttonLabel(st) {
+      var who = st.loggedIn && me && me.name
+        ? me.name + " さん（LINE 版" + (st.verified ? "" : "・前回のログイン") + "）"
+        : (inLine ? "LINE 版" : "ブラウザ版") + "・ログインしていません";
+      var pending = st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "";
+      return who + pending + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく");
+    }
+
     function drawButton() {
       var st = state();
       button.classList.toggle("is-out", !st.loggedIn);
       button.classList.toggle("is-unsure", st.loggedIn && !st.verified);
-      button.setAttribute("aria-label", (st.loggedIn && me && me.name ? me.name + " さん（LINE 版" + (st.verified ? "" : "・前回のログイン") + "）" : (inLine ? "LINE 版" : "ブラウザ版") + "・ログインしていません") + (st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "") + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく"));
+      button.setAttribute("aria-label", buttonLabel(st));
       var parts = [avatarEl(me)];
       if (st.pending) {
         var badge = document.createElement("span");
@@ -258,13 +267,18 @@ var QLineMe = (function () {
       if (event.key === "Escape") close();
     }
 
-    function drawSheet() {
-      var st = state();
-      var card = document.createElement("div");
-      card.className = "ls-sheet-card";
-      card.setAttribute("role", "dialog");
-      card.setAttribute("aria-modal", "true");
-      card.setAttribute("aria-labelledby", "qmeTitle");
+    // シートのボタン1つ
+    function sheetButton(className, text, onClick) {
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = className;
+      el.textContent = text;
+      el.addEventListener("click", onClick);
+      return el;
+    }
+
+    // シートの見出し（アイコンと名前）
+    function sheetHead(st) {
       var head = document.createElement("div");
       head.className = "qme-head";
       var title = document.createElement("p");
@@ -272,6 +286,11 @@ var QLineMe = (function () {
       title.id = "qmeTitle";
       title.textContent = st.loggedIn && me && me.name ? me.name + " さん" : "LINE 版";
       head.append(avatarEl(me), title);
+      return head;
+    }
+
+    // シートの説明の行（describe の中身）
+    function sheetRows(st) {
       var list = document.createElement("ul");
       list.className = "qme-rows";
       describe(st).forEach(function (row) {
@@ -285,76 +304,66 @@ var QLineMe = (function () {
         li.append(icon, text);
         list.appendChild(li);
       });
+      return list;
+    }
+
+    // シートのボタン（いま送る・ログイン・設定・ボットとつなぐ・閉じる）。閉じるは最後
+    function sheetActions(st) {
       var actions = document.createElement("div");
       actions.className = "qme-actions";
       if (st.pending && st.connected && st.online && o.retry) {
-        var again = document.createElement("button");
-        again.type = "button";
-        again.className = "ls-button is-block";
-        again.textContent = "📮 いま送る";
-        again.addEventListener("click", function () {
+        var again = sheetButton("ls-button is-block", "📮 いま送る", function () {
           again.disabled = true;
           Promise.resolve(o.retry()).then(drawButton, drawButton);
         });
         actions.appendChild(again);
       }
       if (st.canLogin) {
-        var login = document.createElement("button");
-        login.type = "button";
-        login.className = "ls-button is-block qme-login";
-        login.textContent = "🔑 LINE でログイン";
-        login.addEventListener("click", function () {
+        actions.appendChild(sheetButton("ls-button is-block qme-login", "🔑 LINE でログイン", function () {
           if (o.login) return o.login();
           try {
             window.liff.login({ redirectUri: location.href });
           } catch (e) {
             // ログインを始められなければ、何もしない（シートはそのまま）
           }
-        });
-        actions.appendChild(login);
+        }));
       }
-      if (o.onPrefs) {
-        var prefs = document.createElement("button");
-        prefs.type = "button";
-        prefs.className = "ls-button is-block";
-        prefs.textContent = "⚙️ 設定";
-        prefs.addEventListener("click", function () {
+      // 押したらシートを閉じてから fn（設定・ボットとつなぐ）
+      var closeThen = function (fn) {
+        return function () {
           close();
-          o.onPrefs();
-        });
-        actions.appendChild(prefs);
-      }
-      if (o.onSettings) {
-        var settings = document.createElement("button");
-        settings.type = "button";
-        settings.className = "ls-button is-block";
-        settings.textContent = "🔗 " + String(o.botName || "ボット") + "とつなぐ";
-        settings.addEventListener("click", function () {
-          close();
-          o.onSettings();
-        });
-        actions.appendChild(settings);
-      }
-      var cancel = document.createElement("button");
-      cancel.type = "button";
-      cancel.className = "ls-sheet-cancel";
-      cancel.textContent = "閉じる";
-      cancel.addEventListener("click", close);
-      actions.appendChild(cancel);
-      card.append(head, list, actions);
-      if (!sheet) {
-        sheet = document.createElement("div");
-        sheet.className = "ls-sheet qme-sheet";
-        sheet.addEventListener("click", function (event) {
-          if (event.target === sheet) close();
-        });
-        document.body.appendChild(sheet);
-        document.addEventListener("keydown", onKey);
+          fn();
+        };
+      };
+      if (o.onPrefs) actions.appendChild(sheetButton("ls-button is-block", "⚙️ 設定", closeThen(o.onPrefs)));
+      if (o.onSettings) actions.appendChild(sheetButton("ls-button is-block", "🔗 " + String(o.botName || "ボット") + "とつなぐ", closeThen(o.onSettings)));
+      actions.appendChild(sheetButton("ls-sheet-cancel", "閉じる", close));
+      return actions;
+    }
+
+    // 「わたし」のシートを描く（開いていれば中身だけ描きなおす）
+    function drawSheet() {
+      var st = state();
+      var card = document.createElement("div");
+      card.className = "ls-sheet-card";
+      card.setAttribute("role", "dialog");
+      card.setAttribute("aria-modal", "true");
+      card.setAttribute("aria-labelledby", "qmeTitle");
+      var actions = sheetActions(st);
+      card.append(sheetHead(st), sheetRows(st), actions);
+      if (sheet) {
         sheet.replaceChildren(card);
-        cancel.focus({ preventScroll: true });
-      } else {
-        sheet.replaceChildren(card);
+        return;
       }
+      sheet = document.createElement("div");
+      sheet.className = "ls-sheet qme-sheet";
+      sheet.addEventListener("click", function (event) {
+        if (event.target === sheet) close();
+      });
+      document.body.appendChild(sheet);
+      document.addEventListener("keydown", onKey);
+      sheet.replaceChildren(card);
+      actions.lastChild.focus({ preventScroll: true });
     }
 
     var handle = {
