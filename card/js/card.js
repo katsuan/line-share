@@ -31,163 +31,184 @@ function replyAction(label, { text, title = "", choices = [], pick = -1, format 
 // 今のカード1枚分の Flex Message を作る
 function buildFlexMessage() {
   const palette = getPalette();
-  const headerContents = [
-    { type: "text", text: state.headerTitle, color: "#FFFFFF", weight: "bold", size: "lg", wrap: true }
-  ];
-  if (state.showDate && state.date) {
-    headerContents.push({ type: "text", text: state.date, color: "#FFFFFF", size: "xs", margin: "sm", wrap: true });
-  }
-
-  const bodyContents = [
-    { type: "text", text: state.title, size: "xl", weight: "bold", color: "#111827", wrap: true }
-  ];
-
-  if (state.badges.some(Boolean)) {
-    bodyContents.push({
-      type: "box",
-      layout: "horizontal",
-      spacing: "sm",
-      contents: state.badges.filter(Boolean).map((text) => ({
-        type: "box",
-        layout: "vertical",
-        backgroundColor: palette.start,
-        cornerRadius: "999px",
-        paddingAll: "xs",
-        paddingStart: "md",
-        paddingEnd: "md",
-        flex: 0,
-        contents: [{ type: "text", text, size: "xs", color: "#FFFFFF", weight: "bold", flex: 0 }]
-      }))
-    });
-  }
-
-  if (state.showDetail && state.detail) {
-    bodyContents.push({
-      type: "box",
-      layout: "vertical",
-      paddingAll: "12px",
-      backgroundColor: palette.detailBg,
-      cornerRadius: "12px",
-      contents: [{ type: "text", text: state.detail, size: "sm", color: palette.detailText, wrap: true }]
-    });
-  }
-
   const items = state.items.filter(Boolean);
-  if (state.kind === "vote" && items.length) {
-    // 押すと返事のページが開き、「○○ に投票します」を送るかコピーしてもらう。ほかの候補にも選び直せる（集計は自動ではしない）
-    bodyContents.push({
-      type: "box",
-      layout: "vertical",
-      spacing: "sm",
-      margin: "md",
-      contents: items.map((item, index) => ({
-        type: "button",
-        style: "secondary",
-        height: "sm",
-        action: replyAction(item, {
-          text: `${item} に投票します`,
-          title: state.title,
-          choices: items,
-          pick: index,
-          format: "{c} に投票します"
-        })
-      }))
-    });
-  }
-  if (state.kind === "checklist" && items.length) {
-    bodyContents.push({
-      type: "box",
-      layout: "vertical",
-      spacing: "sm",
-      margin: "md",
-      contents: items.map((item) => ({
-        type: "box",
-        layout: "horizontal",
-        spacing: "sm",
-        contents: [
-          { type: "text", text: "□", size: "sm", color: palette.start, flex: 0 },
-          { type: "text", text: item, size: "sm", color: "#111827", wrap: true }
-        ]
-      }))
-    });
-  }
-
-  // サッカーの形式：ピッチの図・スコア（card/js/soccer.js）
-  if (state.kind === "lineup") bodyContents.push(...lineupFlex(palette));
-  if (state.kind === "match") bodyContents.push(...matchFlex(palette));
-
   const bubble = {
     type: "bubble",
     size: state.bubbleSize,
-    header: {
-      type: "box",
-      layout: "vertical",
-      background: { type: "linearGradient", angle: "135deg", startColor: palette.start, endColor: palette.end },
-      paddingAll: "16px",
-      contents: headerContents
-    },
-    body: { type: "box", layout: "vertical", spacing: "md", contents: bodyContents }
+    header: headerFlex(palette),
+    body: cardBodyFlex(palette, items)
   };
-  if (state.kind === "ticket" || state.kind === "coupon") {
-    const parts = state.kind === "ticket" ? ticketFlex(palette) : couponFlex(palette);
-    bubble.body = {
+  if (state.imageUrl) bubble.hero = heroFlex(palette);
+  const footer = footerFlex(palette, items);
+  if (footer) bubble.footer = footer;
+  return {
+    type: "flex",
+    altText: `${state.headerTitle}: ${state.title}`.slice(0, 400),
+    contents: bubble
+  };
+}
+
+// 見出し（タイトルと、出すときはサブタイトル）。色はグラデーション
+function headerFlex(palette) {
+  const contents = [
+    { type: "text", text: state.headerTitle, color: "#FFFFFF", weight: "bold", size: "lg", wrap: true }
+  ];
+  if (state.showDate && state.date) {
+    contents.push({ type: "text", text: state.date, color: "#FFFFFF", size: "xs", margin: "sm", wrap: true });
+  }
+  return {
+    type: "box",
+    layout: "vertical",
+    background: { type: "linearGradient", angle: "135deg", startColor: palette.start, endColor: palette.end },
+    paddingAll: "16px",
+    contents
+  };
+}
+
+// 本文：題・バッジ・詳細と、種類ごとの中身。チケット・クーポンは切り取り線で上下に分ける
+function cardBodyFlex(palette, items) {
+  const contents = [
+    { type: "text", text: state.title, size: "xl", weight: "bold", color: "#111827", wrap: true }
+  ];
+  if (state.badges.some(Boolean)) contents.push(badgesFlex(palette));
+  if (state.showDetail && state.detail) contents.push(detailFlex(palette));
+  if (state.kind === "vote" && items.length) contents.push(voteFlex(items));
+  if (state.kind === "checklist" && items.length) contents.push(checklistFlex(palette, items));
+  // サッカーの形式：ピッチの図・スコア（card/js/soccer.js）
+  if (state.kind === "lineup") contents.push(...lineupFlex(palette));
+  if (state.kind === "match") contents.push(...matchFlex(palette));
+  if (state.kind === "ticket" || state.kind === "coupon") return ticketBodyFlex(palette, contents);
+  return { type: "box", layout: "vertical", spacing: "md", contents };
+}
+
+// バッジ（丸い札）を横に並べる
+function badgesFlex(palette) {
+  return {
+    type: "box",
+    layout: "horizontal",
+    spacing: "sm",
+    contents: state.badges.filter(Boolean).map((text) => ({
       type: "box",
       layout: "vertical",
-      paddingAll: "0px",
+      backgroundColor: palette.start,
+      cornerRadius: "999px",
+      paddingAll: "xs",
+      paddingStart: "md",
+      paddingEnd: "md",
+      flex: 0,
+      contents: [{ type: "text", text, size: "xs", color: "#FFFFFF", weight: "bold", flex: 0 }]
+    }))
+  };
+}
+
+// 詳細（色の付いた角丸の枠）
+function detailFlex(palette) {
+  return {
+    type: "box",
+    layout: "vertical",
+    paddingAll: "12px",
+    backgroundColor: palette.detailBg,
+    cornerRadius: "12px",
+    contents: [{ type: "text", text: state.detail, size: "sm", color: palette.detailText, wrap: true }]
+  };
+}
+
+// 投票の候補のボタン。押すと返事のページが開き、「○○ に投票します」を送るかコピーしてもらう。ほかの候補にも選び直せる（集計は自動ではしない）
+function voteFlex(items) {
+  return {
+    type: "box",
+    layout: "vertical",
+    spacing: "sm",
+    margin: "md",
+    contents: items.map((item, index) => ({
+      type: "button",
+      style: "secondary",
+      height: "sm",
+      action: replyAction(item, {
+        text: `${item} に投票します`,
+        title: state.title,
+        choices: items,
+        pick: index,
+        format: "{c} に投票します"
+      })
+    }))
+  };
+}
+
+// チェックリストの項目（□ と文）
+function checklistFlex(palette, items) {
+  return {
+    type: "box",
+    layout: "vertical",
+    spacing: "sm",
+    margin: "md",
+    contents: items.map((item) => ({
+      type: "box",
+      layout: "horizontal",
+      spacing: "sm",
       contents: [
-        { type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingBottom: "12px", contents: [...bodyContents, ...parts.top] },
-        perforationFlex(),
-        ...(parts.bottom.length
-          ? [{ type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingTop: "12px", contents: parts.bottom }]
-          : [{ type: "box", layout: "vertical", height: "12px", contents: [] }])
+        { type: "text", text: "□", size: "sm", color: palette.start, flex: 0 },
+        { type: "text", text: item, size: "sm", color: "#111827", wrap: true }
       ]
-    };
-  }
+    }))
+  };
+}
 
-  if (state.imageUrl) {
-    const hero = getHeroSpec(palette);
-    bubble.hero = {
-      type: "image",
-      url: state.imageUrl,
-      size: "full",
-      aspectRatio: hero.ratio,
-      aspectMode: hero.mode,
-      ...(hero.mode === "fit" ? { backgroundColor: hero.background } : {})
-    };
-    const imageAction = getSendableUrl(state.imageActionUrl);
-    if (imageAction) {
-      bubble.hero.action = { type: "uri", uri: imageAction };
-    }
-  }
+// チケット・クーポンの本文：上（題など）・切り取り線・下（ないときは余白だけ）
+function ticketBodyFlex(palette, contents) {
+  const parts = state.kind === "ticket" ? ticketFlex(palette) : couponFlex(palette);
+  return {
+    type: "box",
+    layout: "vertical",
+    paddingAll: "0px",
+    contents: [
+      { type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingBottom: "12px", contents: [...contents, ...parts.top] },
+      perforationFlex(),
+      ...(parts.bottom.length
+        ? [{ type: "box", layout: "vertical", spacing: "md", paddingAll: "20px", paddingTop: "12px", contents: parts.bottom }]
+        : [{ type: "box", layout: "vertical", height: "12px", contents: [] }])
+    ]
+  };
+}
 
+// 写真（形と収め方。押したときのリンクは送ってよい行き先だけ）
+function heroFlex(palette) {
+  const spec = getHeroSpec(palette);
+  const hero = {
+    type: "image",
+    url: state.imageUrl,
+    size: "full",
+    aspectRatio: spec.ratio,
+    aspectMode: spec.mode,
+    ...(spec.mode === "fit" ? { backgroundColor: spec.background } : {})
+  };
+  const imageAction = getSendableUrl(state.imageActionUrl);
+  if (imageAction) hero.action = { type: "uri", uri: imageAction };
+  return hero;
+}
+
+// 下のボタン（リンク）。チェックリストは先頭に完了のボタン。ボタンがなければ null
+function footerFlex(palette, items) {
   const buttons = state.buttons
     .map((button) => ({ label: button.label.trim() || "詳しく見る", uri: getSendableUrl(button.url) }))
-    .filter((button) => button.uri);
-  const footerButtons = buttons.map((button) => ({
-    type: "button",
-    style: "primary",
-    color: palette.start,
-    action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
-  }));
+    .filter((button) => button.uri)
+    .map((button) => ({
+      type: "button",
+      style: "primary",
+      color: palette.start,
+      action: { type: "uri", label: button.label.slice(0, 40), uri: button.uri }
+    }));
   if (state.kind === "checklist" && items.length) {
     // 押すと返事のページが開き、「『タイトル』準備できた！」を送るかコピーしてもらう
     const doneLabel = state.doneLabel || DEFAULT_DONE_LABEL;
-    footerButtons.unshift({
+    buttons.unshift({
       type: "button",
       style: "primary",
       color: palette.start,
       action: replyAction(doneLabel, { text: `「${state.title}」${doneLabel.replace(/^✅\s*/u, "")}！` })
     });
   }
-  if (footerButtons.length > 0) {
-    bubble.footer = { type: "box", layout: "vertical", spacing: "sm", contents: footerButtons };
-  }
-
-  return {
-    type: "flex",
-    altText: `${state.headerTitle}: ${state.title}`.slice(0, 400),
-    contents: bubble
-  };
+  return buttons.length ? { type: "box", layout: "vertical", spacing: "sm", contents: buttons } : null;
 }
 
 // 送るメッセージ。1枚ならそのカード、2枚以上なら横スクロール（カルーセル）。Created by は各カードに付ける
