@@ -346,7 +346,7 @@ input[type="time"].ls-input {
   width: 100%;
 }
 
-/* 送るボタン（Q の決まり F1：おくるんのマーク＋「カードで送る」。is-oqrn でマークが付く）。LINE とわかるのは色にまかせ、言葉に LINE を入れない。
+/* 送るボタン（Q の決まり F1：おくるんのマーク＋「カードでおくるん」。is-oqrn でマークが付く）。LINE とわかるのは色にまかせ、言葉に LINE を入れない。
    ls-send（送る帯の大きいボタン）にも付けられる。is-line も同じ */
 .ls-button.line,
 .ls-button.is-line,
@@ -365,7 +365,7 @@ input[type="time"].ls-input {
 }
 
 /* カードを送るボタンの印：おくるんのマーク（吹き出しの Q）を文字の色で。💬 の代わりに置く。
-   <button class="ls-button line is-oqrn">カードで送る</button>。「LINE 版で開く」など、カードを送らないボタンには付けない */
+   <button class="ls-button line is-oqrn">カードでおくるん</button>。「LINE 版で開く」など、カードを送らないボタンには付けない */
 .is-oqrn::before {
   content: "";
   flex: none;
@@ -946,6 +946,11 @@ body.is-typing .ls-sendbar {
 
 .ls-sendbar-row > .ls-send-secondary {
   flex: 0 0 34%;
+}
+
+/* 2つ並ぶと幅が足りないので、左右の余白を小さくする（320px でも「カードでおくるん」が1行に入るように） */
+.ls-sendbar-row > .ls-send {
+  padding: 0 10px;
 }
 
 .ls-status {

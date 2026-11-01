@@ -29,7 +29,7 @@
   margin: 0;
 }
 
-/* キャッチコピーの右のシェア。押すと「カードで送る／リンクでシェア」を選ぶシートを出す */
+/* キャッチコピーの右のシェア。押すと「カードでおくるん／リンクでシェア」を選ぶシートを出す */
 .hub-share {
   flex: 0 0 auto;
   white-space: nowrap;
@@ -97,7 +97,7 @@
   line-height: 1.6;
 }
 
-/* 紹介のシートの「カードで送る」：おくるんのマーク（ui.css の is-oqrn）を紫で */
+/* 紹介のシートの「カードでおくるん」：おくるんのマーク（ui.css の is-oqrn）を紫で */
 .share-option-title {
   display: inline-flex;
   align-items: center;

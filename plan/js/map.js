@@ -1,11 +1,11 @@
 // 場所・予定の「📍 場所」タブ：Google Maps の場所を、写真・バッジ・コメント付きのカードにして送る。
 // 中身：入力欄のつなぎこみ・場所の検索と地図のリンク・バッジ・テンプレート（端末に残す）・送る。
 // plan/app.js が initMapTab・refreshMapTab・applyMapQuery を呼ぶ。予定タブへは onCreateEvent で場所を渡す。
-import { autoGrow, escapeHtml, setMessage, shareFlex, toUserMessage, UserError, app, sentMessage } from "./page.js?v=202610291813";
-import { assertUriLength, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202610291813";
-import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202610291813";
-import { bindHeader } from "./header.js?v=202610291813";
-import { createPlaceFlex } from "./card.js?v=202610291813";
+import { autoGrow, escapeHtml, setMessage, shareFlex, toUserMessage, UserError, app, sentMessage } from "./page.js?v=202611012040";
+import { assertUriLength, isGoogleMapsUrl, isHttpsUrl, mapSearchUrl, openExternal, titleFromMapUrl } from "./link.js?v=202611012040";
+import { bindPlaceSearch, hasPlaceSearch } from "./place-search.js?v=202611012040";
+import { bindHeader } from "./header.js?v=202611012040";
+import { createPlaceFlex } from "./card.js?v=202611012040";
 
 // バッジの候補とテンプレートは data/templates.json の place（開いたあとに読み込む）
 let DEFAULT_BADGES = [];
@@ -503,5 +503,5 @@ function saveTemplates_(templates) {
 // 送っている間は送るボタンを押せなくして、文字を「送っています…」にする
 function setSending_(isSending) {
   dom.shareButton.disabled = isSending;
-  dom.shareButton.textContent = isSending ? "送っています…" : "カードで送る";
+  dom.shareButton.textContent = isSending ? "送っています…" : "カードでおくるん";
 }
