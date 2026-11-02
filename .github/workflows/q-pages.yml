@@ -91,7 +91,7 @@ jobs:
       - uses: actions/setup-node@v5
         if: steps.kit.outputs.deploy == 'true'
         with:
-          node-version: 22
+          node-version: 20 # 手元と同じ。22 からは node --test にフォルダ（test/）を渡せない
 
       - name: テスト
         if: steps.kit.outputs.deploy == 'true'
