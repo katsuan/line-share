@@ -33,6 +33,7 @@ jobs:
     env:
       FOLDER: ${{ inputs.folder }}
       IS_KIT: ${{ github.repository == 'katsuan/line-share' }}
+      TZ: Asia/Tokyo # 手元と同じ日本時間（日付・曜日を見るテストがある）
     steps:
       - name: このリポジトリ
         uses: actions/checkout@v5
