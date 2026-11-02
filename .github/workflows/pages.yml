@@ -1,0 +1,24 @@
+# 公開：main に push したら、テストと check-code が通ったときだけ Pages に出す（中身は Q 共通の q-pages.yml）
+# ?v= は公開のときに付くので、手で付けなくてよい。shared/version.txt（Q キットの版）も出し、各ツールはこれを読む
+name: 公開
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    uses: katsuan/line-share/.github/workflows/q-pages.yml@main
+    with:
+      folder: q-oqrn
+      test: node --test gas/test tools/test card/test shared/test data/test
