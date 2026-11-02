@@ -12,6 +12,7 @@
   .swatch-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .demo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   code { font-size: 12px; }
+  pre { overflow-x: auto; max-width: 100%; margin: 0; }
 </style>
 </head>
 <body>
@@ -70,6 +71,37 @@
     <div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🍙</span>まだ記録がありません<button class="ls-button is-primary" type="button">＋ 記録する</button></div>
     <div class="demo-row"><span class="ls-skeleton"></span><span class="ls-skeleton"></span><span class="ls-skeleton"></span></div>
   </section>
+
+  <section class="ls-panel">
+    <div class="ls-panel-head"><h2 class="ls-panel-title">🎯 目じるしと進みぐあい</h2></div>
+    <p class="ls-hint">これまでの合計を、目じるしとくらべて見せる（<code>shared/milestones.js</code> の <code>QMilestones</code>）。キロっくは「🐘 ゾウ 0.9 頭分」の重さ。ここは、つづく（続けた日数）で使うときの見本です。</p>
+    <div class="ls-goal" id="msGoal"></div>
+    <div class="demo-row">
+      <button class="ls-button" type="button" data-ms-add="1">＋1日</button>
+      <button class="ls-button" type="button" data-ms-add="7">＋7日</button>
+      <button class="ls-button" type="button" data-ms-add="0">はじめから</button>
+    </div>
+    <div id="msTable"></div>
+    <pre class="ls-hint"><code>&lt;script src="https://katsuan.github.io/line-share/shared/milestones.js" defer&gt;&lt;/script&gt;
+
+// 目じるし（小さい順）と単位はツールが決める。big は届く前から表に見せる
+const days = QMilestones.create({
+  marks: [
+    { icon: "🌱", name: "三日坊主こえ", value: 3, count: "回" },
+    { icon: "🌿", name: "1週間", value: 7, count: "回" },
+    { icon: "🌳", name: "1か月", value: 30, count: "回", big: true },
+    { icon: "🎉", name: "1年", value: 365, count: "回", big: true }
+  ],
+  amount: (v) => Math.round(v) + "日"   // 合計・「あと ◯」の書き方
+});
+el.innerHTML = days.goalHtml(total, { lead: "今日で 12日目" });  // 入れ物は .ls-goal
+el.innerHTML = days.tableHtml(total, { title: "🔥 続けた日数", hint: "やめても減りません。" });
+days.newlyPassed(before, after) // 越えた目じるし → days.passedTitle(mark)「🎉 🌿 1週間を越えました！」
+
+// 記録を消しても減らない合計（同じ記録は2回数えない・直したら差の分）
+const { ledger } = QMilestones.syncLedger(QMilestones.loadLedger("tsuzuq:days"), records.map((r) =&gt; ({ id: r.id, value: 1 })));
+QMilestones.saveLedger("tsuzuq:days", ledger);  // ledger.total が合計</code></pre>
+  </section>
 </main>
 
 <div id="sheet" class="ls-sheet" hidden>
@@ -84,6 +116,7 @@
 </div>
 
 <script src="ui.js" defer></script>
+<script src="milestones.js" defer></script>
 <script>
   // Q のツールの色（data/hub-links.json の color と同じもの）と、おくるんの色の並び
   const TOOL_COLORS = [
@@ -132,6 +165,34 @@
         picker.replaceChildren(...items, custom, none);
       }
     });
+    // 目じるしと進みぐあいの見本（つづくの続けた日数で）
+    const days = QMilestones.create({
+      marks: [
+        { icon: "🌱", name: "三日坊主こえ", value: 3, count: "回" },
+        { icon: "🌿", name: "1週間", value: 7, count: "回" },
+        { icon: "🍀", name: "2週間", value: 14, count: "回" },
+        { icon: "🌳", name: "1か月", value: 30, count: "回", big: true },
+        { icon: "🌸", name: "百日", value: 100, count: "回", big: true },
+        { icon: "🎋", name: "半年", value: 182, count: "回" },
+        { icon: "🎉", name: "1年", value: 365, count: "回", big: true }
+      ],
+      amount: (v) => Math.round(v) + "日"
+    });
+    let msTotal = 12;
+    const drawMilestones = () => {
+      document.getElementById("msGoal").innerHTML = days.goalHtml(msTotal, { lead: "今日で " + msTotal + "日目" });
+      document.getElementById("msTable").innerHTML = days.tableHtml(msTotal, { title: "🔥 続けた日数", hint: "休んでも、この合計は減りません。" });
+    };
+    document.querySelectorAll("[data-ms-add]").forEach((b) =>
+      b.addEventListener("click", () => {
+        const before = msTotal;
+        msTotal = Number(b.dataset.msAdd) ? msTotal + Number(b.dataset.msAdd) : 0;
+        drawMilestones();
+        const passed = days.newlyPassed(before, msTotal);
+        if (passed) LineShareUI.toast(days.passedTitle(passed));
+      })
+    );
+    drawMilestones();
     const sheet = document.getElementById("sheet");
     document.getElementById("sheetButton").addEventListener("click", () => (sheet.hidden = false));
     sheet.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => (sheet.hidden = true)));

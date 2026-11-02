@@ -1617,6 +1617,189 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   box-shadow: inset 0 0 0 1px var(--ls-accent);
 }
 
+/* ---- 目じるしと進みぐあい（shared/milestones.js の QMilestones） ----
+   目じるしの表（tableHtml）は .ls-ms、次の目じるしまでの棒（goalHtml）は .ls-goal の入れ物に入れる */
+.ls-ms {
+  display: grid;
+  gap: 8px;
+}
+
+.ls-ms p {
+  margin: 0;
+}
+
+.ls-ms-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ls-subtext);
+}
+
+.ls-ms-total b {
+  font-size: 1.4rem;
+}
+
+.ls-ms-compare {
+  margin-left: 8px;
+  font-weight: 700;
+}
+
+/* 次の目じるしまでの棒（表と .ls-goal で同じ形） */
+.ls-ms-bar,
+.ls-goal-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ls-accent-soft);
+  overflow: hidden;
+}
+
+.ls-ms-bar span,
+.ls-goal-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ls-accent);
+}
+
+.ls-ms-marks {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.ls-ms-marks li {
+  border-bottom: 1px solid var(--ls-line);
+}
+
+/* 目じるし1行（押すと「いま ◯ 頭分」「いま ◯％」が開く）。押せる高さは 44px 近く */
+.ls-ms-marks summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.ls-ms-marks summary::-webkit-details-marker {
+  display: none;
+}
+
+.ls-ms-marks summary:focus-visible {
+  outline: 2px solid var(--ls-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.ls-ms-now {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--ls-surface-sub);
+  border-left: 3px solid var(--ls-accent);
+  color: var(--ls-text);
+  font-weight: 700;
+}
+
+/* 「ほかに ◯ 個を越えました」：開くと、前に越えた目じるしの一覧（▾ が回る） */
+.ls-ms-older > summary .ls-ms-mark::after {
+  content: " ▾";
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.ls-ms-older[open] > summary .ls-ms-mark::after {
+  transform: rotate(180deg);
+}
+
+.ls-ms-older > .ls-ms-marks {
+  margin: 0 0 4px 12px;
+}
+
+.ls-ms-older > .ls-ms-marks li:last-child {
+  border-bottom: 0;
+}
+
+.ls-ms-mark {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ls-ms-value {
+  color: var(--ls-subtext);
+  font-size: 0.85rem;
+}
+
+.ls-ms-marks .is-passed {
+  color: var(--ls-subtext);
+}
+
+.ls-ms-marks .is-next {
+  font-weight: 700;
+}
+
+.ls-ms-rest {
+  flex-basis: 100%;
+  font-weight: 400;
+  color: var(--ls-text);
+}
+
+/* まだ届いていない、よく知られた大きな物（big。「いつか地球まで」） */
+.ls-ms-marks .is-ahead {
+  color: var(--ls-subtext);
+}
+
+.ls-ms-marks .is-locked {
+  color: var(--ls-subtext);
+  font-size: 0.8rem;
+  padding: 4px 0;
+}
+
+/* 次の目じるしまでの棒（送る帯の上など）。上に添える1行（今日の分など）は .ls-goal-lead */
+.ls-goal {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.ls-goal p {
+  margin: 0;
+}
+
+.ls-goal-lead {
+  font-weight: 700;
+}
+
+.ls-goal-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ls-subtext);
+}
+
+.ls-goal-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ls-goal-bar {
+  flex: 1 1 60px;
+  min-width: 40px;
+}
+
+.ls-goal-rest {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 /* ---- 暗い表示（ダークモード） ----
  * スマホを暗い表示にしているとき、<html data-ls-dark="auto"> を付けたツールだけ暗くなる
  * （ツールごとの CSS に明るい色を直接書いているところを直してから付ける）。
