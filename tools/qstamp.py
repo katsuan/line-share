@@ -35,8 +35,8 @@ def next_version(root, now=None):
         except (UnicodeDecodeError, OSError):
             continue
         for m in VERSION_NUMBER.finditer(text):
-            # 8けた（年月日）は 12けた（年月日時分）にそろえて比べる
-            biggest = max(biggest, int(m.group(1).ljust(12, "0")) if len(m.group(1)) < 12 else int(m.group(1)))
+            # 8けた（年月日）・14けた（年月日時分秒。Q キットの版）は 12けた（年月日時分）にそろえて比べる
+            biggest = max(biggest, int(m.group(1).ljust(12, "0")[:12]))
     return str(max(stamp, biggest + 1))
 
 

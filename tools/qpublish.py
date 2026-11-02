@@ -5,8 +5,9 @@
 
   1. 読み込む JS・CSS に ?v=（日本時間の年月日時分。今ある番号より必ず大きく）を付ける
      ・おくるん（tools/stamp.py があるリポジトリ）は stamp.py、ほかは qstamp.py のやり方で、HTML を全部
+     HTML からたどれないところ（前の名前で読まれる入口・ロゴやアイコン）にある ?v=数字 も、同じ番号にそろえる
   2. Q キット（https://katsuan.github.io/line-share/shared/…）を読む <script src>・<link href> に、
-     Q キットの版（--kit。shared/ の中身から決まる。中身が同じなら同じ番号）を付ける。?v= のないものにも付ける
+     Q キットの版（--kit。shared/ をさいごに変えたコミットの日本時間。中身が同じなら同じ番号）を付ける。?v= のないものにも付ける
   3. 何を出したかを qpublish.json に書く（3時間ごとの見回りが、Q キットの版が変わったかを見るのに使う）
      --kit-file を付けると shared/version.txt にも Q キットの版を書く（おくるんだけ。ほかのツールがこれを読む）
 
@@ -51,7 +52,28 @@ def stamp_own(root):
             qstamp.stamp_html(path.relative_to(root))
     finally:
         os.chdir(cwd)
+    sweep_versions(root, version)
     return version
+
+
+# 自分のファイルを読む ?v=数字（"js/app.js?v=…" "../app.js?v=…"・ロゴやアイコンの画像など。https:// の外のファイルは除く）
+OWN_VERSION = re.compile(r'(["\'(])([^"\'()\s?]+\.(?:js|mjs|css|svg|png|jpe?g|webp|gif|ico|json|webmanifest))\?v=\d{8,14}(?![0-9])')
+
+
+def sweep_versions(root, version):
+    """HTML からたどれないところ（前の名前で読まれる入口・document.write の中など）の ?v= も同じ番号に。
+    手で付けていたころは、テストが「全部そろっている」ことを確かめていた。公開の写しでもそろえる"""
+    count = 0
+    for path in sorted(root.rglob("*")):
+        parts = path.relative_to(root).parts
+        if path.suffix not in (".html", ".js", ".mjs", ".css") or qstamp.SKIP_DIRS.intersection(parts) or any(p.startswith(".") for p in parts):
+            continue
+        text = path.read_text(encoding="utf-8")
+        new, n = OWN_VERSION.subn(lambda m: m.group(0) if "//" in m.group(2) else f"{m.group(1)}{m.group(2)}?v={version}", text)
+        if new != text:
+            path.write_text(new, encoding="utf-8")
+            count += n
+    print(f"そのほかの ?v= も {version} に（{count} か所）")
 
 
 def stamp_kit(root, kit):

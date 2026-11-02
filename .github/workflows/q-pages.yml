@@ -1,7 +1,7 @@
 # Q のツール共通の公開（GitHub Pages）。各ツールの .github/workflows/pages.yml から呼ぶ。
 #   テスト → check-code → ?v= を付ける（tools/qpublish.py）→ Pages に出す。どこかで落ちたら出さない（今の公開はそのまま）
 #   リポジトリの中の ?v= は手で付けなくてよい（公開の写しにだけ付ける）
-#   Q キット（shared/）を読むところには、Q キットの版（shared/ の中身で決まる）を付ける。
+#   Q キット（shared/）を読むところには、Q キットの版（shared/ をさいごに変えたコミットの時刻）を付ける。
 #   Q キットだけが新しくなったときは、各ツールの見回り（schedule）が気づいて出しなおす
 name: Q の公開（共通）
 
@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           path: ${{ inputs.folder }}
-          fetch-depth: 2 # check-code の V1 が1つ前のコミットと比べる
+          fetch-depth: 0 # check-code の V1 が1つ前のコミットと比べる。おくるんは Q キットの版を shared/ の歴史から決める
 
       - name: Q キット（line-share）を q-oqrn に
         if: github.repository != 'katsuan/line-share'
@@ -47,6 +47,7 @@ jobs:
         with:
           repository: katsuan/line-share
           path: q-oqrn
+          fetch-depth: 0 # Q キットの版を shared/ の歴史から決める
 
       - name: Q キットの版を決める（見回りのときは、変わっていなければここで終わる）
         id: kit
@@ -54,7 +55,8 @@ jobs:
           EVENT: ${{ github.event_name }}
         run: |
           PAGE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
-          want=$(git -C q-oqrn rev-parse --short=10 HEAD:shared)
+          # Q キットの版：shared/ をさいごに変えたコミットの日本時間（年月日時分秒）。中身が変わったときだけ上がる
+          want=$(TZ=Asia/Tokyo git -C q-oqrn log -1 --format=%cd --date=format-local:%Y%m%d%H%M%S -- shared)
           if [ "$IS_KIT" = "true" ]; then
             kit=$want
           else
