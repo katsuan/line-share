@@ -1,0 +1,137 @@
+# Q のツール共通の公開（GitHub Pages）。各ツールの .github/workflows/pages.yml から呼ぶ。
+#   テスト → check-code → ?v= を付ける（tools/qpublish.py）→ Pages に出す。どこかで落ちたら出さない（今の公開はそのまま）
+#   リポジトリの中の ?v= は手で付けなくてよい（公開の写しにだけ付ける）
+#   Q キット（shared/）を読むところには、Q キットの版（shared/ の中身で決まる）を付ける。
+#   Q キットだけが新しくなったときは、各ツールの見回り（schedule）が気づいて出しなおす
+name: Q の公開（共通）
+
+on:
+  workflow_call:
+    inputs:
+      folder:
+        description: 手元のフォルダ名（q-qji など）。テストが ~/GitHub/q-oqrn など、となりのフォルダを読むので同じ並びにする
+        type: string
+        required: true
+      test:
+        description: テストのコマンド（フォルダの中で動かす）
+        type: string
+        default: node --test test/
+      prepare:
+        description: ?v= を付ける前に動かすコマンド（ないときは空）
+        type: string
+        default: ""
+      siblings:
+        description: テストが読む、となりのリポジトリ（"q-saqsen=katsuan/soccer q-roqga=katsuan/score-recorder"）
+        type: string
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy: ${{ steps.kit.outputs.deploy }}
+    env:
+      FOLDER: ${{ inputs.folder }}
+      IS_KIT: ${{ github.repository == 'katsuan/line-share' }}
+    steps:
+      - name: このリポジトリ
+        uses: actions/checkout@v5
+        with:
+          path: ${{ inputs.folder }}
+          fetch-depth: 2 # check-code の V1 が1つ前のコミットと比べる
+
+      - name: Q キット（line-share）を q-oqrn に
+        if: github.repository != 'katsuan/line-share'
+        uses: actions/checkout@v5
+        with:
+          repository: katsuan/line-share
+          path: q-oqrn
+
+      - name: Q キットの版を決める（見回りのときは、変わっていなければここで終わる）
+        id: kit
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          PAGE="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"
+          want=$(git -C q-oqrn rev-parse --short=10 HEAD:shared)
+          if [ "$IS_KIT" = "true" ]; then
+            kit=$want
+          else
+            # line-share の公開がまだ終わっていなければ、少し待つ（5分まで。来なければ、出ている版を使う）
+            # version.txt がない（404）ときは Q キットの ?v= はさわらない（リポジトリに書いてあるまま）
+            for i in $(seq 1 10); do
+              code=$(curl -s -o kit.txt -w '%{http_code}' "https://katsuan.github.io/line-share/shared/version.txt?t=$(date +%s)" || true)
+              kit=$(tr -d '[:space:]' < kit.txt 2>/dev/null || true)
+              rm -f kit.txt
+              if [ "$code" != "200" ]; then kit=""; break; fi
+              [ "$kit" = "$want" ] && break
+              sleep 30
+            done
+          fi
+          echo "Q キットの版: ${kit:-（まだない）}（line-share の main: $want）"
+          echo "kit=$kit" >> "$GITHUB_OUTPUT"
+          deploy=true
+          if [ "$EVENT" = "schedule" ]; then
+            now=$(curl -fsS "${PAGE}qpublish.json?t=$(date +%s)" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("kit",""))' 2>/dev/null || true)
+            if [ -z "$kit" ] || [ "$now" = "$kit" ]; then deploy=false; echo "見回り：Q キットの版は同じ（$now）。出しなおさない"; fi
+          fi
+          echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
+
+      - name: テストが読む、となりのリポジトリ
+        if: steps.kit.outputs.deploy == 'true' && inputs.siblings != ''
+        env:
+          SIBLINGS: ${{ inputs.siblings }}
+        run: |
+          for pair in $SIBLINGS; do git clone --quiet --depth 1 "https://github.com/${pair#*=}.git" "${pair%%=*}"; done
+
+      - name: 手元と同じ並び（~/GitHub/q-oqrn）にする
+        if: steps.kit.outputs.deploy == 'true'
+        run: ln -sfn "$GITHUB_WORKSPACE" "$HOME/GitHub"
+
+      - uses: actions/setup-node@v5
+        if: steps.kit.outputs.deploy == 'true'
+        with:
+          node-version: 22
+
+      - name: テスト
+        if: steps.kit.outputs.deploy == 'true'
+        working-directory: ${{ inputs.folder }}
+        run: ${{ inputs.test }}
+
+      - name: check-code
+        if: steps.kit.outputs.deploy == 'true'
+        working-directory: ${{ inputs.folder }}
+        run: node ../q-oqrn/tools/qtest/check-code.mjs .
+
+      - name: 公開の前の準備
+        if: steps.kit.outputs.deploy == 'true' && inputs.prepare != ''
+        working-directory: ${{ inputs.folder }}
+        run: ${{ inputs.prepare }}
+
+      - name: ?v= を付ける
+        if: steps.kit.outputs.deploy == 'true'
+        working-directory: ${{ inputs.folder }}
+        env:
+          KIT: ${{ steps.kit.outputs.kit }}
+        run: |
+          python3 ../q-oqrn/tools/qpublish.py . --kit "$KIT" --commit "$GITHUB_SHA" $([ "$IS_KIT" = "true" ] && echo --kit-file)
+
+      - uses: actions/configure-pages@v5
+        if: steps.kit.outputs.deploy == 'true'
+
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.kit.outputs.deploy == 'true'
+        with:
+          path: ${{ inputs.folder }}
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Pages に出す
+        id: deployment
+        uses: actions/deploy-pages@v4
