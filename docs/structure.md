@@ -34,7 +34,7 @@
 
 ### 名前を変えるとき
 
-- 部品（`js/` の中）は、読む側の `import` もいっしょに変え、`?v=` を前より大きい値にそろえる（[tools/qstamp.py](../tools/qstamp.py)。今ある番号より必ず大きい値を付ける。小さくなったら `tools/qtest/check-code.mjs` の V1 で止まる）
+- 部品（`js/` の中）は、読む側の `import` もいっしょに変える。`?v=` は公開のときに付け直すので、手で上げなくてよい（[tools/qpublish.py](../tools/qpublish.py)。repo の中の番号を下げると `tools/qtest/check-code.mjs` の V1 で止まる）
 - HTML から読むファイル（`app.js`・`style.css` など）の名前を変えるときは、LINE の中のブラウザが古い HTML を覚えていることがあるので、前の名前のファイルを1か月ほど残す（新しいファイルを読むだけの短い中身にする）。消す日を README に書く
   - ES モジュールは `import "../app.js";`、CSS は `@import url("../style.css");` の1行でよい
   - 順に読む普通の `<script defer>`（おくるんの `card/js/` のように、いくつものファイルが同じ範囲の変数を使うもの）は、短い中身では読む順を保てないので、新しいファイルの写しを置く

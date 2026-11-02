@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""公開する前に、読み込む JS・CSS に版の番号（?v=。日本時間の年月日時分で、今ある番号より必ず大きく）を付け直す。Q のツール共通（おくるん自身は tools/stamp.py）。
+"""読み込む JS・CSS に版の番号（?v=。日本時間の年月日時分で、今ある番号より必ず大きく）を付け直す。Q のツール共通（おくるん自身は tools/stamp.py）。
+公開のとき GitHub Actions の中で tools/qpublish.py から使う。repo の中で手で動かさなくてよい。
 
 LINE アプリの中のブラウザと GitHub Pages は JS・CSS を強くキャッシュするので、直したのに古いファイルが残り、
 新しい HTML と古い JS が混ざって画面が真っ白になる（「export が見つからない」など）。毎回これを通して防ぐ。
@@ -9,7 +10,7 @@ LINE アプリの中のブラウザと GitHub Pages は JS・CSS を強くキャ
   ・モジュール（type="module"）から import でたどれる JS は、import の中（from "./x.js"）にも同じ ?v= を付ける
     （おくるんの tools/stamp.py と同じやり方。同じモジュールは全部同じ URL にしないと二重に読み込まれるので、まとめて付け直す）
 
-使い方（リポジトリのフォルダで）: python3 ../q-oqrn/tools/qstamp.py index.html [create.html ...]
+使い方（リポジトリのフォルダで。ふだんは qpublish.py が呼ぶ）: python3 ../q-oqrn/tools/qstamp.py index.html [create.html ...]
 """
 import datetime
 import re

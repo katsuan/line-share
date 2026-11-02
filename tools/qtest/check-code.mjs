@@ -8,7 +8,7 @@
 // 確かめて問題ないものは、その行に `// qcheck-ok: <番号> <理由>` と書くと出なくなる。
 //
 // 同じまちがいを止める確かめ（docs/ux.md・docs/structure.md の決まり。見つけたら止める＝終わりのコードが 1）
-//   V1 … HTML・import の ?v= が、git の前の版より小さくなった（古い JS が残って画面が出なくなる。tools/qstamp.py を使う）
+//   V1 … HTML・import の ?v= が、git の前の版より小さくなった（古い JS が残って画面が出なくなる。?v= は公開のときに付くので、repo の中では下げずにそのままにする）
 //   V2 … 説明の文（p・li・.ls-hint など）に word-break: auto-phrase か text-wrap: pretty（右に大きな余白ができる）
 //
 // テストから呼ぶとき：const { checkCode } = await import("…/q-oqrn/tools/qtest/check-code.mjs"); checkCode(フォルダ) → 見つけたものの一覧
@@ -148,7 +148,7 @@ function checkVersions(root, files) {
     for (const [ref, v] of versionsIn(text)) {
       if (!old.has(ref) || versionNumber(v) >= versionNumber(old.get(ref))) continue;
       const line = text.split("\n").findIndex((l) => l.includes(`${ref}?v=${v}`)) + 1;
-      found.push({ id: "V1", file: path.relative(root, file), line, why: "?v= が前の版より小さくなった（古いファイルが残って画面が出なくなる。tools/qstamp.py で付けなおす）", code: `${ref}?v=${old.get(ref)} → ${v}` });
+      found.push({ id: "V1", file: path.relative(root, file), line, why: "?v= が前の版より小さくなった（古いファイルが残って画面が出なくなる。?v= は公開のときに付くので、repo の中では前の番号のままにする）", code: `${ref}?v=${old.get(ref)} → ${v}` });
     }
   }
   return found;

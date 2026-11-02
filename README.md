@@ -236,13 +236,20 @@ Render のローカルディスクは永続ではないため、保存した画�
 
 ## 公開するとき
 
-LINE アプリ内のブラウザが古いプログラムを持ち続けないよう、公開前に読み込むファイルの版を付け直します。
+main に push するだけです。GitHub Actions（`.github/workflows/pages.yml` → Q 共通の `.github/workflows/q-pages.yml`）が、テストと check-code が通ったときだけ Pages に出します。落ちたら出さず、今の公開はそのまま残ります。
 
-```bash
-python3 tools/stamp.py
-```
+LINE アプリ内のブラウザが古いプログラムを持ち続けないよう、公開の写しにだけ `?v=<日時>` を付けます（`tools/stamp.py`。HTML の `<script>`・`<link>` と JS の import 先にまとめて）。**repo の中で `?v=` を手で付けなくてかまいません。** `shared/version.txt` に Q キットの版（`shared/` をさいごに変えたコミットの日本時間）も出し、各ツールは公開のときにこれを読んで、Q キットを読む URL に付けます。
 
-`?v=<日時>` が HTML の `<script>`・`<link>` と JS の import 先にまとめて付きます（同じモジュールは全ファイルで同じ版にそろえる必要があるため、必ずこのスクリプトで一括で付けます）。
+### Q のほかのツールの公開
+
+どのツールも同じしくみです（各ツールの `.github/workflows/pages.yml` が `katsuan/line-share/.github/workflows/q-pages.yml@main` を呼ぶ）。
+
+1. ツールのフォルダと、となりの `q-oqrn`（line-share）をそろえて取り、手元と同じ日本時間・Node 20 でテストと `check-code.mjs` を動かす
+2. 通ったら `tools/qpublish.py` が公開の写しに `?v=` を付ける：自分の JS・CSS（`tools/qstamp.py` のやり方）、HTML からたどれない入口やロゴ・アイコンの `?v=` も同じ番号に、Q キットの URL には Q キットの版
+3. Pages に出す。何を出したかは公開ページの `qpublish.json`
+4. Q キットだけ新しくなったときは、各ツールの3時間ごとの見回り（schedule）が `qpublish.json` とくらべて出しなおす
+
+新しいツールを足すときは、ほかのツールの `pages.yml` を写して `folder:` を変え、`gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow` で公開元を Actions にする。
 
 ## JSON で管理している中身（data/）
 
@@ -276,7 +283,7 @@ python3 tools/ogp.py     # shared/ogp.png（リンク共有時の画像・お知
 
 macOS のヒラギノ角ゴシック、ロゴの字形に Jua（SIL Open Font License 1.1。`~/Library/Fonts/Jua.ttf`）、Pillow・fontTools を使います。
 
-`tools/qstamp.py` は、Q のツール（キロっく・くじ・ひっくり・ぽもくるなど）が公開する前に通す共通のスクリプト。読み込む JS・CSS（モジュールの import と CSS の @import も）に `?v=<UTC の年月日時分>` を付け直し、LINE の中のブラウザに古いファイルが残って画面が真っ白になるのを防ぐ。各ツールのフォルダで `python3 ../q-oqrn/tools/qstamp.py index.html` のように使う（おくるん自身は `tools/stamp.py`）。
+`tools/qstamp.py` は、Q のツールの読み込む JS・CSS（モジュールの import と CSS の @import も）に `?v=<日本時間の年月日時分>` を付け直す共通のスクリプト。LINE の中のブラウザに古いファイルが残って画面が真っ白になるのを防ぐ。公開のとき `tools/qpublish.py` から使うので、ふだん手で動かすことはない（おくるん自身は `tools/stamp.py`）。
 
 `tools/brandkit.py` は、Q のツール（ぽもくる・くろのす・ジェンダーリビール・ひっくり・くじ）のアイコン・ロゴ・OGP を描く共通のスクリプト。各ツールの `tools/icon.py` が、となり（`~/GitHub/q-oqrn`。ローカルのフォルダ名）のこのファイルを読む（`tools/brandkit_path.py`）。直すのはここだけでよい。
 

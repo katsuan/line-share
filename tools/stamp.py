@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""公開前に実行し、読み込むファイルの URL に ?v=<日時> を付け直す。
+"""公開のとき（GitHub Actions の中で tools/qpublish.py から）、読み込むファイルの URL に ?v=<日時> を付け直す。repo の中で手で動かさなくてよい。
 
 LINE アプリ内のブラウザや GitHub Pages のキャッシュで古いプログラムが動き続けないよう、
 HTML の <script>/<link> と、JS の import 先に同じ版を付ける。
