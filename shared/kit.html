@@ -9,10 +9,20 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="stylesheet" href="ui.css" />
 <style>
-  .swatch-row { display: flex; flex-wrap: wrap; gap: 6px; }
-  .demo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .swatch-row { display: flex; flex-wrap: wrap; gap: var(--ls-space-s); }
+  .demo-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ls-space-s); }
   code { font-size: 12px; }
   pre { overflow-x: auto; max-width: 100%; margin: 0; }
+  .rules { display: grid; gap: var(--ls-space-s); margin: 0; padding-left: 1.4em; font-size: 14px; line-height: 1.7; }
+  .rules b { font-weight: 700; }
+  .space-row { display: grid; grid-template-columns: 7em minmax(0, 1fr); align-items: center; gap: var(--ls-space-s); font-size: 13px; color: var(--ls-subtext); }
+  .space-bar { height: 8px; border-radius: 2px; background: var(--ls-text); }
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: var(--ls-space-s); margin: 0; padding: 0; list-style: none; }
+  .icon-grid li { display: grid; justify-items: start; gap: var(--ls-space-xs); padding: var(--ls-space-s); border: 1px solid var(--ls-line); border-radius: var(--ls-radius-sm); font-size: 11px; color: var(--ls-subtext); }
+  .icon-grid .ls-icon { width: 24px; height: 24px; color: var(--ls-text); }
+  .check { display: grid; gap: var(--ls-space-xs); margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.6; }
+  .check li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: var(--ls-space-s); }
+  .check .ls-icon { width: 16px; height: 16px; margin-top: 3px; color: var(--ls-subtext); }
 </style>
 </head>
 <body>
@@ -23,15 +33,66 @@
   </header>
   <p class="ls-brand-copy">ツールの色を変えて、部品の見え方を確かめる見本</p>
 
+  <!-- 見た目の決まり（docs/ux.md の「見た目」L1〜L6 と同じ）。各ツールはこれと点検の一覧を見て直す -->
+  <section class="ls-panel" aria-labelledby="rulesTitle">
+    <h2 id="rulesTitle" class="ls-panel-title">見た目の決まり</h2>
+    <ol class="rules">
+      <li><b>背景は平らな色。</b>グラデーションにしない（<code>--ls-bg</code>・<code>--ls-surface</code>・<code>--ls-surface-sub</code>）。影も付けない</li>
+      <li><b>余白は 8 の倍数。</b><code>--ls-space-s</code> 8・<code>m</code> 16・<code>l</code> 24・<code>xl</code> 32・<code>xxl</code> 48。<code>xs</code> 4 は細かい所だけ</li>
+      <li><b>文の頭をそろえる。</b>左そろえ。中央は、数字だけの大きな表示・ボタンの中の文字など、中央が自然な所だけ</li>
+      <li><b>絵文字でなく線アイコン。</b><code>&lt;span class="ls-icon" data-icon="send" aria-hidden="true"&gt;&lt;/span&gt;</code>。JS は <code>LineShareUI.icon("send")</code></li>
+      <li><b>強弱は濃淡と太さ。</b>文字は <code>--ls-text</code>・<code>--ls-subtext</code>・<code>--ls-faint</code>、太さは 400・600・700。ツールの色と LINE の緑は、いちばん大事な1か所だけ</li>
+      <li><b>むだな見出しを置かない。</b>説明のくり返しになる見出し・中身が1つだけの見出しは外す</li>
+    </ol>
+  </section>
+
+  <section class="ls-panel" aria-labelledby="checkTitle">
+    <h2 id="checkTitle" class="ls-panel-title">ツールの点検（直すときに上から見る）</h2>
+    <ul class="check">
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>node ../q-oqrn/tools/qtest/look.mjs .</code> で L1〜L6 の数を見る（<code>--list</code> で行）</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>背景・ボタン・見出しの <code>gradient</code> を、平らな色（ツールの色か <code>--ls-surface</code>）に。<code>box-shadow</code> も外す</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>ツールの CSS の padding・margin・gap を <code>var(--ls-space-…)</code> に。角は <code>--ls-radius-sm/md/lg</code></span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>text-align: center</code> を外す（大きな数字・ボタンの中だけ残す）</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>ボタン・見出し・案内の頭の絵文字を線アイコンに。カードの中身（LINE に送る文）・遊びの絵（盤・コマ・演出）は別に決める</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>--ls-accent</code> の色を使う所を、送るボタンなど1か所に。選んでいるもの・見出しは濃い字で</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>見出しを1つずつ見て、なくても通じるものは外す</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>320px の幅と暗い表示で、前と後をくらべる（折り返し・1文字だけの行がないか）</span></li>
+    </ul>
+  </section>
+
+  <section class="ls-panel" aria-labelledby="spaceTitle">
+    <h2 id="spaceTitle" class="ls-panel-title">余白と間</h2>
+    <div class="ls-stack" style="gap: var(--ls-space-s)">
+      <div class="space-row"><code>--ls-space-xs</code><span class="space-bar" style="width: var(--ls-space-xs)"></span></div>
+      <div class="space-row"><code>--ls-space-s</code><span class="space-bar" style="width: var(--ls-space-s)"></span></div>
+      <div class="space-row"><code>--ls-space-m</code><span class="space-bar" style="width: var(--ls-space-m)"></span></div>
+      <div class="space-row"><code>--ls-space-l</code><span class="space-bar" style="width: var(--ls-space-l)"></span></div>
+      <div class="space-row"><code>--ls-space-xl</code><span class="space-bar" style="width: var(--ls-space-xl)"></span></div>
+      <div class="space-row"><code>--ls-space-xxl</code><span class="space-bar" style="width: var(--ls-space-xxl)"></span></div>
+    </div>
+    <p class="ls-hint">ページの左右は 16、パネルの中は 16、並んだ部品の間は 8、かたまりの間は 16〜24。</p>
+  </section>
+
+  <section class="ls-panel" aria-labelledby="iconTitle">
+    <h2 id="iconTitle" class="ls-panel-title">線アイコン</h2>
+    <p class="ls-hint">Lucide（ISC ライセンス。<code>shared/icons/LICENSE</code>）。線の太さはどれも同じ。文字の色・大きさで出る。足すときは <code>tools/icons.py</code>。</p>
+    <ul id="iconGrid" class="icon-grid"></ul>
+    <div class="ls-actions">
+      <button class="ls-button" type="button"><span class="ls-icon" data-icon="save" aria-hidden="true"></span>保存</button>
+      <button class="ls-button" type="button"><span class="ls-icon" data-icon="copy" aria-hidden="true"></span>コピー</button>
+      <button class="ls-icon-button" type="button" aria-label="設定"><span class="ls-icon" data-icon="settings" aria-hidden="true"></span></button>
+    </div>
+  </section>
+
   <section class="ls-panel">
-    <div class="ls-panel-head"><h2 class="ls-panel-title">🎨 ツールの色</h2></div>
+    <div class="ls-panel-head"><h2 class="ls-panel-title">ツールの色</h2></div>
     <div id="accents" class="swatch-row" role="radiogroup" aria-label="ツールの色"></div>
     <p class="ls-hint">各ツールでは <code>:root { --ls-accent: … }</code> か <code>LineShareUI.setAccent("#…")</code>。</p>
   </section>
 
   <div class="ls-tabs" role="tablist" aria-label="見本">
-    <button class="ls-tab" type="button" role="tab" aria-selected="true">📝 記録</button>
-    <button class="ls-tab" type="button" role="tab" aria-selected="false">📈 ふりかえり</button>
+    <button class="ls-tab" type="button" role="tab" aria-selected="true">記録</button>
+    <button class="ls-tab" type="button" role="tab" aria-selected="false">ふりかえり</button>
   </div>
 
   <section class="ls-panel">
@@ -61,19 +122,19 @@
 
   <div class="ls-folds">
     <details class="ls-fold" open>
-      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>開閉 <span class="ls-fold-meta">2件</span></summary>
+      <summary><span class="ls-icon ls-fold-icon" data-icon="settings" aria-hidden="true"></span>開閉 <span class="ls-fold-meta">2件</span></summary>
       <div class="ls-fold-body"><p class="ls-hint">中身。見出しの右の小さな表示は、空なら「なし」。</p></div>
     </details>
   </div>
 
   <section class="ls-panel">
     <div class="ls-panel-head"><h2 class="ls-panel-title">空のとき・読みこみ中</h2></div>
-    <div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🍙</span>まだ記録がありません<button class="ls-button is-primary" type="button">＋ 記録する</button></div>
+    <div class="ls-empty"><span class="ls-icon ls-empty-icon" data-icon="inbox" aria-hidden="true"></span>まだ記録がありません<button class="ls-button is-primary" type="button"><span class="ls-icon" data-icon="add" aria-hidden="true"></span>記録する</button></div>
     <div class="demo-row"><span class="ls-skeleton"></span><span class="ls-skeleton"></span><span class="ls-skeleton"></span></div>
   </section>
 
   <section class="ls-panel">
-    <div class="ls-panel-head"><h2 class="ls-panel-title">🎯 目じるしと進みぐあい</h2></div>
+    <div class="ls-panel-head"><h2 class="ls-panel-title">目じるしと進みぐあい</h2></div>
     <p class="ls-hint">これまでの合計を、目じるしとくらべて見せる（<code>shared/milestones.js</code> の <code>QMilestones</code>）。キロっくは「🐘 ゾウ 0.9 頭分」の重さ。ここは、つづく（続けた日数）で使うときの見本です。</p>
     <div class="ls-goal" id="msGoal"></div>
     <div class="demo-row">
@@ -95,7 +156,7 @@ const days = QMilestones.create({
   amount: (v) => Math.round(v) + "日"   // 合計・「あと ◯」の書き方
 });
 el.innerHTML = days.goalHtml(total, { lead: "今日で 12日目" });  // 入れ物は .ls-goal
-el.innerHTML = days.tableHtml(total, { title: "🔥 続けた日数", hint: "やめても減りません。" });
+el.innerHTML = days.tableHtml(total, { title: "続けた日数", hint: "やめても減りません。" });
 days.newlyPassed(before, after) // 越えた目じるし → days.passedTitle(mark)「🎉 🌿 1週間を越えました！」
 
 // 記録を消しても減らない合計（同じ記録は2回数えない・直したら差の分）
@@ -124,6 +185,21 @@ QMilestones.saveLedger("tsuzuq:days", ledger);  // ledger.total が合計</code>
     ["さくせん盤", "#1f8a4c"], ["くろのす", "#2563eb"], ["ジェンダーリビール", "#e5487a"]
   ];
   window.addEventListener("DOMContentLoaded", () => {
+    // 線アイコンの一覧：ui.css の :root にある --ls-i-<名前> を全部ならべる
+    const names = [];
+    for (const sheet of document.styleSheets) {
+      for (const rule of sheet.cssRules || []) {
+        if (rule.selectorText !== ":root") continue;
+        for (const prop of rule.style) if (prop.startsWith("--ls-i-")) names.push(prop.slice(7));
+      }
+    }
+    document.getElementById("iconGrid").replaceChildren(
+      ...names.map((name) => {
+        const li = document.createElement("li");
+        li.append(LineShareUI.icon(name), name);
+        return li;
+      })
+    );
     const box = document.getElementById("accents");
     TOOL_COLORS.forEach(([name, hex], index) => {
       const chip = document.createElement("button");
@@ -181,7 +257,7 @@ QMilestones.saveLedger("tsuzuq:days", ledger);  // ledger.total が合計</code>
     let msTotal = 12;
     const drawMilestones = () => {
       document.getElementById("msGoal").innerHTML = days.goalHtml(msTotal, { lead: "今日で " + msTotal + "日目" });
-      document.getElementById("msTable").innerHTML = days.tableHtml(msTotal, { title: "🔥 続けた日数", hint: "休んでも、この合計は減りません。" });
+      document.getElementById("msTable").innerHTML = days.tableHtml(msTotal, { title: "続けた日数", hint: "休んでも、この合計は減りません。" });
     };
     document.querySelectorAll("[data-ms-add]").forEach((b) =>
       b.addEventListener("click", () => {

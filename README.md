@@ -70,6 +70,12 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 色は `:root` に書く（開いた瞬間から色が付く）か、`LineShareUI.setAccent("#ec8a16")`（濃い色・薄い色・文字色を1色から作る）。`<script src=".../ui.js" data-accent="#ec8a16" defer>` でもよい。
 
+**見た目の決まり**（docs/ux.md の L）：背景は平らな色、余白は 8 の倍数、文の頭は左にそろえる、絵文字でなく線アイコン、強弱は濃淡、むだな見出しを置かない。直すときの点検は `node ../q-oqrn/tools/qtest/look.mjs .`（数を出すだけ）。
+
+**余白のトークン**：`--ls-space-xs` 4（細かい所だけ）・`-s` 8・`-m` 16・`-l` 24・`-xl` 32・`-xxl` 48。ツールの CSS の padding・margin・gap も `var(--ls-space-m)` のように書く。角は `--ls-radius-sm` 8・`-md` 12・`-lg` 16。影は使わない（`--ls-shadow` は `none`）。
+
+**線アイコン**：`<span class="ls-icon" data-icon="send" aria-hidden="true"></span>`（JS は `LineShareUI.icon("send")`、CSS は `mask: var(--ls-i-send) center / contain no-repeat; background: currentColor`）。文字の色・大きさで出る。大きさを変えるときは `width`・`height`（16・20・24px）。名前の一覧は `shared/kit.html` の「線アイコン」。元の絵は `shared/icons/*.svg`（Lucide。ISC ライセンス、`shared/icons/LICENSE`）で、`python3 tools/icons.py` が ui.css に入れる（足したら動かす。テストが ui.css と合っているか見る）。
+
 **暗い表示（ダークモード）**：`<html lang="ja" data-ls-dark="auto">` を付けたページだけ、スマホが暗い表示のときに暗くなる。背景・カード・文字・線・薄い色（`--ls-*`）は `ui.css` が `!important` で上書きする（背景にはツールの色を少し混ぜる）。ツールの CSS に明るい色を直接書いているところは、同じ `@media (prefers-color-scheme: dark)` の中に `:root[data-ls-dark="auto"] …` で暗いときの色を書く。`<meta name="theme-color">` も `media` で明るい・暗いの2つを置く。LINE のトークの見た目（送る前のプレビュー・カードの見本）や、受け取った人が見るお祝いのページ（くろのす・ジェンダーリビールの表示ページ）は明るいまま。
 
 **日本語の改行**：`ui.css` が、文（`p`・`li` など）に `text-wrap: pretty`、見出し・ラベル・ボタン・1〜2行の説明（`.ls-hint`・`li`・`small`・`.lead`・`.sub`・`.hint`・`.note`）に `word-break: auto-phrase`（文節で折る）を付けて、「〜ま／す。」のような1〜2文字だけの行を防ぐ。長い本文には文節で折る指定を付けない（右がガタガタになって行が増える）。折りたくない短い語は `<span class="ls-nowrap">`。説明は1〜2行に収まる長さにし、スマホの幅（375px と 320px）で確かめる。

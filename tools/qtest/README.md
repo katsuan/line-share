@@ -6,6 +6,7 @@
 |---|---|
 | `fake-gas.js` | GAS の偽物。node のテストで GAS のコードを動かす |
 | `check-code.mjs` | 危ない書き方を探す（コードを読むだけ）。`docs/security.md` の番号で出す。同じまちがいも止める：V1 `?v=` が git の前の版より小さくなった・V2 説明の文に `auto-phrase`・`text-wrap: pretty`（`docs/ux.md` の A8・A9）。見つけたら終わりのコードが 1 |
+| `look.mjs` | 見た目の点検（`docs/ux.md` の L1〜L6：グラデ・余白・中央・絵文字・色・見出し）。直す候補の数を出すだけで止めない。`--list` で何行目か |
 | `selfcheck.gs` | GAS のプロジェクトに入れて、使う前に GAS エディタで `qCheckAll` を動かす。`safeCell()` もここ |
 | `example.test.js` | テストの書き方の見本 |
 
