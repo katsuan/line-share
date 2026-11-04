@@ -81,7 +81,8 @@
   // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
   const MARK_URL = new URL("shared/mark.svg", BASE).href;
   // 線アイコン（shared/icons/ の Lucide）。同じく ui.css がなくても出るよう、ファイルを直接読む
-  const ICONS = ["next", "backup"];
+  const ICONS = ["next", "backup", "app", "link"];
+  const iconHtml = (name) => `<span class="oqrn-i oqrn-i-${name}" aria-hidden="true"></span>`;
   const iconEl = (name) => {
     const el = document.createElement("span");
     el.className = `oqrn-i oqrn-i-${name}`;
@@ -219,7 +220,7 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
-        <a class="oqrn-tool-line" hidden>📱 LINE 版で開く</a>
+        <a class="oqrn-tool-line" hidden>${iconHtml("app")}LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
         <a class="oqrn-sheet-option" data-tool-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small><span class="oqrn-nw">このツールの</span><span class="oqrn-nw">紹介カードを作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
@@ -238,7 +239,7 @@
       $(".oqrn-tool-copy").hidden = !item.copy;
       $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
-      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「📱 LINE 版で開く」と、その良さ（lineWhy）
+      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「LINE 版で開く」と、その良さ（lineWhy）
       const inLine = / Line\//.test(navigator.userAgent);
       const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
@@ -248,7 +249,7 @@
       $(".oqrn-tool-line").hidden = !line || inLine;
       $(".oqrn-tool-line").href = line || "#";
       $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
-      $(".oqrn-tool-why").textContent = item.lineWhy ? `📱 ${item.lineWhy}` : "";
+      $(".oqrn-tool-why").textContent = item.lineWhy || "";
       // そのツールを、おくるんの紹介カードで友だちに送る（「○○を紹介する」と同じカード）
       const card = $("[data-tool-card]");
       card.href = window.OQRN ? cardUrl(item) : "#";
@@ -462,7 +463,7 @@
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
         <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
-        <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
+        <button class="oqrn-sheet-option" type="button" data-link><span>${iconHtml("link")}リンクでシェア</span><small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;

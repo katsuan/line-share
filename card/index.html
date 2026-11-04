@@ -102,7 +102,7 @@
                 <!-- サッカー：スタメン（ピッチに配置）・試合結果。中身はさくせん盤（サッカーのツール）から渡される（card/js/soccer.js） -->
                 <div id="lineupArea" class="bubble-soccer" hidden></div>
                 <div id="matchArea" class="bubble-soccer" hidden></div>
-                <a id="soccerEditLink" class="ls-optional-add sc-edit" href="#" hidden>⚽ さくせん盤で直す</a>
+                <a id="soccerEditLink" class="ls-optional-add sc-edit" href="#" hidden><span class="ls-icon" data-icon="edit" aria-hidden="true"></span>さくせん盤で直す</a>
                 <div id="buttonStack" class="bubble-actions" hidden></div>
               </div>
               <p class="ls-credit">Created by おくるん ›</p>
@@ -115,7 +115,7 @@
 
         <div class="ls-folds">
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="stack" aria-hidden="true"></span>テンプレート</summary>
             <div class="ls-fold-body">
               <p class="ls-hint">選ぶと中身が入れ替わります（直後なら元に戻せます）。今の内容も名前を付けて保存できます。</p>
               <div id="presetGrid" class="preset-grid"></div>
@@ -129,7 +129,7 @@
 
           <!-- 色や大きさはカード全体の印象を決めるので、テンプレートの次に置く -->
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="lookMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="palette" aria-hidden="true"></span>見た目 <span id="lookMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div class="ls-field">
                 <span class="ls-label">カラー</span>
@@ -177,17 +177,17 @@
           </details>
 
           <details id="photoSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🖼️</span>写真 <span id="photoMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="image" aria-hidden="true"></span>写真 <span id="photoMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div class="ls-actions">
                 <label class="ls-button is-primary photo-pick">
-                  📷 端末から選ぶ
+                  <span class="ls-icon" data-icon="camera" aria-hidden="true"></span>端末から選ぶ
                   <input id="photoFileInput" type="file" accept="image/*" />
                 </label>
                 <button id="photoClearButton" class="ls-button is-danger" type="button" hidden>写真を外す</button>
               </div>
               <p id="photoStatus" class="ls-hint" hidden></p>
-              <p id="photoExpireNote" class="ls-hint" hidden>⏳ 時間がたつと写真が消えることがあります。長く残すなら写真のURLを使ってください。</p>
+              <p id="photoExpireNote" class="ls-hint" hidden><span class="ls-icon" data-icon="wait" aria-hidden="true"></span>時間がたつと写真が消えることがあります。長く残すなら写真のURLを使ってください。</p>
               <label class="ls-field">
                 <span class="ls-label">または写真のURL</span>
                 <input id="imageUrlInput" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://example.com/photo.jpg" />
@@ -218,7 +218,7 @@
           </details>
 
           <details id="linkSettings" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン <span id="linkMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="link" aria-hidden="true"></span>リンクボタン <span id="linkMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="buttonList" class="button-list"></div>
               <button id="addButtonButton" class="ls-button is-block" type="button">＋ ボタンを追加</button>
@@ -229,7 +229,7 @@
 
           <!-- 上級者向け（設定欄の決まりで、いちばん最後に置く） -->
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span class="ls-fold-meta">JSON</span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="settings" aria-hidden="true"></span>詳しい設定 <span class="ls-fold-meta">JSON</span></summary>
             <div class="ls-fold-body">
               <p class="ls-hint">カードの中身（LINE の Flex Message）を JSON でコピーします。開発や、ほかのツールに持ち出すときに使います。</p>
               <button id="copyJsonButton" class="ls-button" type="button">JSON をコピー</button>
@@ -238,7 +238,7 @@
         </div>
 
         <div class="card-tools">
-          <button id="resetButton" class="ls-button is-danger" type="button">🧹 入力をぜんぶ消す</button>
+          <button id="resetButton" class="ls-button is-danger" type="button"><span class="ls-icon" data-icon="eraser" aria-hidden="true"></span>入力をぜんぶ消す</button>
         </div>
       </div>
     </main>
@@ -249,7 +249,7 @@
         <!-- 記録用の文字（?sendText=）：ほかのツール（しょくじなど）から来たとき、カードの後ろに文字を1通足して送る。外すこともできる -->
         <label id="sendTextRow" class="send-text" hidden>
           <input id="sendTextToggle" type="checkbox" checked>
-          <span><b>📝 記録用の文字も送る</b><small id="sendTextPreview"></small></span>
+          <span><b>記録用の文字も送る</b><small id="sendTextPreview"></small></span>
         </label>
         <p id="status" class="ls-status" aria-live="polite"></p>
         <button id="shareButton" class="ls-send line is-oqrn" type="button" disabled>カードでおくるん</button>

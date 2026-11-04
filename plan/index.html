@@ -31,8 +31,8 @@
       </header>
 
       <div class="ls-tabs" role="tablist" aria-label="共有する内容">
-        <button id="tab-map" class="ls-tab" type="button" role="tab" data-tab="map" aria-controls="panel-map" aria-selected="true">📍 場所</button>
-        <button id="tab-calendar" class="ls-tab" type="button" role="tab" data-tab="calendar" aria-controls="panel-calendar" aria-selected="false" tabindex="-1">🗓️ 予定</button>
+        <button id="tab-map" class="ls-tab" type="button" role="tab" data-tab="map" aria-controls="panel-map" aria-selected="true"><span class="ls-icon" data-icon="place" aria-hidden="true"></span>場所</button>
+        <button id="tab-calendar" class="ls-tab" type="button" role="tab" data-tab="calendar" aria-controls="panel-calendar" aria-selected="false" tabindex="-1"><span class="ls-icon" data-icon="calendar" aria-hidden="true"></span>予定</button>
       </div>
 
       <!-- ===== 場所 ===== -->
@@ -69,7 +69,7 @@
 
         <section id="mapPlacePanel" class="ls-panel">
           <div class="ls-panel-head">
-            <h2 class="ls-panel-title">📍 場所</h2>
+            <h2 class="ls-panel-title"><span class="ls-icon" data-icon="place" aria-hidden="true"></span>場所</h2>
             <p id="mapIntro" class="ls-panel-note">検索して選ぶと、場所名・住所・写真が入ります。</p>
           </div>
 
@@ -86,7 +86,7 @@
             <label class="ls-label" for="mapTitle">場所名</label>
             <input id="mapTitle" class="ls-input" type="text" maxlength="80" placeholder="例：東京タワー" />
             <p id="mapAddress" class="ls-hint" hidden></p>
-            <button id="mapFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
+            <button id="mapFindButton" class="ls-button" type="button"><span class="ls-icon" data-icon="search" aria-hidden="true"></span>Google Mapsで探す</button>
           </div>
 
           <div class="ls-field">
@@ -100,13 +100,13 @@
 
           <div class="ls-actions">
             <button id="mapOpenButton" class="ls-button" type="button">地図で確認</button>
-            <button id="mapCreateEventButton" class="ls-button" type="button">🗓️ この場所で予定を作る</button>
+            <button id="mapCreateEventButton" class="ls-button" type="button"><span class="ls-icon" data-icon="calendar" aria-hidden="true"></span>この場所で予定を作る</button>
           </div>
         </section>
 
         <div class="ls-folds">
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🗂️</span>テンプレート</summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="stack" aria-hidden="true"></span>テンプレート</summary>
             <div class="ls-fold-body">
               <p class="ls-hint">選ぶと中身が入れ替わります。今の内容も名前を付けて保存できます。</p>
               <div id="mapTemplateList" class="ls-list"></div>
@@ -118,7 +118,7 @@
           </details>
 
           <details id="mapHeaderFold" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="palette" aria-hidden="true"></span>見た目 <span id="mapHeaderMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <span class="ls-label">カラー</span>
               <div id="mapHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
@@ -127,7 +127,7 @@
           </details>
 
           <details id="mapBadgeFold" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🏷️</span>バッジ <span id="badgeMeta" class="ls-fold-meta">なし</span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="tag" aria-hidden="true"></span>バッジ <span id="badgeMeta" class="ls-fold-meta">なし</span></summary>
             <div class="ls-fold-body">
               <div id="badgeList" class="ls-chips"></div>
               <div class="ls-row">
@@ -170,7 +170,7 @@
 
           <section id="eventPanel" class="ls-panel">
             <div class="ls-panel-head">
-              <h2 class="ls-panel-title">🗓️ 予定</h2>
+              <h2 class="ls-panel-title"><span class="ls-icon" data-icon="calendar" aria-hidden="true"></span>予定</h2>
               <p class="ls-panel-note">件名と日時だけで作れます。相手はそのままGoogleカレンダーに追加できます。</p>
             </div>
 
@@ -218,7 +218,7 @@
 
           <div class="ls-folds">
             <details id="eventHeaderFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">🎨</span>見た目 <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
+              <summary><span class="ls-icon ls-fold-icon" data-icon="palette" aria-hidden="true"></span>見た目 <span id="eventHeaderMeta" class="ls-fold-meta"></span></summary>
               <div class="ls-fold-body">
                 <span class="ls-label">カラー</span>
                 <div id="eventHeaderThemes" class="ls-swatches" role="group" aria-label="ヘッダーの色"></div>
@@ -227,10 +227,10 @@
             </details>
 
             <details id="locationAccordion" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">📍</span>場所 <span id="locationState" class="ls-fold-meta">なし</span></summary>
+              <summary><span class="ls-icon ls-fold-icon" data-icon="place" aria-hidden="true"></span>場所 <span id="locationState" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <input id="location" class="ls-input" type="text" aria-label="場所" placeholder="例：渋谷オフィス 5F 会議室A" />
-                <button id="locationFindButton" class="ls-button" type="button">🔍 Google Mapsで探す</button>
+                <button id="locationFindButton" class="ls-button" type="button"><span class="ls-icon" data-icon="search" aria-hidden="true"></span>Google Mapsで探す</button>
                 <div class="ls-field" data-place-search>
                   <div class="ls-row">
                     <input id="locationSearchInput" class="ls-input" type="search" enterkeyhint="search" aria-label="地図で場所を検索" placeholder="地図で場所を検索" />
@@ -244,7 +244,7 @@
             </details>
 
             <details id="urlFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>リンクボタン <span id="urlState" class="ls-fold-meta">なし</span></summary>
+              <summary><span class="ls-icon ls-fold-icon" data-icon="link" aria-hidden="true"></span>リンクボタン <span id="urlState" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <input id="url" class="ls-input" type="url" inputmode="url" autocapitalize="off" spellcheck="false" aria-label="関連URL" placeholder="https://example.com" />
                 <p class="ls-hint">入れると、カードに「関連URLを開く」ボタンが付きます。</p>
@@ -252,7 +252,7 @@
             </details>
 
             <details id="optionalAccordion" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">なし</span></summary>
+              <summary><span class="ls-icon ls-fold-icon" data-icon="settings" aria-hidden="true"></span>詳しい設定 <span id="optionalCount" class="ls-fold-meta">なし</span></summary>
               <div class="ls-fold-body">
                 <label class="ls-field">
                   <span class="ls-label">タイムゾーン</span>
@@ -280,7 +280,7 @@
             </details>
 
             <details id="calendarLinkFold" class="ls-fold">
-              <summary><span class="ls-fold-icon" aria-hidden="true">📋</span>登録用リンク <span class="ls-fold-meta">開く・コピー</span></summary>
+              <summary><span class="ls-icon ls-fold-icon" data-icon="clipboard" aria-hidden="true"></span>登録用リンク <span class="ls-fold-meta">開く・コピー</span></summary>
               <div class="ls-fold-body">
                 <textarea id="generatedUrl" class="ls-input url-output" rows="3" readonly aria-label="カレンダー登録用のリンク"></textarea>
                 <div class="ls-actions">

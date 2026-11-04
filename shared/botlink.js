@@ -312,7 +312,11 @@ var QBotLink = (function () {
         var a = document.createElement("a");
         a.className = "ls-button line is-block";
         a.href = String(o.openUrl || "");
-        a.textContent = "📱 LINE 版で開く";
+        var appIcon = document.createElement("span");
+        appIcon.className = "ls-icon";
+        appIcon.setAttribute("data-icon", "app");
+        appIcon.setAttribute("aria-hidden", "true");
+        a.append(appIcon, "LINE 版で開く");
         outside.replaceChildren(a);
       }
     }

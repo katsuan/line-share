@@ -1946,6 +1946,34 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   mask: var(--ls-i) center / contain no-repeat;
 }
 
+/* 頭に線アイコンを置いた部品：アイコンと字の間を 8（flex でない部品だけ。ボタン・チップ・見出しはもともと gap がある） */
+.ls-tab:has(> .ls-icon),
+.ls-optional-add:has(> .ls-icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ls-space-s);
+}
+
+.ls-tip-title:has(> .ls-icon) {
+  display: flex;
+  align-items: center;
+  gap: var(--ls-space-s);
+}
+
+/* 説明の文の頭のアイコン：1行めの字にそろえる */
+.ls-hint:has(> .ls-icon:first-child),
+.ls-preview-note:has(> .ls-icon:first-child) {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ls-space-s);
+}
+
+.ls-hint > .ls-icon:first-child,
+.ls-preview-note > .ls-icon:first-child {
+  margin-top: 0.3em;
+}
+
 /* ---- 線アイコン：ここから（tools/icons.py が作る。手で書きかえない） ---- */
 :root {
   --ls-i-add: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12h14%22/%3E%3Cpath d=%22M12 5v14%22/%3E%3C/svg%3E");
@@ -1960,12 +1988,14 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   --ls-i-bookmark-check: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z%22/%3E%3Cpath d=%22m9 10 2 2 4-4%22/%3E%3C/svg%3E");
   --ls-i-bookmark: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z%22/%3E%3C/svg%3E");
   --ls-i-bot: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 8V4H8%22/%3E%3Crect width=%2216%22 height=%2212%22 x=%224%22 y=%228%22 rx=%222%22/%3E%3Cpath d=%22M2 14h2%22/%3E%3Cpath d=%22M20 14h2%22/%3E%3Cpath d=%22M15 13v2%22/%3E%3Cpath d=%22M9 13v2%22/%3E%3C/svg%3E");
+  --ls-i-brush: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08%22/%3E%3Cpath d=%22M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z%22/%3E%3C/svg%3E");
   --ls-i-cake: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8%22/%3E%3Cpath d=%22M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1%22/%3E%3Cpath d=%22M2 21h20%22/%3E%3Cpath d=%22M7 8v3%22/%3E%3Cpath d=%22M12 8v3%22/%3E%3Cpath d=%22M17 8v3%22/%3E%3Cpath d=%22M7 4h.01%22/%3E%3Cpath d=%22M12 4h.01%22/%3E%3Cpath d=%22M17 4h.01%22/%3E%3C/svg%3E");
   --ls-i-calendar: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M8 2v4%22/%3E%3Cpath d=%22M16 2v4%22/%3E%3Crect width=%2218%22 height=%2218%22 x=%223%22 y=%224%22 rx=%222%22/%3E%3Cpath d=%22M3 10h18%22/%3E%3C/svg%3E");
   --ls-i-camera: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z%22/%3E%3Ccircle cx=%2212%22 cy=%2213%22 r=%223%22/%3E%3C/svg%3E");
   --ls-i-celebrate: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5.8 11.3 2 22l10.7-3.79%22/%3E%3Cpath d=%22M4 3h.01%22/%3E%3Cpath d=%22M22 8h.01%22/%3E%3Cpath d=%22M15 2h.01%22/%3E%3Cpath d=%22M22 20h.01%22/%3E%3Cpath d=%22m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10%22/%3E%3Cpath d=%22m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17%22/%3E%3Cpath d=%22m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7%22/%3E%3Cpath d=%22M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z%22/%3E%3C/svg%3E");
   --ls-i-chart: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M3 3v16a2 2 0 0 0 2 2h16%22/%3E%3Cpath d=%22M18 17V9%22/%3E%3Cpath d=%22M13 17V5%22/%3E%3Cpath d=%22M8 17v-3%22/%3E%3C/svg%3E");
   --ls-i-check: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 6 9 17l-5-5%22/%3E%3C/svg%3E");
+  --ls-i-clipboard: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect width=%228%22 height=%224%22 x=%228%22 y=%222%22 rx=%221%22 ry=%221%22/%3E%3Cpath d=%22M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2%22/%3E%3C/svg%3E");
   --ls-i-clock: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Cpolyline points=%2212 6 12 12 16 14%22/%3E%3C/svg%3E");
   --ls-i-close: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M18 6 6 18%22/%3E%3Cpath d=%22m6 6 12 12%22/%3E%3C/svg%3E");
   --ls-i-copy: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect width=%2214%22 height=%2214%22 x=%228%22 y=%228%22 rx=%222%22 ry=%222%22/%3E%3Cpath d=%22M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2%22/%3E%3C/svg%3E");
@@ -1985,6 +2015,8 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   --ls-i-hash: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cline x1=%224%22 x2=%2220%22 y1=%229%22 y2=%229%22/%3E%3Cline x1=%224%22 x2=%2220%22 y1=%2215%22 y2=%2215%22/%3E%3Cline x1=%2210%22 x2=%228%22 y1=%223%22 y2=%2221%22/%3E%3Cline x1=%2216%22 x2=%2214%22 y1=%223%22 y2=%2221%22/%3E%3C/svg%3E");
   --ls-i-heart-pulse: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z%22/%3E%3Cpath d=%22M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27%22/%3E%3C/svg%3E");
   --ls-i-heart: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z%22/%3E%3C/svg%3E");
+  --ls-i-highlighter: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m9 11-6 6v3h9l3-3%22/%3E%3Cpath d=%22m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4%22/%3E%3C/svg%3E");
+  --ls-i-history: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8%22/%3E%3Cpath d=%22M3 3v5h5%22/%3E%3Cpath d=%22M12 7v5l4 2%22/%3E%3C/svg%3E");
   --ls-i-home: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8%22/%3E%3Cpath d=%22M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z%22/%3E%3C/svg%3E");
   --ls-i-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect width=%2218%22 height=%2218%22 x=%223%22 y=%223%22 rx=%222%22 ry=%222%22/%3E%3Ccircle cx=%229%22 cy=%229%22 r=%222%22/%3E%3Cpath d=%22m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21%22/%3E%3C/svg%3E");
   --ls-i-inbox: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%2222 12 16 12 14 15 10 15 8 12 2 12%22/%3E%3Cpath d=%22M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z%22/%3E%3C/svg%3E");
@@ -2001,26 +2033,31 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   --ls-i-notebook: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M2 6h4%22/%3E%3Cpath d=%22M2 10h4%22/%3E%3Cpath d=%22M2 14h4%22/%3E%3Cpath d=%22M2 18h4%22/%3E%3Crect width=%2216%22 height=%2220%22 x=%224%22 y=%222%22 rx=%222%22/%3E%3Cpath d=%22M16 2v20%22/%3E%3C/svg%3E");
   --ls-i-notice: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m3 11 18-5v12L3 14v-3z%22/%3E%3Cpath d=%22M11.6 16.8a3 3 0 1 1-5.8-1.6%22/%3E%3C/svg%3E");
   --ls-i-offline: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 20h.01%22/%3E%3Cpath d=%22M8.5 16.429a5 5 0 0 1 7 0%22/%3E%3Cpath d=%22M5 12.859a10 10 0 0 1 5.17-2.69%22/%3E%3Cpath d=%22M19 12.859a10 10 0 0 0-2.007-1.523%22/%3E%3Cpath d=%22M2 8.82a15 15 0 0 1 4.177-2.643%22/%3E%3Cpath d=%22M22 8.82a15 15 0 0 0-11.288-3.764%22/%3E%3Cpath d=%22m2 2 20 20%22/%3E%3C/svg%3E");
+  --ls-i-paint-bucket: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z%22/%3E%3Cpath d=%22m5 2 5 5%22/%3E%3Cpath d=%22M2 13h15%22/%3E%3Cpath d=%22M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z%22/%3E%3C/svg%3E");
   --ls-i-palette: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2213.5%22 cy=%226.5%22 r=%22.5%22 fill=%22currentColor%22/%3E%3Ccircle cx=%2217.5%22 cy=%2210.5%22 r=%22.5%22 fill=%22currentColor%22/%3E%3Ccircle cx=%228.5%22 cy=%227.5%22 r=%22.5%22 fill=%22currentColor%22/%3E%3Ccircle cx=%226.5%22 cy=%2212.5%22 r=%22.5%22 fill=%22currentColor%22/%3E%3Cpath d=%22M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z%22/%3E%3C/svg%3E");
   --ls-i-place: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0%22/%3E%3Ccircle cx=%2212%22 cy=%2210%22 r=%223%22/%3E%3C/svg%3E");
   --ls-i-play: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolygon points=%226 3 20 12 6 21 6 3%22/%3E%3C/svg%3E");
+  --ls-i-rectangle-horizontal: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Crect width=%2220%22 height=%2212%22 x=%222%22 y=%226%22 rx=%222%22/%3E%3C/svg%3E");
   --ls-i-refresh: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8%22/%3E%3Cpath d=%22M21 3v5h-5%22/%3E%3Cpath d=%22M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16%22/%3E%3Cpath d=%22M8 16H3v5%22/%3E%3C/svg%3E");
   --ls-i-save: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4%22/%3E%3Cpolyline points=%227 10 12 15 17 10%22/%3E%3Cline x1=%2212%22 x2=%2212%22 y1=%2215%22 y2=%223%22/%3E%3C/svg%3E");
   --ls-i-scissors: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%226%22 cy=%226%22 r=%223%22/%3E%3Cpath d=%22M8.12 8.12 12 12%22/%3E%3Cpath d=%22M20 4 8.12 15.88%22/%3E%3Ccircle cx=%226%22 cy=%2218%22 r=%223%22/%3E%3Cpath d=%22M14.8 14.8 20 20%22/%3E%3C/svg%3E");
   --ls-i-search: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2211%22 cy=%2211%22 r=%228%22/%3E%3Cpath d=%22m21 21-4.3-4.3%22/%3E%3C/svg%3E");
   --ls-i-send: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z%22/%3E%3Cpath d=%22m21.854 2.147-10.94 10.939%22/%3E%3C/svg%3E");
   --ls-i-settings: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%223%22/%3E%3C/svg%3E");
+  --ls-i-shapes: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z%22/%3E%3Crect x=%223%22 y=%2214%22 width=%227%22 height=%227%22 rx=%221%22/%3E%3Ccircle cx=%2217.5%22 cy=%2217.5%22 r=%223.5%22/%3E%3C/svg%3E");
   --ls-i-share: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2218%22 cy=%225%22 r=%223%22/%3E%3Ccircle cx=%226%22 cy=%2212%22 r=%223%22/%3E%3Ccircle cx=%2218%22 cy=%2219%22 r=%223%22/%3E%3Cline x1=%228.59%22 x2=%2215.42%22 y1=%2213.51%22 y2=%2217.49%22/%3E%3Cline x1=%2215.41%22 x2=%228.59%22 y1=%226.51%22 y2=%2210.49%22/%3E%3C/svg%3E");
   --ls-i-shield-check: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z%22/%3E%3Cpath d=%22m9 12 2 2 4-4%22/%3E%3C/svg%3E");
   --ls-i-sparkles: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z%22/%3E%3Cpath d=%22M20 3v4%22/%3E%3Cpath d=%22M22 5h-4%22/%3E%3Cpath d=%22M4 17v2%22/%3E%3Cpath d=%22M5 18H3%22/%3E%3C/svg%3E");
   --ls-i-sprout: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M7 20h10%22/%3E%3Cpath d=%22M10 20c5.5-2.5.8-6.4 3-10%22/%3E%3Cpath d=%22M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z%22/%3E%3Cpath d=%22M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z%22/%3E%3C/svg%3E");
   --ls-i-stack: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z%22/%3E%3Cpath d=%22m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65%22/%3E%3Cpath d=%22m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65%22/%3E%3C/svg%3E");
   --ls-i-star: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z%22/%3E%3C/svg%3E");
+  --ls-i-tag: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z%22/%3E%3Ccircle cx=%227.5%22 cy=%227.5%22 r=%22.5%22 fill=%22currentColor%22/%3E%3C/svg%3E");
   --ls-i-target: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%226%22/%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%222%22/%3E%3C/svg%3E");
   --ls-i-team: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%229%22 cy=%227%22 r=%224%22/%3E%3Cpath d=%22M22 21v-2a4 4 0 0 0-3-3.87%22/%3E%3Cpath d=%22M16 3.13a4 4 0 0 1 0 7.75%22/%3E%3C/svg%3E");
   --ls-i-ticket: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z%22/%3E%3Cpath d=%22M13 5v2%22/%3E%3Cpath d=%22M13 17v2%22/%3E%3Cpath d=%22M13 11v2%22/%3E%3C/svg%3E");
   --ls-i-tip: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5%22/%3E%3Cpath d=%22M9 18h6%22/%3E%3Cpath d=%22M10 22h4%22/%3E%3C/svg%3E");
   --ls-i-trophy: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9H4.5a2.5 2.5 0 0 1 0-5H6%22/%3E%3Cpath d=%22M18 9h1.5a2.5 2.5 0 0 0 0-5H18%22/%3E%3Cpath d=%22M4 22h16%22/%3E%3Cpath d=%22M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22%22/%3E%3Cpath d=%22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22%22/%3E%3Cpath d=%22M18 2H6v7a6 6 0 0 0 12 0V2Z%22/%3E%3C/svg%3E");
+  --ls-i-type: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%224 7 4 4 20 4 20 7%22/%3E%3Cline x1=%229%22 x2=%2215%22 y1=%2220%22 y2=%2220%22/%3E%3Cline x1=%2212%22 x2=%2212%22 y1=%224%22 y2=%2220%22/%3E%3C/svg%3E");
   --ls-i-undo: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 14 4 9l5-5%22/%3E%3Cpath d=%22M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11%22/%3E%3C/svg%3E");
   --ls-i-upload: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4%22/%3E%3Cpolyline points=%2217 8 12 3 7 8%22/%3E%3Cline x1=%2212%22 x2=%2212%22 y1=%223%22 y2=%2215%22/%3E%3C/svg%3E");
   --ls-i-user: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2%22/%3E%3Ccircle cx=%2212%22 cy=%227%22 r=%224%22/%3E%3C/svg%3E");
@@ -2046,12 +2083,14 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 .ls-icon[data-icon="bookmark-check"] { --ls-i: var(--ls-i-bookmark-check); }
 .ls-icon[data-icon="bookmark"] { --ls-i: var(--ls-i-bookmark); }
 .ls-icon[data-icon="bot"] { --ls-i: var(--ls-i-bot); }
+.ls-icon[data-icon="brush"] { --ls-i: var(--ls-i-brush); }
 .ls-icon[data-icon="cake"] { --ls-i: var(--ls-i-cake); }
 .ls-icon[data-icon="calendar"] { --ls-i: var(--ls-i-calendar); }
 .ls-icon[data-icon="camera"] { --ls-i: var(--ls-i-camera); }
 .ls-icon[data-icon="celebrate"] { --ls-i: var(--ls-i-celebrate); }
 .ls-icon[data-icon="chart"] { --ls-i: var(--ls-i-chart); }
 .ls-icon[data-icon="check"] { --ls-i: var(--ls-i-check); }
+.ls-icon[data-icon="clipboard"] { --ls-i: var(--ls-i-clipboard); }
 .ls-icon[data-icon="clock"] { --ls-i: var(--ls-i-clock); }
 .ls-icon[data-icon="close"] { --ls-i: var(--ls-i-close); }
 .ls-icon[data-icon="copy"] { --ls-i: var(--ls-i-copy); }
@@ -2071,6 +2110,8 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 .ls-icon[data-icon="hash"] { --ls-i: var(--ls-i-hash); }
 .ls-icon[data-icon="heart-pulse"] { --ls-i: var(--ls-i-heart-pulse); }
 .ls-icon[data-icon="heart"] { --ls-i: var(--ls-i-heart); }
+.ls-icon[data-icon="highlighter"] { --ls-i: var(--ls-i-highlighter); }
+.ls-icon[data-icon="history"] { --ls-i: var(--ls-i-history); }
 .ls-icon[data-icon="home"] { --ls-i: var(--ls-i-home); }
 .ls-icon[data-icon="image"] { --ls-i: var(--ls-i-image); }
 .ls-icon[data-icon="inbox"] { --ls-i: var(--ls-i-inbox); }
@@ -2087,26 +2128,31 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 .ls-icon[data-icon="notebook"] { --ls-i: var(--ls-i-notebook); }
 .ls-icon[data-icon="notice"] { --ls-i: var(--ls-i-notice); }
 .ls-icon[data-icon="offline"] { --ls-i: var(--ls-i-offline); }
+.ls-icon[data-icon="paint-bucket"] { --ls-i: var(--ls-i-paint-bucket); }
 .ls-icon[data-icon="palette"] { --ls-i: var(--ls-i-palette); }
 .ls-icon[data-icon="place"] { --ls-i: var(--ls-i-place); }
 .ls-icon[data-icon="play"] { --ls-i: var(--ls-i-play); }
+.ls-icon[data-icon="rectangle-horizontal"] { --ls-i: var(--ls-i-rectangle-horizontal); }
 .ls-icon[data-icon="refresh"] { --ls-i: var(--ls-i-refresh); }
 .ls-icon[data-icon="save"] { --ls-i: var(--ls-i-save); }
 .ls-icon[data-icon="scissors"] { --ls-i: var(--ls-i-scissors); }
 .ls-icon[data-icon="search"] { --ls-i: var(--ls-i-search); }
 .ls-icon[data-icon="send"] { --ls-i: var(--ls-i-send); }
 .ls-icon[data-icon="settings"] { --ls-i: var(--ls-i-settings); }
+.ls-icon[data-icon="shapes"] { --ls-i: var(--ls-i-shapes); }
 .ls-icon[data-icon="share"] { --ls-i: var(--ls-i-share); }
 .ls-icon[data-icon="shield-check"] { --ls-i: var(--ls-i-shield-check); }
 .ls-icon[data-icon="sparkles"] { --ls-i: var(--ls-i-sparkles); }
 .ls-icon[data-icon="sprout"] { --ls-i: var(--ls-i-sprout); }
 .ls-icon[data-icon="stack"] { --ls-i: var(--ls-i-stack); }
 .ls-icon[data-icon="star"] { --ls-i: var(--ls-i-star); }
+.ls-icon[data-icon="tag"] { --ls-i: var(--ls-i-tag); }
 .ls-icon[data-icon="target"] { --ls-i: var(--ls-i-target); }
 .ls-icon[data-icon="team"] { --ls-i: var(--ls-i-team); }
 .ls-icon[data-icon="ticket"] { --ls-i: var(--ls-i-ticket); }
 .ls-icon[data-icon="tip"] { --ls-i: var(--ls-i-tip); }
 .ls-icon[data-icon="trophy"] { --ls-i: var(--ls-i-trophy); }
+.ls-icon[data-icon="type"] { --ls-i: var(--ls-i-type); }
 .ls-icon[data-icon="undo"] { --ls-i: var(--ls-i-undo); }
 .ls-icon[data-icon="upload"] { --ls-i: var(--ls-i-upload); }
 .ls-icon[data-icon="user"] { --ls-i: var(--ls-i-user); }

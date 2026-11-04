@@ -61,16 +61,16 @@
         <li class="hub-formats-row">
           <p class="hub-formats-label">形式を選んでつくる</p>
           <div class="hub-formats">
-            <a class="hub-format" href="./card/?template=vote&from=home"><span class="hub-format-icon" aria-hidden="true">🗳️</span>投票</a>
-            <a class="hub-format" href="./card/?template=checklist&from=home"><span class="hub-format-icon" aria-hidden="true">🧳</span>持ち物</a>
-            <a class="hub-format" href="./card/?template=ticket&from=home"><span class="hub-format-icon" aria-hidden="true">🎫</span>チケット</a>
-            <a class="hub-format" href="./card/?template=coupon&from=home"><span class="hub-format-icon" aria-hidden="true">🎟️</span>クーポン</a>
+            <a class="hub-format" href="./card/?template=vote&from=home"><span class="ls-icon hub-format-icon" data-icon="vote" aria-hidden="true"></span>投票</a>
+            <a class="hub-format" href="./card/?template=checklist&from=home"><span class="ls-icon hub-format-icon" data-icon="bag" aria-hidden="true"></span>持ち物</a>
+            <a class="hub-format" href="./card/?template=ticket&from=home"><span class="ls-icon hub-format-icon" data-icon="ticket" aria-hidden="true"></span>チケット</a>
+            <a class="hub-format" href="./card/?template=coupon&from=home"><span class="ls-icon hub-format-icon" data-icon="coupon" aria-hidden="true"></span>クーポン</a>
           </div>
         </li>
         <li>
           <a class="hub-tool" href="./plan/?from=home">
             <!-- 地図の写真と日時が入ったカードの見本 -->
-            <span class="hub-mini mini-card" aria-hidden="true"><i class="mini-photo">📍</i><i class="mini-line"></i><i class="mini-button"></i></span>
+            <span class="hub-mini mini-card" aria-hidden="true"><i class="mini-photo"><span class="ls-icon" data-icon="place" aria-hidden="true"></span></i><i class="mini-line"></i><i class="mini-button"></i></span>
             場所・予定を送る<span class="hub-tool-desc">待ち合わせや予定を、<wbr /><span class="hub-nowrap">地図・日時つきで</span></span>
           </a>
         </li>
@@ -97,7 +97,7 @@
         <p id="hubEmojiLead" class="hub-emoji-lead" hidden></p>
         <ul id="hubEmojiList" class="hub-links"></ul>
       </section>
-      <p class="hub-foot"><a href="./account/">⭐ プラン（無料・有償で使える機能）</a></p>
+      <p class="hub-foot"><a href="./account/"><span class="ls-icon" data-icon="star" aria-hidden="true"></span>プラン（無料・有償で使える機能）</a></p>
       <p class="hub-foot"><a href="./backup/"><span class="ls-icon" data-icon="backup" aria-hidden="true"></span>この端末の記録をバックアップ</a></p>
     </main>
 
@@ -106,9 +106,9 @@
         <p id="shareTitle" class="ls-sheet-title">おくるんを紹介する</p>
         <div class="share-options">
           <button id="shareCard" class="share-option" type="button"><span class="share-option-title is-oqrn">カードでおくるん</span><small>紹介カードを、選んだ <span class="hub-nowrap">LINE の友だち</span>・<span class="hub-nowrap">グループに</span><span class="hub-nowrap">送ります</span></small></button>
-          <button id="shareLink" class="share-option" type="button">🔗 リンクでシェア<small>リンクを共有します<span class="hub-nowrap">（共有できないときは</span><span class="hub-nowrap">コピー）</span></small></button>
+          <button id="shareLink" class="share-option" type="button"><span class="share-option-title"><span class="ls-icon" data-icon="link" aria-hidden="true"></span>リンクでシェア</span><small>リンクを共有します<span class="hub-nowrap">（共有できないときは</span><span class="hub-nowrap">コピー）</span></small></button>
           <!-- 作成者（config.js の ownerUsers）だけに出す -->
-          <button id="shareAll" class="share-option" type="button" hidden>🗂 全ツールのカードを送る<small id="shareAllNote">作成者だけ。おくるんとツールの紹介カードを横に並べて送ります（ツールが12個をこえたらグループごと）</small></button>
+          <button id="shareAll" class="share-option" type="button" hidden><span class="share-option-title"><span class="ls-icon" data-icon="stack" aria-hidden="true"></span>全ツールのカードを送る</span><small id="shareAllNote">作成者だけ。おくるんとツールの紹介カードを横に並べて送ります（ツールが12個をこえたらグループごと）</small></button>
         </div>
         <p id="shareStatus" class="ls-hint" role="status"></p>
         <button id="shareClose" class="ls-sheet-cancel" type="button">閉じる</button>
@@ -123,7 +123,7 @@
         <p id="toolCopy" class="tool-copy" hidden></p>
         <p id="toolLead" class="tool-lead"></p>
         <a id="toolOpen" class="ls-button is-primary is-block tool-open" href="#"></a>
-        <a id="toolLine" class="ls-button is-block tool-line" href="#" hidden>📱 LINE 版で開く</a>
+        <a id="toolLine" class="ls-button is-block tool-line" href="#" hidden><span class="ls-icon" data-icon="app" aria-hidden="true"></span>LINE 版で開く</a>
         <p id="toolWhy" class="tool-why" hidden></p>
         <button id="toolClose" class="ls-sheet-cancel" type="button">閉じる</button>
       </div>

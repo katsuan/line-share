@@ -35,8 +35,8 @@
       </header>
 
       <div class="ls-tabs" role="tablist" aria-label="作り方">
-        <button id="modeText" class="ls-tab" type="button" role="tab" aria-controls="textPanel">🔤 文字</button>
-        <button id="modeDraw" class="ls-tab" type="button" role="tab" aria-controls="drawPanel">👆 手書き</button>
+        <button id="modeText" class="ls-tab" type="button" role="tab" aria-controls="textPanel"><span class="ls-icon" data-icon="type" aria-hidden="true"></span>文字</button>
+        <button id="modeDraw" class="ls-tab" type="button" role="tab" aria-controls="drawPanel"><span class="ls-icon" data-icon="brush" aria-hidden="true"></span>手書き</button>
       </div>
 
       <div class="ls-stack">
@@ -52,17 +52,17 @@
           <div class="send-mode-row">
             <span class="send-mode-label">送り方</span>
             <div class="ls-chips send-mode-chips" role="radiogroup" aria-label="送り方">
-              <button id="sendModeImage" class="ls-chip is-small" type="button" role="radio">🖼️ 画像（透過OK）</button>
-              <button id="sendModeCard" class="ls-chip is-small" type="button" role="radio">🪧 カード（動きOK）</button>
+              <button id="sendModeImage" class="ls-chip is-small" type="button" role="radio"><span class="ls-icon" data-icon="image" aria-hidden="true"></span>画像（透過OK）</button>
+              <button id="sendModeCard" class="ls-chip is-small" type="button" role="radio"><span class="ls-icon" data-icon="rectangle-horizontal" aria-hidden="true"></span>カード（動きOK）</button>
             </div>
           </div>
-          <p class="ls-preview-note" data-plan-only="free">⏳ 時間がたつと画像が消えることがあります。消えたら「送った画像」から送り直せます。</p>
-          <p class="ls-preview-note" data-plan-only="premium">⭐ 有償プランのため、画像は長く保存されます。</p>
+          <p class="ls-preview-note" data-plan-only="free"><span class="ls-icon" data-icon="wait" aria-hidden="true"></span>時間がたつと画像が消えることがあります。消えたら「送った画像」から送り直せます。</p>
+          <p class="ls-preview-note" data-plan-only="premium"><span class="ls-icon" data-icon="star" aria-hidden="true"></span>有償プランのため、画像は長く保存されます。</p>
         </section>
 
         <div class="ls-folds">
           <details id="textPanel" class="ls-fold" role="tabpanel" aria-labelledby="modeText" open>
-            <summary><span class="ls-fold-icon" aria-hidden="true">🔤</span>文字 <span id="textMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="type" aria-hidden="true"></span>文字 <span id="textMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <textarea id="textInput" class="ls-input text-input" rows="2" maxlength="40" aria-label="文字" placeholder="例：OK / ありがとう"></textarea>
               <div id="textPresets" class="ls-chips text-presets" aria-label="よく使う文字"></div>
@@ -80,7 +80,7 @@
           </details>
 
           <details id="drawPanel" class="ls-fold" role="tabpanel" aria-labelledby="modeDraw" open hidden>
-            <summary><span class="ls-fold-icon" aria-hidden="true">✏️</span>ペン <span id="penMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="edit" aria-hidden="true"></span>ペン <span id="penMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div class="ls-field">
                 <span class="ls-label">ペンの色</span>
@@ -108,7 +108,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🖍️</span>縁取り <span id="outlineMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="highlighter" aria-hidden="true"></span>縁取り <span id="outlineMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="outlineList" class="ls-chips"></div>
               <div class="ls-field">
@@ -123,7 +123,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🌈</span>背景 <span id="backgroundMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="paint-bucket" aria-hidden="true"></span>背景 <span id="backgroundMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="backgroundList" class="ls-swatches"></div>
               <p id="backgroundHint" class="ls-hint">画像そのものの背景です。</p>
@@ -131,7 +131,7 @@
           </details>
 
           <details class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">📐</span>形 <span id="shapeMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="shapes" aria-hidden="true"></span>形 <span id="shapeMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <div id="shapeList" class="ls-chips"></div>
             </div>
@@ -140,7 +140,7 @@
           <!-- カードで送るときの LINE のカードの大きさ（お知らせカードと同じスライダー）。画像で送るときは選べない -->
           <!-- カードで送るときだけ使う設定（大きさ・動き）。画像で送るときは欄ごとグレーにする -->
           <details id="cardPanel" class="ls-fold">
-            <summary><span class="ls-fold-icon" aria-hidden="true">🪧</span>カードで送るとき <span id="cardMeta" class="ls-fold-meta"></span></summary>
+            <summary><span class="ls-icon ls-fold-icon" data-icon="rectangle-horizontal" aria-hidden="true"></span>カードで送るとき <span id="cardMeta" class="ls-fold-meta"></span></summary>
             <div class="ls-fold-body">
               <p id="cardOnlyNote" class="ls-hint" hidden>画像で送るときは使いません。送り方を「カード」にすると選べます。</p>
               <span class="ls-label">カードの大きさ</span>
@@ -168,7 +168,7 @@
 
         <section id="historyPanel" class="ls-panel" hidden>
           <div class="ls-panel-head">
-            <h2 class="ls-panel-title">🕘 送った画像</h2>
+            <h2 class="ls-panel-title"><span class="ls-icon" data-icon="history" aria-hidden="true"></span>送った画像</h2>
             <p class="ls-panel-note">タップでもう一度送れます（相手の画面で消えた画像も）。この端末に20件まで残ります。</p>
           </div>
           <div id="historyList" class="history-list"></div>
@@ -180,7 +180,7 @@
       <div class="ls-sendbar-inner">
         <p id="status" class="ls-status" aria-live="polite"></p>
         <div class="ls-sendbar-row">
-          <button id="saveButton" class="ls-send ls-send-secondary" type="button">📷 保存</button>
+          <button id="saveButton" class="ls-send ls-send-secondary" type="button"><span class="ls-icon" data-icon="save" aria-hidden="true"></span>保存</button>
           <button id="sendButton" class="ls-send line is-oqrn" type="button" disabled>カードでおくるん</button>
         </div>
       </div>

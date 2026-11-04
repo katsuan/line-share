@@ -283,7 +283,6 @@
 
 .hub-format-icon {
   font-size: 24px;
-  line-height: 1.2;
 }
 
 .hub-format:active {
@@ -363,6 +362,10 @@
   margin: 0;
   border-radius: 0;
   background: #f59e7b;
+}
+
+.mini-card .mini-photo .ls-icon {
+  font-size: 16px;
 }
 
 .mini-card .mini-photo {

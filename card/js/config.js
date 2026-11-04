@@ -22,14 +22,14 @@ const MAX_CARDS = 12;
 // カードの種類。投票は候補をボタンで、チェックリストは項目を □ 付きで並べる
 // title は画面の見出し（編集中のカードの種類に合わせて変える）
 const KINDS = {
-  notice: { label: "📣 お知らせ", title: "お知らせカード" },
-  vote: { label: "🗳️ 投票", title: "投票カード", item: "候補", min: 2, max: 10, list: true },
-  checklist: { label: "✅ チェックリスト", title: "チェックリスト", item: "項目", min: 1, max: 20, list: true },
-  ticket: { label: "🎫 チケット", title: "チケット" },
-  coupon: { label: "🎟️ クーポン", title: "クーポン" },
+  notice: { label: "お知らせ", icon: "notice", title: "お知らせカード" },
+  vote: { label: "投票", icon: "vote", title: "投票カード", item: "候補", min: 2, max: 10, list: true },
+  checklist: { label: "チェックリスト", icon: "list", title: "チェックリスト", item: "項目", min: 1, max: 20, list: true },
+  ticket: { label: "チケット", icon: "ticket", title: "チケット" },
+  coupon: { label: "クーポン", icon: "coupon", title: "クーポン" },
   // さくせん盤（別のツール）から渡されたときだけ使う形式。形式の切り替えには、その形式のカードのときだけ出す
-  lineup: { label: "⚽ スタメン", title: "スタメン", external: true },
-  match: { label: "🏆 試合結果", title: "試合結果", external: true }
+  lineup: { label: "スタメン", icon: "team", title: "スタメン", external: true },
+  match: { label: "試合結果", icon: "trophy", title: "試合結果", external: true }
 };
 // HOME の「カードの形式」から ?template=<テンプレートのキー> で開いたとき、読み込んだら当てはめる
 const START_TEMPLATE = new URLSearchParams(location.search).get("template") || "";
