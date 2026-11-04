@@ -8,6 +8,8 @@
 | SQriptable（q-sqriptable） | `SQriptable.js` の `meteoPressureLevel`（pressure カードの目安） |
 | そらくる（q-soraqru） | `js/meteo.js` の `levelOf` |
 | KazoQ（q-kazoq） | `03_27_ZUTOOL_GATEWAY_METEO.js` の `getOpenMeteoPressureLevel_`（頭痛ーるの予備） |
+| KazoQ の天気の知らせ（q-kazoq） | `03_43_WEATHER_NOTICE_RULES.js`（そらくるの `levelOf`・`dropAt` を写したもの） |
+| くらぶボット（q-qlove-bot） | `lib/50_weather_forecast.gs` の `soraqruDropAt_`・`soraqruLevelOf_`（天気のカード） |
 
 ## 決め方
 
@@ -50,6 +52,6 @@
 
 - 決め方を変えるときは：
   1. `data/pressure-level.json` の `rule` と `version` を変え、`expect` を手本の式で作り直す（`node --test data/test/` が見本と手本のずれを見る）
-  2. 上の表のツールのテストが落ちるので、すべて同じに直す。直したツールの README の説明もそろえる
+  2. 上の表のツールのテストが落ちるので、すべて同じに直す（そらくるの `dropAt` を写しているもの（KazoQ の天気の知らせ・くらぶボット）は、そらくるとくらべるテストで落ちる）。直したツールの README の説明もそろえる
   3. このページの表と「どうやって決めたか」を書き足す
 - 1つのツールだけで決め方を変えない。変えたくなったら、このページと見本から変える
