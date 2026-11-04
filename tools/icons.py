@@ -13,6 +13,8 @@
   down=chevron-down next=chevron-right menu=menu heart=heart star=star bell=bell undo=undo-2
   palette=palette list=list-checks archive=archive vote=vote bag=backpack ticket=ticket coupon=ticket-percent
   stack=layers notice=megaphone team=users trophy=trophy eraser=eraser
+  （ここから下は Lucide と同じ名前）git-fork hash message-circle zap eye-off sprout baby heart-pulse notebook
+  sparkles mic mic-off volume-2 cake gift play
 足すときは、Lucide の SVG の中身（<path> など）を、ほかのファイルと同じ <svg …> で包んで shared/icons/<名前>.svg に置く。
 線の太さ（stroke-width="2"）・角（round）・大きさ（viewBox 0 0 24 24）は全部そろえる。
 """
