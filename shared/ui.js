@@ -2,6 +2,18 @@
 // プレビューの見方の切りかえ・プレビューへ戻るボタン・送ったあとのシート・通知（toast）・確認の窓（ask）・はじめての案内・進み具合・ツールの色。
 // おくるんの各ページと、ほかの Q のツールが <script src="…/shared/ui.js"> で読む。
 (function () {
+  /**
+   * 線アイコン（ui.css の .ls-icon。名前は kit.html の「線アイコン」）。文字の色・大きさで出る。読み上げはしない（aria-hidden）。
+   *   button.prepend(LineShareUI.icon("send"))  …「送る」の前に紙ひこうき
+   */
+  function icon(name, className = "") {
+    const el = document.createElement("span");
+    el.className = `ls-icon${className ? ` ${className}` : ""}`;
+    el.dataset.icon = name;
+    el.setAttribute("aria-hidden", "true");
+    return el;
+  }
+
   // 文字入力中は下部の送信バーを隠し、スマホのキーボードと重ならないようにする
   const TEXT_FIELD =
     "input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=button]), textarea, [contenteditable=true]";
@@ -86,7 +98,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = onEdit ? "ls-remove is-on-edit" : "ls-remove";
-    button.textContent = "×";
+    button.append(icon("close"));
     button.setAttribute("aria-label", ariaLabel);
     if (onEdit) button.addEventListener("pointerdown", (event) => event.preventDefault());
     button.addEventListener("click", onClick);
@@ -164,15 +176,15 @@
   }
 
   /**
-   * 送信プレビューの右上に「プレビューモード切替：📝 編集／👀 完成イメージ」を付ける。選んでいるモードだけ名前を出し、
+   * 送信プレビューの右上に「プレビューモード切替：編集（えんぴつ）／完成イメージ（目）」を付ける。選んでいるモードだけ名前を出し、
    * もう一方はアイコンだけにする（読み上げは両方とも名前）。
    * 完成イメージのときは .ls-preview に is-viewing を付け、点線の枠・＋／×・案内を隠して、送ったときの見た目にする。
    * 選んだモードは端末に残し、どのツールでも同じにする。
    */
   const VIEW_KEY = "line-share:preview-viewing";
   const MODES = [
-    { viewing: false, icon: "📝", name: "編集" },
-    { viewing: true, icon: "👀", name: "完成イメージ" }
+    { viewing: false, icon: "edit", name: "編集" },
+    { viewing: true, icon: "view", name: "完成イメージ" }
   ];
 
   // 完成イメージで見るか（端末に残した選び方）
@@ -184,7 +196,7 @@
     }
   }
 
-  // 送信プレビューの右上に「📝 編集／👀 完成イメージ」の切りかえを付ける
+  // 送信プレビューの右上に「編集／完成イメージ」の切りかえを付ける
   function setupPreviewToggles() {
     const previews = [...document.querySelectorAll(".ls-preview")];
     let viewing = loadViewing();
@@ -197,14 +209,11 @@
         const button = document.createElement("button");
         button.type = "button";
         button.setAttribute("aria-label", mode.name);
-        const icon = document.createElement("span");
-        icon.setAttribute("aria-hidden", "true");
-        icon.textContent = mode.icon;
         const name = document.createElement("span");
         name.className = "ls-preview-mode-name";
         name.setAttribute("aria-hidden", "true");
         name.textContent = mode.name;
-        button.append(icon, name);
+        button.append(icon(mode.icon), name);
         button.addEventListener("click", () => {
           viewing = mode.viewing;
           try {
@@ -226,7 +235,7 @@
       previews.forEach((preview, index) => {
         preview.classList.toggle("is-viewing", viewing);
         groups[index].forEach((button, i) => button.setAttribute("aria-pressed", String(MODES[i].viewing === viewing)));
-        // 完成イメージのときは、カードの中の入力やタップを止める（📝 で編集に戻る）
+        // 完成イメージのときは、カードの中の入力やタップを止める（「編集」で戻る）
         if (viewing && preview.contains(document.activeElement)) document.activeElement.blur();
       });
     }
@@ -246,7 +255,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ls-to-preview";
-    button.textContent = "👀 プレビュー";
+    button.append(icon("view"), "プレビュー");
     button.setAttribute("aria-label", "プレビューに戻る");
     button.hidden = true;
     document.body.append(button);
@@ -254,7 +263,7 @@
     // いま画面に出ているプレビュー
     const shown = () => previews.find((preview) => preview.offsetParent !== null);
     let queued = false;
-    // プレビューが見えなくなったら「👀 プレビュー」のボタンを出す
+    // プレビューが見えなくなったら「プレビュー」のボタンを出す
     const update = () => {
       queued = false;
       const preview = shown();
@@ -297,7 +306,7 @@
       if (label) label.after(slot);
       else preview.prepend(slot);
     }
-    slot.textContent = message ? `⚠️ ${message}` : "";
+    slot.replaceChildren(...(message ? [icon("warn"), Object.assign(document.createElement("span"), { textContent: message })] : []));
     slot.hidden = !message;
   }
 
@@ -350,8 +359,8 @@
     const again = sheet.querySelector('[data-act="again"]');
     // シートの見出し（何回送ったか）と案内をそろえる
     const update = () => {
-      titleEl.textContent = `✅ ${title}${count > 1 ? `（${count}回）` : ""}`;
-      note.textContent = "同じ内容を、ほかのトークにも送れます。";
+      // 見出しの前に丸のチェック（線アイコン）。「続けて別のトークにも送る」のボタンがあるので、くり返しの説明は出さない
+      titleEl.replaceChildren(icon("done"), `${title}${count > 1 ? `（${count}回）` : ""}`);
     };
     update();
     // シートを閉じる
@@ -360,7 +369,7 @@
     const backLink = sheet.querySelector('[data-act="back"]');
     if (back?.url) {
       backLink.href = back.url;
-      backLink.textContent = `↩ ${back.label}`;
+      backLink.replaceChildren(icon("back"), back.label);
       backLink.hidden = false;
     }
     again.addEventListener("click", async () => {
@@ -552,7 +561,8 @@
         // 消すだけ
       }
     });
-    tip.append(Object.assign(document.createElement("p"), { className: "ls-tip-title", textContent: "💡 使い方" }), list, ok);
+    // 見出し（使い方）は置かない。左の電球（ui.css の .ls-tip::before）と、読み上げの aria-label で足りる
+    tip.append(list, ok);
     before.parentNode.insertBefore(tip, before);
   }
 
@@ -658,6 +668,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy
+    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy, icon
   };
 })();

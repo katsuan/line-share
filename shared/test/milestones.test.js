@@ -209,15 +209,15 @@ test("次の目じるしまでの棒：名前は短い呼び名・あと ◯・�
   assert.doesNotMatch(weight.goalHtml(0), /ls-goal-lead/);
 });
 
-test("目じるしの表：越えたら ✅（新しい3つ・それより前は開く）、次だけ「あと」、先は big だけ、押すと「いま ◯ 頭分」", () => {
+test("目じるしの表：越えたら check の線アイコン（新しい3つ・それより前は開く）、次だけ「あと」、先は big だけ、押すと「いま ◯ 頭分」", () => {
   const html = weight.tableHtml(19200, { title: "🏋️ これまでに持ち上げた重さ", hint: "記録を消しても減りません。" });
   assert.match(html, /aria-label="これまでに持ち上げた重さ"/);
   assert.match(html, /<b>19,200 kg<\/b>/);
-  assert.match(html, /✅ ほかに 2 個を越えました/); // パンダ・乗用車
-  assert.match(html, /✅ 🐘 ゾウ.*いま 3.2 頭分/);
-  assert.match(html, /🎯 🗼 東京タワー/);
+  assert.match(html, /<span class="ls-icon" data-icon="check" aria-hidden="true"><\/span> ほかに 2 個を越えました/); // パンダ・乗用車
+  assert.match(html, /<span class="ls-icon" data-icon="check" aria-hidden="true"><\/span> 🐘 ゾウ.*いま 3.2 頭分/);
+  assert.match(html, /<span class="ls-icon" data-icon="target" aria-hidden="true"><\/span> 🗼 東京タワー/);
   assert.match(html, /いま <b>東京タワーの 0.48％<\/b>/); // 遠いので「あと」の代わりに
-  assert.match(html, /🔒 この間に、あと 1 個/);
+  assert.match(html, /<span class="ls-icon" data-icon="lock" aria-hidden="true"><\/span> この間に、あと 1 個/);
   assert.match(html, /🌍 地球/);
   assert.match(html, /目じるしを押すと、いまの合計とくらべられます。記録を消しても減りません。/);
   assert.doesNotMatch(html, /タイタニック/); // big でない先の目じるしはかくす

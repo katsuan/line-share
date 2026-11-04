@@ -80,17 +80,31 @@
 
   // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
   const MARK_URL = new URL("shared/mark.svg", BASE).href;
+  // 線アイコン（shared/icons/ の Lucide）。同じく ui.css がなくても出るよう、ファイルを直接読む
+  const ICONS = ["app", "backup", "share", "link", "next"];
+  const iconHtml = (name) => `<span class="oqrn-i oqrn-i-${name}" aria-hidden="true"></span>`;
+  const iconEl = (name) => {
+    const el = document.createElement("span");
+    el.className = `oqrn-i oqrn-i-${name}`;
+    el.setAttribute("aria-hidden", "true");
+    return el;
+  };
 
   // 紹介の欄とシートの見た目を、ページに足す（color はツールの色）
   function injectStyle(color) {
     const style = document.createElement("style");
     style.textContent = `
-      .oqrn-share { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0 8px; }
+      /* 線アイコン（文字の色で出る。大きさは文字に合わせる） */
+      .oqrn-i { display: inline-block; flex: none; width: 1.25em; height: 1.25em; vertical-align: -0.25em; background: currentColor;
+        -webkit-mask: var(--oqrn-i) center / contain no-repeat; mask: var(--oqrn-i) center / contain no-repeat; }
+      ${ICONS.map((name) => `.oqrn-i-${name} { --oqrn-i: url("${new URL(`shared/icons/${name}.svg`, BASE).href}"); }`).join("\n      ")}
+      /* 文の頭をそろえて左に（見た目の決まり 3） */
+      .oqrn-share { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; margin: 24px 0 8px; }
       /* コネクト：1行目に名前と説明、2行目にツールのアイコンが横に流れつづける帯（終わりなくくり返す。ふえても1行のまま） */
-      .oqrn-family { display: grid; justify-items: center; gap: 4px; width: min(100%, 440px); font-family: inherit; line-height: 1.4; }
+      .oqrn-family { display: grid; justify-items: start; gap: 4px; width: 100%; font-family: inherit; line-height: 1.4; }
       .oqrn-family-head { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; line-height: 1.9; white-space: nowrap; }
-      .oqrn-family-label { font-weight: 800; letter-spacing: 0.04em; }
-      .oqrn-family-sep { margin: 0 6px; opacity: 0.5; }
+      .oqrn-family-label { font-weight: 700; letter-spacing: 0.04em; }
+      .oqrn-family-sep { margin: 0 8px; opacity: 0.5; }
       .oqrn-family-head rt { font-size: 7px; font-weight: 700; }
       .oqrn-family-viewport {
         width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
@@ -105,62 +119,63 @@
       }
       .oqrn-family-list li { flex: 0 0 auto; }
       .oqrn-family-list button {
-        display: grid; justify-items: center; gap: 3px; width: 54px; padding: 4px 0; border: 0; border-radius: 10px;
-        background: none; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 10px; font-weight: 700; line-height: 1.2; cursor: pointer;
+        display: grid; justify-items: center; gap: 4px; width: 56px; padding: 4px 0; border: 0; border-radius: 8px;
+        background: none; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 10px; font-weight: 600; line-height: 1.2; cursor: pointer;
       }
       .oqrn-family-list button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .oqrn-family-list img { display: block; width: 32px; height: 32px; }
       .oqrn-next {
-        display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: min(100%, 400px);
-        padding: 10px 14px; border: 1px solid var(--ls-line, #e3e0d8); border-radius: 16px; background: var(--ls-surface, #fff);
+        display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 16px; width: 100%;
+        padding: 8px 16px; border: 1px solid var(--ls-line, #e3e0d8); border-radius: 16px; background: var(--ls-surface, #fff);
         color: var(--ls-text, #23211c); font: inherit; font-size: 14px; line-height: 1.45; text-align: left; cursor: pointer;
       }
       .oqrn-next img { width: 36px; height: 36px; }
-      .oqrn-next small { display: block; color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 700; }
-      .oqrn-next b { display: block; font-size: 15px; }
+      .oqrn-next small { display: block; color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 600; }
+      .oqrn-next b { display: block; font-size: 15px; font-weight: 700; }
       .oqrn-next-arrow { color: var(--ls-faint, #a3a29b); }
-      .oqrn-backup { color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 700; text-decoration: none; }
+      .oqrn-backup { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; color: var(--ls-subtext, #6b6860); font-size: 12px; font-weight: 600; text-decoration: none; }
       .oqrn-backup:active { text-decoration: underline; }
-      .oqrn-tool-ogp { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 14px; background: var(--ls-surface-sub, #eeece6); }
-      .oqrn-tool-copy { margin: -4px 0 0; font-size: 16px; font-weight: 800; line-height: 1.5; }
-      .oqrn-tool-lead { margin: -4px 0 0; color: var(--ls-subtext, #6b6860); font-size: 14px; line-height: 1.6; }
+      .oqrn-tool-ogp { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 12px; background: var(--ls-surface-sub, #eeece6); }
+      .oqrn-tool-copy { margin: -8px 0 0; font-size: 16px; font-weight: 700; line-height: 1.5; }
+      .oqrn-tool-lead { margin: -8px 0 0; color: var(--ls-subtext, #6b6860); font-size: 14px; line-height: 1.6; }
       .oqrn-tool-open {
-        display: block; min-height: 48px; padding: 13px 16px; border-radius: 999px; color: #fff;
-        font-size: 15px; font-weight: 800; line-height: 22px; text-align: center; text-decoration: none;
+        display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 999px; color: #fff;
+        font-size: 15px; font-weight: 700; line-height: 22px; text-align: center; text-decoration: none;
       }
       .oqrn-tool-line {
-        display: block; min-height: 48px; padding: 12px 16px; border: 2px solid var(--ls-line-green, #06c755); border-radius: 999px; color: var(--ls-line-green-text, #06a148);
-        font-size: 15px; font-weight: 800; line-height: 20px; text-align: center; text-decoration: none;
+        display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--ls-line-strong, #d9d6cc); border-radius: 999px; color: var(--ls-text, #23211c);
+        font-size: 15px; font-weight: 600; line-height: 20px; text-align: center; text-decoration: none;
       }
-      .oqrn-tool-why { margin: -2px 0 0; color: var(--ls-subtext, #6b6860); font-size: 12px; line-height: 1.6; }
+      .oqrn-tool-why { margin: -8px 0 0; color: var(--ls-subtext, #6b6860); font-size: 12px; line-height: 1.6; }
       .oqrn-share-open {
-        display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px;
-        border: 1px solid ${color}55; border-radius: 999px; background: ${color}14; color: inherit;
-        font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+        border: 1px solid var(--ls-line-strong, #d9d6cc); border-radius: 999px; background: var(--ls-surface, #fff); color: inherit;
+        font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
       }
       .oqrn-sheet {
         position: fixed; inset: 0; z-index: 1000; display: flex; align-items: flex-end; justify-content: center;
-        padding: 16px 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(20, 20, 18, 0.45);
+        padding: 16px 8px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(20, 20, 18, 0.45);
       }
       .oqrn-sheet[hidden] { display: none; }
       .oqrn-sheet-card {
-        display: grid; gap: 10px; width: min(100%, 440px); padding: 20px; border-radius: 22px;
+        display: grid; gap: 16px; width: min(100%, 440px); padding: 24px; border-radius: 16px;
         background: var(--ls-surface, #fff); color: var(--ls-text, #23211c); font-family: inherit; font-size: 15px; line-height: 1.5; text-align: left; /* 置いた先のページの文字の大きさを受け継がない（ぽもくるは画面基準の大きな字） */
       }
-      .oqrn-sheet-title { margin: 0; font-size: 17px; font-weight: 800; }
+      .oqrn-sheet-title { margin: 0; font-size: 17px; font-weight: 700; }
       .oqrn-sheet-option {
-        display: grid; gap: 2px; padding: 12px 14px; border: 1px solid var(--ls-line-strong, #e3e0d8); border-radius: 14px;
-        background: var(--ls-surface, #fff); color: inherit; font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer;
+        display: grid; gap: 4px; padding: 8px 16px; min-height: 48px; border: 1px solid var(--ls-line-strong, #e3e0d8); border-radius: 12px;
+        background: var(--ls-surface, #fff); color: inherit; font: inherit; font-size: 15px; font-weight: 700; text-align: left; cursor: pointer;
         text-decoration: none;
       }
-      .oqrn-sheet-option.is-primary { border-color: ${color}; box-shadow: inset 4px 0 0 ${color}; }
-      .oqrn-mark { display: inline-block; width: 1.2em; height: 1.2em; margin-right: 0.2em; vertical-align: -0.22em; background: #6c47ff;
+      .oqrn-sheet-option > span:first-child { display: flex; align-items: center; gap: 8px; }
+      .oqrn-sheet-option.is-primary { border-color: ${color}; box-shadow: inset 0 0 0 1px ${color}; }
+      .oqrn-mark { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -0.25em; background: #6c47ff;
         -webkit-mask: url("${MARK_URL}") center / contain no-repeat; mask: url("${MARK_URL}") center / contain no-repeat; }
-      .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 500; }
+      .oqrn-sheet-option small { color: var(--ls-subtext, #6b6860); font-size: 13px; font-weight: 400; }
       .oqrn-nw { white-space: nowrap; } /* 言葉の途中で折り返さない（Safari でも効くように、文節ごとに包む） */
       .oqrn-sheet-status { min-height: 1em; margin: 0; color: var(--ls-subtext, #6b6860); font-size: 13px; }
       .oqrn-sheet-close {
-        min-height: 44px; border: 0; background: transparent; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+        min-height: 44px; border: 0; background: transparent; color: var(--ls-subtext, #6b6860); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
       }
     `;
     document.head.appendChild(style);
@@ -205,7 +220,7 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
-        <a class="oqrn-tool-line" hidden>📱 LINE 版で開く</a>
+        <a class="oqrn-tool-line" hidden>${iconHtml("app")}LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
@@ -221,19 +236,18 @@
       $(".oqrn-sheet-title").textContent = item.en ? `${item.name} 〜${item.en}〜` : item.name;
       $(".oqrn-tool-copy").textContent = item.copy || "";
       $(".oqrn-tool-copy").hidden = !item.copy;
-      $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
-      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「📱 LINE 版で開く」と、その良さ（lineWhy）
+      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「LINE 版で開く」と、その良さ（lineWhy）
       const inLine = / Line\//.test(navigator.userAgent);
       const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
       open.href = inLine && line ? line : item.url;
-      open.textContent = `${item.name}を開く ↗`;
+      open.replaceChildren(`${item.name}を開く`, iconEl("next"));
       open.style.background = item.color || "#6C47FF";
       $(".oqrn-tool-line").hidden = !line || inLine;
       $(".oqrn-tool-line").href = line || "#";
       $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
-      $(".oqrn-tool-why").textContent = item.lineWhy ? `📱 ${item.lineWhy}` : "";
+      $(".oqrn-tool-why").textContent = item.lineWhy || "";
       sheet.hidden = false;
       open.focus();
     };
@@ -396,8 +410,8 @@
       Object.assign(document.createElement("b"), { textContent: target.name }),
       document.createTextNode(tool.next.why || target.desc || "")
     );
-    const arrow = Object.assign(document.createElement("span"), { className: "oqrn-next-arrow", textContent: "›" });
-    arrow.setAttribute("aria-hidden", "true");
+    const arrow = iconEl("next");
+    arrow.classList.add("oqrn-next-arrow");
     button.append(img, text, arrow);
     button.addEventListener("click", () => sharedToolSheet()(target, button));
     return button;
@@ -408,7 +422,7 @@
     const link = document.createElement("a");
     link.className = "oqrn-backup";
     link.href = new URL(`backup/?from=${encodeURIComponent(toolKey)}`, BASE).href;
-    link.textContent = "💾 この端末の記録をバックアップ";
+    link.append(iconEl("backup"), "この端末の記録をバックアップ");
     return link;
   }
 
@@ -426,7 +440,7 @@
     open.type = "button";
     open.className = "oqrn-share-open";
     open.setAttribute("aria-haspopup", "dialog");
-    open.textContent = `📤 ${tool.name}を紹介する`;
+    open.append(iconEl("share"), `${tool.name}を紹介する`);
     const next = nextCard(tool, others);
     if (next) host.appendChild(next);
     host.appendChild(open);
@@ -440,7 +454,7 @@
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
         <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
-        <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
+        <button class="oqrn-sheet-option" type="button" data-link><span>${iconHtml("link")}リンクでシェア</span><small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;

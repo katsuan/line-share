@@ -112,7 +112,7 @@ var QLineMe = (function () {
   }
 
   /**
-   * シートに出す行（文字だけ）
+   * シートに出す行（文字だけ）。icon は前からの絵文字（ツールが文字で出しているので残す）、iconName は線アイコンの名前（ui.css の .ls-icon。キットのシートはこちら）
    * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「⚙️ 設定」の記録の控え） }
    */
   function describe(state) {
@@ -121,19 +121,19 @@ var QLineMe = (function () {
     var n = Math.max(0, Number(s.pending) || 0);
     var rows = [];
     var who = s.me && s.me.name ? s.me.name + " さん" : "LINE";
-    if (s.loggedIn && s.verified === false) rows.push({ icon: "⏳", text: who + "（前回のログイン）。電波がもどったら確かめます。記録はこの端末に残ります" });
-    else if (s.loggedIn) rows.push({ icon: "✅", text: who + "でログインしています" });
-    else rows.push({ icon: "👤", text: "まだ LINE にログインしていません。記録はこの端末に残ります" + (s.canLogin ? "。ログインすると、送れるようになります" : "") });
+    if (s.loggedIn && s.verified === false) rows.push({ icon: "⏳", iconName: "wait", text: who + "（前回のログイン）。電波がもどったら確かめます。記録はこの端末に残ります" });
+    else if (s.loggedIn) rows.push({ icon: "✅", iconName: "done", text: who + "でログインしています" });
+    else rows.push({ icon: "👤", iconName: "user", text: "まだ LINE にログインしていません。記録はこの端末に残ります" + (s.canLogin ? "。ログインすると、送れるようになります" : "") });
     if (s.bot !== false) {
       rows.push(s.connected
-        ? { icon: "🤖", text: bot + "とつながっています" }
-        : { icon: "🤖", text: bot + "とはつながっていません（つながなくても、記録はこの端末に残ります）" });
+        ? { icon: "🤖", iconName: "bot", text: bot + "とつながっています" }
+        : { icon: "🤖", iconName: "bot", text: bot + "とはつながっていません（つながなくても、記録はこの端末に残ります）" });
     }
     if (s.bot === false) n = 0;
-    if (n) rows.push({ icon: "📮", text: "まだ" + bot + "に送っていない記録が " + n + " 件。" + (s.online === false ? "電波がもどったら送ります" : s.connected ? "すぐ送りなおします" : "つながったら送ります"), pending: true });
-    else if (s.connected && s.bot !== false) rows.push({ icon: "📮", text: "送っていない記録はありません" });
-    if (s.online === false) rows.push({ icon: "📶", text: "いまは電波がありません。記録はこの端末に残っています" });
-    rows.push({ icon: "📱", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「⚙️ 設定」の記録の控えでうつせます") + "）" });
+    if (n) rows.push({ icon: "📮", iconName: "inbox", text: "まだ" + bot + "に送っていない記録が " + n + " 件。" + (s.online === false ? "電波がもどったら送ります" : s.connected ? "すぐ送りなおします" : "つながったら送ります"), pending: true });
+    else if (s.connected && s.bot !== false) rows.push({ icon: "📮", iconName: "inbox", text: "送っていない記録はありません" });
+    if (s.online === false) rows.push({ icon: "📶", iconName: "offline", text: "いまは電波がありません。記録はこの端末に残っています" });
+    rows.push({ icon: "📱", iconName: "app", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「⚙️ 設定」の記録の控えでうつせます") + "）" });
     return rows;
   }
 
@@ -141,19 +141,22 @@ var QLineMe = (function () {
   var CSS =
     ".qme-button{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:44px;height:44px;margin:0 -4px 0 -6px;padding:0;border:0;border-radius:999px;background:transparent;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}" +
     ".ls-brand .ls-brand-logo{margin-left:auto}" +
-    ".qme-avatar{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;overflow:hidden;border-radius:999px;background:var(--ls-accent-soft);color:var(--ls-accent-ink);font-size:15px;font-weight:800;box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px #06c755}" +
+    ".qme-avatar{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;overflow:hidden;border-radius:999px;background:var(--ls-surface-sub);color:var(--ls-subtext);font-size:15px;font-weight:700;box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px #06c755}" +
     ".qme-button.is-unsure .qme-avatar{box-shadow:0 0 0 2px var(--ls-surface,#fff);outline:2px dashed #06c755;outline-offset:1px}" +
     ".qme-login{border-color:#06c755!important;color:#06a148!important}" +
     ".qme-button.is-out .qme-avatar{box-shadow:0 0 0 2px var(--ls-surface,#fff),0 0 0 3.5px var(--ls-line-strong,#b4bccb)}" +
     ".qme-avatar img{width:100%;height:100%;object-fit:cover}" +
     ".qme-avatar.is-initial{background:hsl(var(--qme-h) 70% 88%);color:hsl(var(--qme-h) 50% 30%)}" +
     "@media (prefers-color-scheme: dark){:root[data-ls-dark=auto] .qme-avatar.is-initial{background:hsl(var(--qme-h) 35% 30%);color:hsl(var(--qme-h) 80% 86%)}}" +
-    ".qme-badge{position:absolute;top:0;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ec8a16;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--ls-surface,#fff)}" +
-    ".qme-head{display:flex;align-items:center;gap:12px}" +
+    ".qme-badge{position:absolute;top:0;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ec8a16;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--ls-surface,#fff)}" +
+    ".qme-head{display:flex;align-items:center;gap:16px}" +
+    ".qme-avatar .ls-icon{width:60%;height:60%}" +
     ".qme-head .qme-avatar{width:48px;height:48px;font-size:20px}" +
     ".qme-rows{display:grid;gap:8px;margin:0;padding:0;list-style:none}" +
-    ".qme-rows li{display:grid;grid-template-columns:1.6em minmax(0,1fr);gap:4px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}" +
-    ".qme-rows li.is-pending{color:#b35f00;font-weight:700}" +
+    ".qme-rows li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}" +
+    ".qme-rows li > .ls-icon{width:20px;height:20px;margin-top:2px;color:var(--ls-subtext)}" +
+    ".qme-rows li.is-pending{color:var(--ls-warn,#9a3412);font-weight:600}" +
+    ".qme-rows li.is-pending > .ls-icon{color:inherit}" +
     ".qme-actions{display:grid;gap:8px}";
 
   /** 見た目を1回だけ入れる */
@@ -167,6 +170,14 @@ var QLineMe = (function () {
 
   /** 頭の字を、名前で決まる色の丸に出す（名前がなければツールの色のまま 👤） */
   function showInitial(box, name) {
+    // 名前がないときは、人の線アイコン（initial() の 👤 は、文字で使うツールのために残す）
+    if (!String(name || "").trim()) {
+      var person = document.createElement("span");
+      person.className = "ls-icon";
+      person.setAttribute("data-icon", "user");
+      box.replaceChildren(person);
+      return;
+    }
     box.replaceChildren(document.createTextNode(initial(name)));
     if (String(name || "").trim()) {
       box.classList.add("is-initial");
@@ -268,11 +279,19 @@ var QLineMe = (function () {
     }
 
     // シートのボタン1つ
-    function sheetButton(className, text, onClick) {
+    // iconName を渡すと、文字の前に線アイコン
+    function sheetButton(className, text, onClick, iconName) {
       var el = document.createElement("button");
       el.type = "button";
       el.className = className;
       el.textContent = text;
+      if (iconName) {
+        var mark = document.createElement("span");
+        mark.className = "ls-icon";
+        mark.setAttribute("data-icon", iconName);
+        mark.setAttribute("aria-hidden", "true");
+        el.prepend(mark);
+      }
       el.addEventListener("click", onClick);
       return el;
     }
@@ -298,7 +317,8 @@ var QLineMe = (function () {
         if (row.pending) li.className = "is-pending";
         var icon = document.createElement("span");
         icon.setAttribute("aria-hidden", "true");
-        icon.textContent = row.icon;
+        icon.className = "ls-icon";
+        icon.setAttribute("data-icon", row.iconName);
         var text = document.createElement("span");
         text.textContent = row.text;
         li.append(icon, text);
@@ -312,21 +332,21 @@ var QLineMe = (function () {
       var actions = document.createElement("div");
       actions.className = "qme-actions";
       if (st.pending && st.connected && st.online && o.retry) {
-        var again = sheetButton("ls-button is-block", "📮 いま送る", function () {
+        var again = sheetButton("ls-button is-block", "いま送る", function () {
           again.disabled = true;
           Promise.resolve(o.retry()).then(drawButton, drawButton);
-        });
+        }, "send");
         actions.appendChild(again);
       }
       if (st.canLogin) {
-        actions.appendChild(sheetButton("ls-button is-block qme-login", "🔑 LINE でログイン", function () {
+        actions.appendChild(sheetButton("ls-button is-block qme-login", "LINE でログイン", function () {
           if (o.login) return o.login();
           try {
             window.liff.login({ redirectUri: location.href });
           } catch (e) {
             // ログインを始められなければ、何もしない（シートはそのまま）
           }
-        }));
+        }, "login"));
       }
       // 押したらシートを閉じてから fn（設定・ボットとつなぐ）
       var closeThen = function (fn) {
@@ -335,8 +355,8 @@ var QLineMe = (function () {
           fn();
         };
       };
-      if (o.onPrefs) actions.appendChild(sheetButton("ls-button is-block", "⚙️ 設定", closeThen(o.onPrefs)));
-      if (o.onSettings) actions.appendChild(sheetButton("ls-button is-block", "🔗 " + String(o.botName || "ボット") + "とつなぐ", closeThen(o.onSettings)));
+      if (o.onPrefs) actions.appendChild(sheetButton("ls-button is-block", "設定", closeThen(o.onPrefs), "settings"));
+      if (o.onSettings) actions.appendChild(sheetButton("ls-button is-block", String(o.botName || "ボット") + "とつなぐ", closeThen(o.onSettings), "link"));
       actions.appendChild(sheetButton("ls-sheet-cancel", "閉じる", close));
       return actions;
     }
