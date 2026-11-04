@@ -3,7 +3,7 @@
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
 // その下に「くらぶ 〜Qlove〜」（Q＋love。くらしの部室＝Q のツールが集まるところ）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
-// 紹介画像・名前・キャッチコピー・説明と「○○を開く」のシートを出す（いきなり移らない）。
+// 紹介画像・名前・キャッチコピー・説明と「○○を開く」、そのツールを「カードでおくるん」で送る入口のシートを出す（いきなり移らない）。
 // フッターの名前の後ろに、ときどき季節の絵文字（shared/season.js）。window.QSeason は各ツールの文（トーストなど）にも使える。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -221,6 +221,7 @@
         <a class="oqrn-tool-open"></a>
         <a class="oqrn-tool-line" hidden>📱 LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
+        <a class="oqrn-sheet-option" data-tool-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small><span class="oqrn-nw">このツールの</span><span class="oqrn-nw">紹介カードを作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
     document.body.appendChild(sheet);
@@ -248,6 +249,10 @@
       $(".oqrn-tool-line").href = line || "#";
       $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
       $(".oqrn-tool-why").textContent = item.lineWhy ? `📱 ${item.lineWhy}` : "";
+      // そのツールを、おくるんの紹介カードで友だちに送る（「○○を紹介する」と同じカード）
+      const card = $("[data-tool-card]");
+      card.href = window.OQRN ? cardUrl(item) : "#";
+      card.hidden = !window.OQRN || !item.url;
       sheet.hidden = false;
       open.focus();
     };
