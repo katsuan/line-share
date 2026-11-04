@@ -462,10 +462,9 @@ input[type="time"].ls-input {
 .ls-chip[aria-checked="true"],
 .ls-chip.is-active,
 .ls-chip:has(input:checked) {
-  border-color: var(--ls-text);
-  background: var(--ls-surface-sub);
-  color: var(--ls-text);
-  box-shadow: inset 0 0 0 1px var(--ls-text);
+  border-color: var(--ls-accent);
+  background: var(--ls-accent-soft);
+  color: var(--ls-accent-ink);
 }
 
 .ls-chip:disabled {
@@ -516,7 +515,7 @@ input[type="time"].ls-input {
 .ls-swatch[aria-pressed="true"],
 .ls-swatch.is-selected,
 .ls-swatch:has(input[type="radio"]:checked) {
-  box-shadow: 0 0 0 2px var(--ls-surface), 0 0 0 4px var(--ls-text);
+  box-shadow: 0 0 0 3px var(--ls-accent);
 }
 
 .ls-swatch input {
@@ -870,7 +869,7 @@ input[type="time"].ls-input {
 
 .size-label {
   min-width: 3.5em;
-  color: var(--ls-text);
+  color: var(--ls-accent-ink);
   font-size: 15px;
   font-weight: 700;
   line-height: 20px;
@@ -893,7 +892,7 @@ input[type="time"].ls-input {
   width: 4px;
   height: 8px;
   margin-left: -2px;
-  background: var(--ls-text);
+  background: var(--ls-accent);
 }
 
 .size-tick > span {
@@ -919,7 +918,7 @@ input[type="time"].ls-input {
 }
 
 .size-tick.is-standard > span {
-  color: var(--ls-text);
+  color: var(--ls-accent-ink);
 }
 
 /* ---- 下から出るシート ---- */
@@ -1218,10 +1217,8 @@ html[data-credit="off"] .ls-credit {
 
 /* ---- はじめて使う人への案内 ---- */
 
-/* 左に電球の線アイコン、右に手順。見出し（使い方）は置かない（読み上げは aria-label） */
 .ls-tip {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
   gap: var(--ls-space-s);
   padding: var(--ls-space-m);
   border: 1px solid var(--ls-line);
@@ -1230,19 +1227,6 @@ html[data-credit="off"] .ls-credit {
   color: var(--ls-text);
   font-size: 13px;
   line-height: 1.6;
-}
-
-.ls-tip::before {
-  content: "";
-  width: 20px;
-  height: 20px;
-  background: var(--ls-subtext);
-  -webkit-mask: var(--ls-i-tip) center / contain no-repeat;
-  mask: var(--ls-i-tip) center / contain no-repeat;
-}
-
-.ls-tip > * {
-  grid-column: 2;
 }
 
 .ls-tip-title {
@@ -1558,7 +1542,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 
 .ls-pickfield.is-open,
 .ls-pickfield:focus-within {
-  border-color: var(--ls-text);
+  border-color: var(--ls-accent);
 }
 
 .ls-pickfield input {
@@ -1601,7 +1585,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   appearance: none;
 }
 
-/* 開いているボタンは、まわりに濃い字の色のふち */
+/* 開いているボタンは、まわりに緑（ツールの色）のふち */
 .ls-pickfield-btn > * {
   display: grid;
   place-items: center;
@@ -1611,7 +1595,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 }
 
 .ls-pickfield-btn[aria-expanded="true"] > * {
-  box-shadow: 0 0 0 2px var(--ls-surface), 0 0 0 4px var(--ls-text);
+  box-shadow: 0 0 0 2px var(--ls-surface), 0 0 0 4px var(--ls-accent);
 }
 
 /* 何も選んでいない（なし）のとき：小さな字 */
@@ -1631,7 +1615,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   margin-top: var(--ls-space-s);
   padding: var(--ls-space-xs);
   border-radius: var(--ls-radius-md);
-  background: var(--ls-surface-sub);
+  background: var(--ls-accent-soft);
 }
 
 .ls-picker[hidden] {
@@ -1646,7 +1630,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   left: calc(var(--tail-x) - 9px);
   border: 9px solid transparent;
   border-top: 0;
-  border-bottom: 8px solid var(--ls-surface-sub);
+  border-bottom: 8px solid var(--ls-accent-soft);
 }
 
 .ls-picker-item {
@@ -1670,7 +1654,7 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 .ls-picker-item[aria-pressed="true"],
 .ls-picker-item[aria-checked="true"] {
   background: var(--ls-surface);
-  box-shadow: inset 0 0 0 2px var(--ls-text);
+  box-shadow: inset 0 0 0 2px var(--ls-accent);
 }
 
 /* なし（字のボタン） */
@@ -1700,13 +1684,13 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 .ls-picker-custom:focus {
   outline: none;
   border-style: solid;
-  border-color: var(--ls-text);
+  border-color: var(--ls-accent);
 }
 
 .ls-picker-custom.is-selected {
   border-style: solid;
-  border-color: var(--ls-text);
-  box-shadow: inset 0 0 0 1px var(--ls-text);
+  border-color: var(--ls-accent);
+  box-shadow: inset 0 0 0 1px var(--ls-accent);
 }
 
 /* ---- 目じるしと進みぐあい（shared/milestones.js の QMilestones） ----

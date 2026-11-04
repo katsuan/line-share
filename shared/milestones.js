@@ -243,15 +243,10 @@ var QMilestones = (function () {
     }
 
     // 目じるし1行（押すと「いま ◯ 頭分」「いま 79％」が開く）
-    // 行の頭の印（線アイコン。越えた＝check・次＝target・その先の間＝lock）
-    function iconHtml(name) {
-      return name ? '<span class="ls-icon" data-icon="' + name + '" aria-hidden="true"></span> ' : "";
-    }
-
-    function rowHtml(total, className, iconName, mark, extra) {
+    function rowHtml(total, className, prefix, mark, extra) {
       return (
         '<li class="' + className + '"><details class="ls-ms-row"><summary>' +
-        '<span class="ls-ms-mark">' + iconHtml(iconName) + esc(mark.icon + " " + mark.name) + '</span><span class="ls-ms-value">' + esc(markValue(mark.value)) + "</span>" +
+        '<span class="ls-ms-mark">' + esc(prefix + mark.icon + " " + mark.name) + '</span><span class="ls-ms-value">' + esc(markValue(mark.value)) + "</span>" +
         (extra || "") +
         '</summary><p class="ls-ms-now">' + esc(standing(total, mark)) + "</p></details></li>"
       );
@@ -259,7 +254,7 @@ var QMilestones = (function () {
 
     /**
      * 目じるしの表：合計とくらべ・次までの棒・越えた目じるし（新しい3つ。それより前は「ほかに ◯ 個を越えました」を押すと開く）・
-     * 次の目じるし（「あと ◯」）・その先（big は見せ、あいだは「この間に、あと ◯ 個」に鍵の線アイコン）。o.title・o.hint は上の見出しと下の説明
+     * 次の目じるし（「あと ◯」）・その先（big は見せ、あいだは「🔒 この間に、あと ◯ 個」）。o.title・o.hint は上の見出しと下の説明
      */
     function tableHtml(total, o) {
       var v = Math.max(0, Number(total) || 0);
@@ -270,16 +265,16 @@ var QMilestones = (function () {
       var rows = [];
       if (older.length) {
         rows.push(
-          '<li class="is-passed is-older"><details class="ls-ms-older"><summary><span class="ls-ms-mark">' + iconHtml("check") + "ほかに " + older.length + " 個を越えました</span></summary>" +
-            '<ol class="ls-ms-marks">' + older.map(function (mark) { return rowHtml(v, "is-passed", "check", mark); }).join("") + "</ol></details></li>"
+          '<li class="is-passed is-older"><details class="ls-ms-older"><summary><span class="ls-ms-mark">✅ ほかに ' + older.length + " 個を越えました</span></summary>" +
+            '<ol class="ls-ms-marks">' + older.map(function (mark) { return rowHtml(v, "is-passed", "✅ ", mark); }).join("") + "</ol></details></li>"
         );
       }
       recent.forEach(function (mark) {
-        rows.push(rowHtml(v, "is-passed", "check", mark));
+        rows.push(rowHtml(v, "is-passed", "✅ ", mark));
       });
-      rows.push(rowHtml(v, "is-next", "target", p.next, '<span class="ls-ms-rest">' + esc(rest(v, p)).replace(/^(あと |いま )(.*)$/, "$1<b>$2</b>") + "</span>"));
+      rows.push(rowHtml(v, "is-next", "🎯 ", p.next, '<span class="ls-ms-rest">' + esc(rest(v, p)).replace(/^(あと |いま )(.*)$/, "$1<b>$2</b>") + "</span>"));
       ahead(v).forEach(function (row) {
-        rows.push(row.mark ? rowHtml(v, "is-ahead", "", row.mark) : '<li class="is-locked"><span class="ls-ms-mark">' + iconHtml("lock") + "この間に、あと " + row.locked + " 個</span></li>");
+        rows.push(row.mark ? rowHtml(v, "is-ahead", "", row.mark) : '<li class="is-locked"><span class="ls-ms-mark">🔒 この間に、あと ' + row.locked + " 個</span></li>");
       });
       var title = o && o.title;
       var hint = o && o.hint;

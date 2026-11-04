@@ -332,21 +332,21 @@ var QLineMe = (function () {
       var actions = document.createElement("div");
       actions.className = "qme-actions";
       if (st.pending && st.connected && st.online && o.retry) {
-        var again = sheetButton("ls-button is-block", "いま送る", function () {
+        var again = sheetButton("ls-button is-block", "📮 いま送る", function () {
           again.disabled = true;
           Promise.resolve(o.retry()).then(drawButton, drawButton);
-        }, "send");
+        });
         actions.appendChild(again);
       }
       if (st.canLogin) {
-        actions.appendChild(sheetButton("ls-button is-block qme-login", "LINE でログイン", function () {
+        actions.appendChild(sheetButton("ls-button is-block qme-login", "🔑 LINE でログイン", function () {
           if (o.login) return o.login();
           try {
             window.liff.login({ redirectUri: location.href });
           } catch (e) {
             // ログインを始められなければ、何もしない（シートはそのまま）
           }
-        }, "login"));
+        }));
       }
       // 押したらシートを閉じてから fn（設定・ボットとつなぐ）
       var closeThen = function (fn) {
@@ -355,8 +355,8 @@ var QLineMe = (function () {
           fn();
         };
       };
-      if (o.onPrefs) actions.appendChild(sheetButton("ls-button is-block", "設定", closeThen(o.onPrefs), "settings"));
-      if (o.onSettings) actions.appendChild(sheetButton("ls-button is-block", String(o.botName || "ボット") + "とつなぐ", closeThen(o.onSettings), "link"));
+      if (o.onPrefs) actions.appendChild(sheetButton("ls-button is-block", "⚙️ 設定", closeThen(o.onPrefs)));
+      if (o.onSettings) actions.appendChild(sheetButton("ls-button is-block", "🔗 " + String(o.botName || "ボット") + "とつなぐ", closeThen(o.onSettings)));
       actions.appendChild(sheetButton("ls-sheet-cancel", "閉じる", close));
       return actions;
     }

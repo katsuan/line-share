@@ -81,8 +81,7 @@
   // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
   const MARK_URL = new URL("shared/mark.svg", BASE).href;
   // 線アイコン（shared/icons/ の Lucide）。同じく ui.css がなくても出るよう、ファイルを直接読む
-  const ICONS = ["app", "backup", "share", "link", "next"];
-  const iconHtml = (name) => `<span class="oqrn-i oqrn-i-${name}" aria-hidden="true"></span>`;
+  const ICONS = ["next"];
   const iconEl = (name) => {
     const el = document.createElement("span");
     el.className = `oqrn-i oqrn-i-${name}`;
@@ -143,8 +142,8 @@
         font-size: 15px; font-weight: 700; line-height: 22px; text-align: center; text-decoration: none;
       }
       .oqrn-tool-line {
-        display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 1px solid var(--ls-line-strong, #d9d6cc); border-radius: 999px; color: var(--ls-text, #23211c);
-        font-size: 15px; font-weight: 600; line-height: 20px; text-align: center; text-decoration: none;
+        display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border: 2px solid var(--ls-line-green, #06c755); border-radius: 999px; color: var(--ls-line-green-text, #06a148);
+        font-size: 15px; font-weight: 700; line-height: 20px; text-align: center; text-decoration: none;
       }
       .oqrn-tool-why { margin: -8px 0 0; color: var(--ls-subtext, #6b6860); font-size: 12px; line-height: 1.6; }
       .oqrn-share-open {
@@ -220,7 +219,7 @@
         <p class="oqrn-tool-copy"></p>
         <p class="oqrn-tool-lead"></p>
         <a class="oqrn-tool-open"></a>
-        <a class="oqrn-tool-line" hidden>${iconHtml("app")}LINE 版で開く</a>
+        <a class="oqrn-tool-line" hidden>📱 LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
@@ -236,8 +235,9 @@
       $(".oqrn-sheet-title").textContent = item.en ? `${item.name} 〜${item.en}〜` : item.name;
       $(".oqrn-tool-copy").textContent = item.copy || "";
       $(".oqrn-tool-copy").hidden = !item.copy;
+      $(".oqrn-tool-copy").style.color = item.color || "";
       $(".oqrn-tool-lead").textContent = [item.lead, item.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + "。";
-      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「LINE 版で開く」と、その良さ（lineWhy）
+      // LINE 版のあるツール（つづく・しょくじ）：LINE 版ではそちらだけ。ブラウザ版では「📱 LINE 版で開く」と、その良さ（lineWhy）
       const inLine = / Line\//.test(navigator.userAgent);
       const line = /^https:\/\/liff\.line\.me\//.test(item.line || "") ? item.line : "";
       const open = $(".oqrn-tool-open");
@@ -247,7 +247,7 @@
       $(".oqrn-tool-line").hidden = !line || inLine;
       $(".oqrn-tool-line").href = line || "#";
       $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
-      $(".oqrn-tool-why").textContent = item.lineWhy || "";
+      $(".oqrn-tool-why").textContent = item.lineWhy ? `📱 ${item.lineWhy}` : "";
       sheet.hidden = false;
       open.focus();
     };
@@ -422,7 +422,7 @@
     const link = document.createElement("a");
     link.className = "oqrn-backup";
     link.href = new URL(`backup/?from=${encodeURIComponent(toolKey)}`, BASE).href;
-    link.append(iconEl("backup"), "この端末の記録をバックアップ");
+    link.textContent = "💾 この端末の記録をバックアップ";
     return link;
   }
 
@@ -440,7 +440,7 @@
     open.type = "button";
     open.className = "oqrn-share-open";
     open.setAttribute("aria-haspopup", "dialog");
-    open.append(iconEl("share"), `${tool.name}を紹介する`);
+    open.textContent = `📤 ${tool.name}を紹介する`;
     const next = nextCard(tool, others);
     if (next) host.appendChild(next);
     host.appendChild(open);
@@ -454,7 +454,7 @@
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
         <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
-        <button class="oqrn-sheet-option" type="button" data-link><span>${iconHtml("link")}リンクでシェア</span><small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
+        <button class="oqrn-sheet-option" type="button" data-link>🔗 リンクでシェア<small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;

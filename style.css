@@ -64,7 +64,7 @@
   background: var(--ls-line);
 }
 
-/* キャッチコピー（hub-links.json の copy）。名前のすぐ下に、濃い字で（ツールの色は「開く」のボタンだけ） */
+/* キャッチコピー（hub-links.json の copy）。ツールの色で、名前のすぐ下に */
 .tool-copy {
   margin: calc(var(--ls-space-s) * -1) 0 0;
   font-size: 16px;
@@ -85,6 +85,8 @@
 }
 
 .tool-line {
+  border: 2px solid var(--ls-line-green);
+  color: var(--ls-line-green-text);
   text-align: center;
   text-decoration: none;
 }
@@ -274,9 +276,8 @@
 }
 
 .hub-format-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--ls-subtext);
+  font-size: 24px;
+  line-height: 1.2;
 }
 
 .hub-format:active {
@@ -366,12 +367,8 @@
   border-radius: 0;
   background: #cfe6ee;
   color: #3d6b7a;
+  font-size: 12px;
   font-style: normal;
-}
-
-.mini-card .mini-photo .ls-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .mini-card .mini-line {

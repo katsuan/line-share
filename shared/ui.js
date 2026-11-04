@@ -176,15 +176,15 @@
   }
 
   /**
-   * 送信プレビューの右上に「プレビューモード切替：編集（えんぴつ）／完成イメージ（目）」を付ける。選んでいるモードだけ名前を出し、
+   * 送信プレビューの右上に「プレビューモード切替：📝 編集／👀 完成イメージ」を付ける。選んでいるモードだけ名前を出し、
    * もう一方はアイコンだけにする（読み上げは両方とも名前）。
    * 完成イメージのときは .ls-preview に is-viewing を付け、点線の枠・＋／×・案内を隠して、送ったときの見た目にする。
    * 選んだモードは端末に残し、どのツールでも同じにする。
    */
   const VIEW_KEY = "line-share:preview-viewing";
   const MODES = [
-    { viewing: false, icon: "edit", name: "編集" },
-    { viewing: true, icon: "view", name: "完成イメージ" }
+    { viewing: false, icon: "📝", name: "編集" },
+    { viewing: true, icon: "👀", name: "完成イメージ" }
   ];
 
   // 完成イメージで見るか（端末に残した選び方）
@@ -196,7 +196,7 @@
     }
   }
 
-  // 送信プレビューの右上に「編集／完成イメージ」の切りかえを付ける
+  // 送信プレビューの右上に「📝 編集／👀 完成イメージ」の切りかえを付ける
   function setupPreviewToggles() {
     const previews = [...document.querySelectorAll(".ls-preview")];
     let viewing = loadViewing();
@@ -213,7 +213,10 @@
         name.className = "ls-preview-mode-name";
         name.setAttribute("aria-hidden", "true");
         name.textContent = mode.name;
-        button.append(icon(mode.icon), name);
+        const mark = document.createElement("span");
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = mode.icon;
+        button.append(mark, name);
         button.addEventListener("click", () => {
           viewing = mode.viewing;
           try {
@@ -235,7 +238,7 @@
       previews.forEach((preview, index) => {
         preview.classList.toggle("is-viewing", viewing);
         groups[index].forEach((button, i) => button.setAttribute("aria-pressed", String(MODES[i].viewing === viewing)));
-        // 完成イメージのときは、カードの中の入力やタップを止める（「編集」で戻る）
+        // 完成イメージのときは、カードの中の入力やタップを止める（📝 で編集に戻る）
         if (viewing && preview.contains(document.activeElement)) document.activeElement.blur();
       });
     }
@@ -255,7 +258,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ls-to-preview";
-    button.append(icon("view"), "プレビュー");
+    button.textContent = "👀 プレビュー";
     button.setAttribute("aria-label", "プレビューに戻る");
     button.hidden = true;
     document.body.append(button);
@@ -263,7 +266,7 @@
     // いま画面に出ているプレビュー
     const shown = () => previews.find((preview) => preview.offsetParent !== null);
     let queued = false;
-    // プレビューが見えなくなったら「プレビュー」のボタンを出す
+    // プレビューが見えなくなったら「👀 プレビュー」のボタンを出す
     const update = () => {
       queued = false;
       const preview = shown();
@@ -359,8 +362,9 @@
     const again = sheet.querySelector('[data-act="again"]');
     // シートの見出し（何回送ったか）と案内をそろえる
     const update = () => {
-      // 見出しの前に丸のチェック（線アイコン）。「続けて別のトークにも送る」のボタンがあるので、くり返しの説明は出さない
+      // 見出しの前に丸のチェック（線アイコン）
       titleEl.replaceChildren(icon("done"), `${title}${count > 1 ? `（${count}回）` : ""}`);
+      note.textContent = "同じ内容を、ほかのトークにも送れます。";
     };
     update();
     // シートを閉じる
@@ -369,7 +373,7 @@
     const backLink = sheet.querySelector('[data-act="back"]');
     if (back?.url) {
       backLink.href = back.url;
-      backLink.replaceChildren(icon("back"), back.label);
+      backLink.textContent = `↩ ${back.label}`;
       backLink.hidden = false;
     }
     again.addEventListener("click", async () => {
@@ -561,8 +565,7 @@
         // 消すだけ
       }
     });
-    // 見出し（使い方）は置かない。左の電球（ui.css の .ls-tip::before）と、読み上げの aria-label で足りる
-    tip.append(list, ok);
+    tip.append(Object.assign(document.createElement("p"), { className: "ls-tip-title", textContent: "💡 使い方" }), list, ok);
     before.parentNode.insertBefore(tip, before);
   }
 

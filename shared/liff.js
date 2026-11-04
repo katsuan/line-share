@@ -180,8 +180,8 @@
     host.innerHTML =
       '<p class="ls-outside-text">ブラウザ版です。送るには：</p>' +
       '<div class="ls-outside-actions">' +
-      '<button type="button" class="ls-outside-button" data-outside-login><span class="ls-icon" data-icon="login" aria-hidden="true"></span>ログインして送る</button>' +
-      '<a class="ls-outside-button is-app" data-outside-app href="#"><span class="ls-icon" data-icon="app" aria-hidden="true"></span>LINE 版で開く</a>' +
+      '<button type="button" class="ls-outside-button" data-outside-login>🔑 ログインして送る</button>' +
+      '<a class="ls-outside-button is-app" data-outside-app href="#">📱 LINE 版で開く</a>' +
       "</div>";
     const loginButton = host.querySelector("[data-outside-login]");
     const appLink = host.querySelector("[data-outside-app]");

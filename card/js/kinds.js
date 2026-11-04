@@ -35,8 +35,7 @@ function renderKindChips() {
       chip.setAttribute("role", "radio");
       chip.setAttribute("aria-checked", String(state.kind === key));
       chip.classList.toggle("is-active", state.kind === key);
-      // 形式の印は線アイコン（kind.icon。ui.css の .ls-icon）＋名前
-      chip.replaceChildren(...(kind.icon ? [window.LineShareUI.icon(kind.icon)] : []), kind.label);
+      chip.textContent = kind.label;
       chip.addEventListener("click", () => setKind(key));
       return chip;
     })

@@ -51,9 +51,8 @@ function groupMembers(tools, key) {
       });
   }
 
-  // 絵文字の印（画像が読めないときの代わりにも使う）。印がないときはリンクの線アイコン
+  // 絵文字の印（画像が読めないときの代わりにも使う）
   function iconMark(icon) {
-    if (!icon) return lineIcon("link", "hub-link-icon");
     const span = document.createElement("span");
     span.className = "hub-link-icon";
     span.setAttribute("aria-hidden", "true");
@@ -84,8 +83,8 @@ function groupMembers(tools, key) {
   // 1行の左の印：代表画像（絵文字の商品にしかない）・ツールのアイコン画像・絵文字の順
   function rowMark(row) {
     if (row.image) return imageMark("hub-link-thumb", row.image, row.fallbackIcon || "😀");
-    if (row.appIcon) return imageMark("hub-link-app-icon", row.appIcon, row.icon || "");
-    return iconMark(row.icon || "");
+    if (row.appIcon) return imageMark("hub-link-app-icon", row.appIcon, row.icon || "🔗");
+    return iconMark(row.icon || "🔗");
   }
 
   // 一覧の1行（ツール・絵文字）を作る。ツールは押すと紹介のシートを出す
@@ -145,10 +144,11 @@ function groupMembers(tools, key) {
     const copy = document.getElementById("toolCopy");
     copy.textContent = row.copy || "";
     copy.hidden = !row.copy;
+    copy.style.color = row.color || "";
     const lead = document.getElementById("toolLead");
     // 見出しの一文（lead）と説明（intro）を「。」でつなぐ
     lead.textContent = [row.lead, row.intro].filter(Boolean).map((text) => text.replace(/[。．]$/, "")).join("。") + (row.lead || row.intro ? "。" : "") || row.desc || "";
-    // LINE で開ける版（つづく・しょくじ）：LINE の中ではそちらだけ。外では「LINE 版で開く」と、その良さ
+    // LINE で開ける版（つづく・しょくじ）：LINE の中ではそちらだけ。外では「📱 LINE 版で開く」と、その良さ
     const inLine = / Line\//.test(navigator.userAgent);
     const line = /^https:\/\/liff\.line\.me\//.test(row.line || "") ? row.line : "";
     const lineLink = document.getElementById("toolLine");
@@ -156,7 +156,7 @@ function groupMembers(tools, key) {
     lineLink.href = line || "#";
     const why = document.getElementById("toolWhy");
     why.hidden = !line || !row.lineWhy;
-    why.textContent = row.lineWhy || "";
+    why.textContent = row.lineWhy ? `📱 ${row.lineWhy}` : "";
     const open = document.getElementById("toolOpen");
     open.href = inLine && line ? line : row.url;
     open.replaceChildren(`${row.name}を開く`, lineIcon("next"));
@@ -257,7 +257,7 @@ function groupMembers(tools, key) {
       if (rows.length && data.author && data.author.id) {
         rows.push({
           url: data.author.url || authorUrl(data.author.id),
-          icon: "",
+          icon: "🛍️",
           name: `${data.author.name || "作者"} の絵文字をもっと見る`,
           desc: "LINE STORE の作者ページ"
         });

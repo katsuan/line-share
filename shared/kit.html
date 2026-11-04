@@ -40,8 +40,8 @@
       <li><b>背景は平らな色。</b>グラデーションにしない（<code>--ls-bg</code>・<code>--ls-surface</code>・<code>--ls-surface-sub</code>）。影も付けない</li>
       <li><b>余白は 8 の倍数。</b><code>--ls-space-s</code> 8・<code>m</code> 16・<code>l</code> 24・<code>xl</code> 32・<code>xxl</code> 48。<code>xs</code> 4 は細かい所だけ</li>
       <li><b>文の頭をそろえる。</b>左そろえ。中央は、数字だけの大きな表示・ボタンの中の文字など、中央が自然な所だけ</li>
-      <li><b>絵文字でなく線アイコン。</b><code>&lt;span class="ls-icon" data-icon="send" aria-hidden="true"&gt;&lt;/span&gt;</code>。JS は <code>LineShareUI.icon("send")</code></li>
-      <li><b>強弱は濃淡と太さ。</b>文字は <code>--ls-text</code>・<code>--ls-subtext</code>・<code>--ls-faint</code>、太さは 400・600・700。ツールの色と LINE の緑は、いちばん大事な1か所だけ</li>
+      <li><b>絵文字でなく線アイコン</b>（決まるまで、ボタンの「絵文字＋する言葉」と前に決めた印はそのまま）。<code>&lt;span class="ls-icon" data-icon="send" aria-hidden="true"&gt;&lt;/span&gt;</code>。JS は <code>LineShareUI.icon("send")</code></li>
+      <li><b>強弱は濃淡と太さ。</b>文字は <code>--ls-text</code>・<code>--ls-subtext</code>・<code>--ls-faint</code>、太さは 400・600・700。ツールの色と LINE の緑は、大事な所だけ（選んでいるものの色はそのまま）</li>
       <li><b>むだな見出しを置かない。</b>説明のくり返しになる見出し・中身が1つだけの見出しは外す</li>
     </ol>
   </section>
@@ -53,8 +53,8 @@
       <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>背景・ボタン・見出しの <code>gradient</code> を、平らな色（ツールの色か <code>--ls-surface</code>）に。<code>box-shadow</code> も外す</span></li>
       <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>ツールの CSS の padding・margin・gap を <code>var(--ls-space-…)</code> に。角は <code>--ls-radius-sm/md/lg</code></span></li>
       <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>text-align: center</code> を外す（大きな数字・ボタンの中だけ残す）</span></li>
-      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>ボタン・見出し・案内の頭の絵文字を線アイコンに。カードの中身（LINE に送る文）・遊びの絵（盤・コマ・演出）は別に決める</span></li>
-      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>--ls-accent</code> の色を使う所を、送るボタンなど1か所に。選んでいるもの・見出しは濃い字で</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>決めていない所の絵文字を線アイコンに。ボタンの「絵文字＋する言葉」（ux.md G3）・前に決めた印・カードの中身・遊びの絵は、決まるまでそのまま</span></li>
+      <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span><code>--ls-accent</code> の色を使う所を減らす（選んでいるもの・決めた部品の色は残す）。わざと入れた見た目は、変えてよいか聞いてから</span></li>
       <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>見出しを1つずつ見て、なくても通じるものは外す</span></li>
       <li><span class="ls-icon" data-icon="check" aria-hidden="true"></span><span>320px の幅と暗い表示で、前と後をくらべる（折り返し・1文字だけの行がないか）</span></li>
     </ul>
