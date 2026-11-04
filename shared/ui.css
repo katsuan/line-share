@@ -462,9 +462,10 @@ input[type="time"].ls-input {
 .ls-chip[aria-checked="true"],
 .ls-chip.is-active,
 .ls-chip:has(input:checked) {
-  border-color: var(--ls-accent);
-  background: var(--ls-accent-soft);
-  color: var(--ls-accent-ink);
+  /* 選んでいるチップは、色の面でなく濃いふちと字（ux.md の L5。2026-11-05 に決めた） */
+  border-color: var(--ls-text);
+  background: var(--ls-surface);
+  color: var(--ls-text);
 }
 
 .ls-chip:disabled {
@@ -1937,6 +1938,11 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   background: currentColor;
   -webkit-mask: var(--ls-i) center / contain no-repeat;
   mask: var(--ls-i) center / contain no-repeat;
+}
+
+/* 文の頭に置く線アイコン：字との間 4（<span class="ls-icon is-text" data-icon="edit">）。ボタン・チップの中の gap にも足す */
+.ls-icon.is-text {
+  margin-right: var(--ls-space-xs);
 }
 
 /* 頭に線アイコンを置いた部品：アイコンと字の間を 8（flex でない部品だけ。ボタン・チップ・見出しはもともと gap がある） */

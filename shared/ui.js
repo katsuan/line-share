@@ -14,6 +14,15 @@
     return el;
   }
 
+  /**
+   * icon() と同じ線アイコンを、HTML の文字で返す（HTML の文字で画面を作るツールのため）。名前・クラスは HTML にならないよう直す。
+   *   list.innerHTML = `<li>${LineShareUI.iconHtml("edit", "is-text")}直す</li>`   … is-text は文の頭に置くときの字との間
+   */
+  function iconHtml(name, className = "") {
+    const safe = (text) => String(text).replace(/[^\w -]/g, "");
+    return `<span class="ls-icon${className ? ` ${safe(className)}` : ""}" data-icon="${safe(name)}" aria-hidden="true"></span>`;
+  }
+
   // 文字入力中は下部の送信バーを隠し、スマホのキーボードと重ならないようにする
   const TEXT_FIELD =
     "input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=button]), textarea, [contenteditable=true]";
@@ -674,6 +683,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy, icon
+    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy, icon, iconHtml
   };
 })();
