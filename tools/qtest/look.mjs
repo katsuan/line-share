@@ -10,6 +10,7 @@
 //   L4 絵文字 … 画面の文字・HTML の中の絵文字（線アイコン <span class="ls-icon" data-icon="…"> にする。カードの中身・ゲームの絵は別に決める）
 //   L5 色     … ツールの色（--ls-accent・-soft・-ink）を使っている所（いちばん大事な1か所だけにする）
 //   L6 見出し … h2・h3・.ls-panel-title・.ls-sheet-title（説明のくり返し・中身が1つだけの見出しは外す）
+//   L7 アイコンの色 … .ls-icon に currentColor でない色・大きさを付けている（1行に書いた所だけ見る）
 // 数は「見るところ」の目安。全部を直すとはかぎらない。
 import fs from "node:fs";
 import path from "node:path";
@@ -35,6 +36,7 @@ const RULES = [
   { id: "L3", name: "中央", test: (line) => /text-align:\s*center|justify-items:\s*center/.test(line) },
   { id: "L4", name: "絵文字", test: (line, ext) => ext !== ".css" && EMOJI.test(line) },
   { id: "L5", name: "色", test: (line) => /var\(--ls-accent(-soft|-ink)?\)/.test(line) },
+  { id: "L7", name: "アイコンの色", test: (line, ext) => ext !== ".js" && /\.ls-icon[^{]*\{[^}]*\b(color|background|width)\s*:\s*(?!currentColor|inherit)/.test(line) },
   { id: "L6", name: "見出し", test: (line, ext) => ext !== ".css" && /<h[23][\s>]|class="[^"]*\b(ls-panel-title|ls-sheet-title)\b/.test(line) }
 ];
 

@@ -94,7 +94,7 @@
     const style = document.createElement("style");
     style.textContent = `
       /* 線アイコン（文字の色で出る。大きさは文字に合わせる） */
-      .oqrn-i { display: inline-block; flex: none; width: 1.25em; height: 1.25em; vertical-align: -0.25em; background: currentColor;
+      .oqrn-i { display: inline-block; flex: none; width: 1em; height: 1em; vertical-align: -0.125em; background: currentColor;
         -webkit-mask: var(--oqrn-i) center / contain no-repeat; mask: var(--oqrn-i) center / contain no-repeat; }
       ${ICONS.map((name) => `.oqrn-i-${name} { --oqrn-i: url("${new URL(`shared/icons/${name}.svg`, BASE).href}"); }`).join("\n      ")}
       /* 文の頭をそろえて左に（見た目の決まり 3） */

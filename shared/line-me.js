@@ -153,10 +153,9 @@ var QLineMe = (function () {
     ".qme-avatar .ls-icon{width:60%;height:60%}" +
     ".qme-head .qme-avatar{width:48px;height:48px;font-size:20px}" +
     ".qme-rows{display:grid;gap:8px;margin:0;padding:0;list-style:none}" +
-    ".qme-rows li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}" +
-    ".qme-rows li > .ls-icon{width:20px;height:20px;margin-top:2px;color:var(--ls-subtext)}" +
+    ".qme-rows li{display:grid;grid-template-columns:1em minmax(0,1fr);gap:8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}" +
+    ".qme-rows li > .ls-icon{margin-top:0.3em}" +
     ".qme-rows li.is-pending{color:var(--ls-warn,#9a3412);font-weight:600}" +
-    ".qme-rows li.is-pending > .ls-icon{color:inherit}" +
     ".qme-actions{display:grid;gap:8px}";
 
   /** 見た目を1回だけ入れる */

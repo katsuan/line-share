@@ -501,10 +501,7 @@
 }
 
 .hub-link-icon.ls-icon {
-  width: 24px;
-  height: 24px;
   margin: 0 auto;
-  color: var(--ls-subtext);
 }
 
 /* ツールのアイコン画像（絵文字の代わり。絵文字と同じ幅の列に収める） */

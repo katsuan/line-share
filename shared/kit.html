@@ -19,7 +19,7 @@
   .space-bar { height: 8px; border-radius: 2px; background: var(--ls-text); }
   .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: var(--ls-space-s); margin: 0; padding: 0; list-style: none; }
   .icon-grid li { display: grid; justify-items: start; gap: var(--ls-space-xs); padding: var(--ls-space-s); border: 1px solid var(--ls-line); border-radius: var(--ls-radius-sm); font-size: 11px; color: var(--ls-subtext); }
-  .icon-grid .ls-icon { width: 24px; height: 24px; color: var(--ls-text); }
+  .icon-grid .ls-icon { font-size: 24px; color: var(--ls-text); }
   .check { display: grid; gap: var(--ls-space-xs); margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.6; }
   .check li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: var(--ls-space-s); }
   .check .ls-icon { width: 16px; height: 16px; margin-top: 3px; color: var(--ls-subtext); }
@@ -43,6 +43,7 @@
       <li><b>絵文字でなく線アイコン</b>（ボタンは「線アイコン＋する言葉」。ux.md G3）。<code>&lt;span class="ls-icon" data-icon="send" aria-hidden="true"&gt;&lt;/span&gt;</code>。JS は <code>LineShareUI.icon("send")</code></li>
       <li><b>強弱は濃淡と太さ。</b>文字は <code>--ls-text</code>・<code>--ls-subtext</code>・<code>--ls-faint</code>、太さは 400・600・700。ツールの色と LINE の緑は、大事な所だけ（選んでいるものの色はそのまま）</li>
       <li><b>むだな見出しを置かない。</b>説明のくり返しになる見出し・中身が1つだけの見出しは外す</li>
+      <li><b>アイコンは字になじませる。</b>色は <code>currentColor</code>（となりの字と同じ）、大きさは 1em、上下は字の並び。アイコンにだけ色を付けない・大きくしない。開閉や「次へ」の矢印だけ、うすい字の色でよい</li>
     </ol>
   </section>
 
@@ -77,11 +78,18 @@
     <h2 id="iconTitle" class="ls-panel-title">線アイコン</h2>
     <p class="ls-hint">Lucide（ISC ライセンス。<code>shared/icons/LICENSE</code>）。線の太さはどれも同じ。文字の色・大きさで出る。足すときは <code>tools/icons.py</code>。</p>
     <ul id="iconGrid" class="icon-grid"></ul>
+    <p class="ls-hint">字になじませる見本：ツールの色のボタンの中は白、うすい字の中はうすく、小さい字の中は小さく。アイコンだけのボタンも目立たせすぎない。</p>
     <div class="ls-actions">
+      <button class="ls-button is-primary" type="button"><span class="ls-icon" data-icon="send" aria-hidden="true"></span>送る</button>
       <button class="ls-button" type="button"><span class="ls-icon" data-icon="save" aria-hidden="true"></span>保存</button>
       <button class="ls-button" type="button"><span class="ls-icon" data-icon="copy" aria-hidden="true"></span>コピー</button>
       <button class="ls-icon-button" type="button" aria-label="設定"><span class="ls-icon" data-icon="settings" aria-hidden="true"></span></button>
     </div>
+    <div class="ls-chips">
+      <button class="ls-chip is-small" type="button" aria-pressed="true"><span class="ls-icon" data-icon="calendar" aria-hidden="true"></span>今日</button>
+      <button class="ls-chip is-small" type="button" aria-pressed="false"><span class="ls-icon" data-icon="clock" aria-hidden="true"></span>時間</button>
+    </div>
+    <p class="ls-hint"><span class="ls-icon" data-icon="info" aria-hidden="true"></span> うすい字の中のアイコンは、うすい字の色になる。</p>
   </section>
 
   <section class="ls-panel">

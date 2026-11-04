@@ -143,8 +143,8 @@ textarea {
 
 .ls-back::before {
   content: "";
-  width: 20px;
-  height: 20px;
+  width: 1.15em;
+  height: 1.15em;
   margin-left: calc(var(--ls-space-xs) * -1);
   background: currentColor;
   -webkit-mask: var(--ls-i-back) center / contain no-repeat;
@@ -231,12 +231,6 @@ textarea {
   display: flex;
   align-items: center;
   gap: var(--ls-space-s);
-}
-
-.ls-panel-title > .ls-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--ls-subtext);
 }
 
 .ls-panel-note,
@@ -621,9 +615,8 @@ input[type="time"].ls-input {
 }
 
 .ls-fold-icon.ls-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--ls-subtext);
+  flex: none;
+  font-size: inherit;
 }
 
 .ls-fold-meta {
@@ -715,11 +708,6 @@ input[type="time"].ls-input {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.ls-preview-mode .ls-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .ls-preview-mode button[aria-pressed="true"] {
@@ -824,11 +812,6 @@ input[type="time"].ls-input {
   line-height: 1;
   cursor: pointer;
   z-index: 1;
-}
-
-.ls-remove .ls-icon {
-  width: 16px;
-  height: 16px;
 }
 
 .ls-remove.is-on-edit {
@@ -1370,11 +1353,6 @@ body.is-typing .ls-to-preview {
   cursor: pointer;
 }
 
-.ls-outside-button .ls-icon {
-  width: 16px;
-  height: 16px;
-}
-
 .ls-outside-button[hidden] {
   display: none;
 }
@@ -1455,9 +1433,7 @@ body:not(.ls-has-sendbar) .ls-toast {
 }
 
 .ls-empty-icon.ls-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--ls-faint);
+  font-size: 24px;
 }
 
 /* 読みこみ中：中身と同じ大きさの箱をうすく光らせる（中身が出ても位置がずれない） */
@@ -1795,14 +1771,6 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
   font-weight: 600;
 }
 
-/* 行の頭の線アイコン（越えた・次・鍵）。文字よりうすく */
-.ls-ms-mark > .ls-icon {
-  width: 16px;
-  height: 16px;
-  vertical-align: -3px;
-  color: var(--ls-subtext);
-}
-
 /* 「ほかに ◯ 個を越えました」：開くと、前に越えた目じるしの一覧（下向きの線アイコンが回る） */
 .ls-ms-older > summary .ls-ms-mark::after {
   content: "";
@@ -1959,16 +1927,20 @@ h1:lang(ja), h2:lang(ja), h3:lang(ja), .ls-label:lang(ja), .ls-sheet-title:lang(
 
 /* ---- 線アイコン（shared/icons/ の Lucide。見た目の決まり 4）----
  *   <span class="ls-icon" data-icon="send" aria-hidden="true"></span> と書くと、文字の色・文字の大きさで線のアイコンが出る。
- *   大きさを変えるときは width・height（16px・20px・24px）。ボタンの中では文字の前に置く（間は gap で 8px）。
- *   JS からは LineShareUI.icon("send")（shared/ui.js）。CSS の ::before などからは mask: var(--ls-i-send)。
+ *   浮かないように（docs/ux.md の L7）：
+ *     色 … currentColor だけ。となりの字と同じ色（ツールの色のボタンの中なら白、うすい字の中ならうすく）。アイコンにだけ色を付けない
+ *     大きさ … 1em（字と同じ）。上下は字の並びに合わせる（-0.125em）。大きくしたいときは font-size を変える（width・height は変えない）
+ *     線 … Lucide の 2（24 の中で）。1em だと 600〜700 の字の太さに近く、小さい字の中では線も細くなる
+ *   開閉の矢印・「次へ」の矢印だけは印なので、うすい字の色（--ls-subtext・--ls-faint）でよい。
+ *   ボタンの中では文字の前に置く（間は gap で 8px）。JS からは LineShareUI.icon("send")（shared/ui.js）。CSS の ::before などからは mask: var(--ls-i-send)。
  *   どんな名前があるかは kit.html の「線アイコン」。足すときは tools/icons.py の説明を見る
  */
 .ls-icon {
   display: inline-block;
   flex: none;
-  width: 1.25em;
-  height: 1.25em;
-  vertical-align: -0.25em;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
   background: currentColor;
   -webkit-mask: var(--ls-i) center / contain no-repeat;
   mask: var(--ls-i) center / contain no-repeat;
