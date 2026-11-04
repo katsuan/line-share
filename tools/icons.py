@@ -15,7 +15,7 @@
   stack=layers notice=megaphone team=users trophy=trophy eraser=eraser
   （ここから下は Lucide と同じ名前）git-fork hash message-circle zap eye-off sprout baby heart-pulse notebook
   sparkles mic mic-off volume-2 cake gift play upload shield-check
-  video film scissors flame dumbbell bookmark bookmark-check（よく記録するもの：まだ固定していない／固定した）。chart=chart-column home=house。whistle（笛）は Lucide にないので、同じ線の太さ・角で描いた
+  video film scissors flame dumbbell bookmark bookmark-check（よく記録するもの：まだ固定していない／固定した）。chart=chart-column home=house。whistle（笛）・ball（サッカーボール）は Lucide にないので、同じ線の太さ・角で描いた
 足すときは、Lucide の SVG の中身（<path> など）を、ほかのファイルと同じ <svg …> で包んで shared/icons/<名前>.svg に置く。
 線の太さ（stroke-width="2"）・角（round）・大きさ（viewBox 0 0 24 24）は全部そろえる。
 """
