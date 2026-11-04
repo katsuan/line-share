@@ -1,3 +1,3 @@
-// 電波がなくても、一度開いたページは開けるようにする（中身は ConneQt 共通の line-share/shared/sw-core.js）
+// 電波がなくても、一度開いたページは開けるようにする（中身は くらぶ（Qlove）共通の line-share/shared/sw-core.js）
 self.CONNEQT_TOOL = "oqrn";
 importScripts("/line-share/shared/sw-core.js");

@@ -162,13 +162,6 @@ textarea {
   justify-self: end;
 }
 
-.ls-lead {
-  margin: 0 0 var(--ls-space-m);
-  color: var(--ls-subtext);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
 /* ---- タブ（切り替え） ---- */
 
 .ls-tabs {

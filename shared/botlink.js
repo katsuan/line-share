@@ -11,7 +11,7 @@
 //   makeClient(url, getIdToken, opts)       … 送る口を作る（テストでは fetch・ID トークンを差しかえる）
 //   body(tool, action, payload, opts)       … ボットに送る中身（下の「送る形」）
 //   outbox(key, opts)              … 送れなかったものを端末に覚えて、次に開いたときに送りなおすための箱
-//   guide(opts)                    … 「📱 LINE 版で使う」の案内と4コマ（ブラウザ版で、閉じていなければ）
+//   guide(opts)                    … 「LINE 版で使う」の案内と4コマ（ブラウザ版で、閉じていなければ）
 //   reopenHidden({ client, url, ua }) … 「LINE 版で開きなおす」を隠すか（ボットにつないだ人が、LINE のふつうのブラウザで開いたときだけ出す）
 //
 // 送る形（ボットとのやりとり）
@@ -277,7 +277,7 @@ var QBotLink = (function () {
   }
 
   /**
-   * 「📱 LINE 版で使う」の案内と4コマ（ブラウザ版で、閉じていなければ出す。閉じたらその端末では出さない）
+   * 「LINE 版で使う」の案内と4コマ（ブラウザ版で、閉じていなければ出す。閉じたらその端末では出さない）
    * opts：{ key（閉じたかを覚えるキー）, openUrl（LINE 版の URL）, say(text), closedText（閉じたときの知らせ）,
    *         panel = "lineGuidePanel", outside = "lineOutside" }（ページには [data-close-line-guide]・[data-show-line-guide] のボタン）
    */

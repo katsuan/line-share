@@ -417,7 +417,7 @@
   font-size: 13px;
 }
 
-/* コネクトの補足の行の「Qらし」に振る「くらし」 */
+/* くらぶの補足の行のルビ（｜Qらし《くらし》の形） */
 .hub-emoji-lead rt {
   font-size: 9px;
   font-weight: 600;
@@ -605,7 +605,7 @@
   height: 24px;
 }
 
-/* コネクトの中の分け方（hub-links.json の groups） */
+/* くらぶの中の分け方（hub-links.json の groups） */
 .hub-group-head {
   padding: var(--ls-space-s) var(--ls-space-m) var(--ls-space-xs);
   background: var(--ls-surface-sub);

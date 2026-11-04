@@ -84,3 +84,19 @@ test("ログインの3つの見え方：確かめずみ・前回のまま（電�
   const outNoButton = M.describe({ loggedIn: false, verified: false, canLogin: false, bot: false }).map((r) => r.text);
   assert.doesNotMatch(outNoButton[0], /ログインすると/);
 });
+
+test("buttonLabel：だれか・前回のログインか・送っていない数・押すと何が出るか", () => {
+  const me = { name: "かつ" };
+  assert.strictEqual(
+    M.buttonLabel({ me, loggedIn: true, verified: true, pending: 0 }, { inLine: true }),
+    "かつ さん（LINE 版）。押すとくわしく"
+  );
+  assert.strictEqual(
+    M.buttonLabel({ me, loggedIn: true, verified: false, pending: 3 }, { inLine: true, opens: true }),
+    "かつ さん（LINE 版・前回のログイン）。まだ送っていない記録 3 件。押すと、あなたの記録と設定"
+  );
+  assert.strictEqual(M.buttonLabel({ me: null, loggedIn: false }, { inLine: false }), "ブラウザ版・ログインしていません。押すとくわしく");
+  assert.strictEqual(M.buttonLabel({ me: null, loggedIn: false }, { inLine: true }), "LINE 版・ログインしていません。押すとくわしく");
+  // 名前がないときは、ログインしていても「ログインしていません」の形（前と同じ）
+  assert.strictEqual(M.buttonLabel({ me: {}, loggedIn: true, verified: true }, {}), "ブラウザ版・ログインしていません。押すとくわしく");
+});
