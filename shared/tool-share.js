@@ -4,6 +4,7 @@
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
 // その下に「くらぶ 〜Qlove〜」（Q＋love。くらしの部室＝Q のツールが集まるところ）：1行目に名前と説明、2行目におくるんとほかのツールのアイコンが少しずつ横に流れつづける帯（ふえても1行のまま。触れているあいだは止まる）。タップするとおくるん HOME の「ほかのツール」と同じく、
 // 紹介画像・名前・キャッチコピー・説明と「○○を開く」、そのツールを「カードでおくるん」で送る入口のシートを出す（いきなり移らない）。
+// 見出しの横長のロゴ（.ls-brand-logo）を押すと、このツール自身の同じシート（「開く」はなし）。
 // フッターの名前の後ろに、ときどき季節の絵文字（shared/season.js）。window.QSeason は各ツールの文（トーストなど）にも使える。
 // カードはおくるんのお知らせカード（/card/）に中身を渡して作る。色はツールの色。
 //
@@ -138,6 +139,10 @@
       .oqrn-tool-ogp { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; object-fit: cover; border-radius: 12px; background: var(--ls-surface-sub, #eeece6); }
       .oqrn-tool-copy { margin: -8px 0 0; font-size: 16px; font-weight: 700; line-height: 1.5; }
       .oqrn-tool-lead { margin: -8px 0 0; color: var(--ls-subtext, #6b6860); font-size: 14px; line-height: 1.6; }
+      .oqrn-sheet-card [hidden] { display: none !important; }
+      /* 見出しの横長のロゴ：押せるように包む（見た目はロゴのまま。押せる高さは 44px） */
+      .oqrn-brand-logo { display: inline-flex; flex: 0 0 auto; align-items: center; min-height: 44px; margin-left: auto; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+      .oqrn-brand-logo:focus-visible { outline: 2px solid var(--ls-text, #1f1f1c); outline-offset: 2px; border-radius: 8px; }
       .oqrn-tool-open {
         display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 999px; color: #fff;
         font-size: 15px; font-weight: 700; line-height: 22px; text-align: center; text-decoration: none;
@@ -229,7 +234,8 @@
     const $ = (selector) => sheet.querySelector(selector);
     let opener = null;
     sheetBehavior(sheet, () => opener);
-    return (item, from) => {
+    // self：いま開いているツール自身（見出しのロゴから）。開く・LINE 版で開くは出さない
+    return (item, from, { self = false } = {}) => {
       opener = from;
       $(".oqrn-tool-ogp").src = item.ogp || "";
       $(".oqrn-tool-ogp").hidden = !item.ogp;
@@ -246,17 +252,33 @@
       open.href = inLine && line ? line : item.url;
       open.replaceChildren(`${item.name}を開く`, iconEl("next"));
       open.style.background = item.color || "#6C47FF";
-      $(".oqrn-tool-line").hidden = !line || inLine;
+      open.hidden = self;
+      $(".oqrn-tool-line").hidden = self || !line || inLine;
       $(".oqrn-tool-line").href = line || "#";
-      $(".oqrn-tool-why").hidden = !line || !item.lineWhy;
+      $(".oqrn-tool-why").hidden = self || !line || !item.lineWhy;
       $(".oqrn-tool-why").textContent = item.lineWhy || "";
       // そのツールを、おくるんの紹介カードで友だちに送る（「○○を紹介する」と同じカード）
       const card = $("[data-tool-card]");
       card.href = window.OQRN ? cardUrl(item) : "#";
       card.hidden = !window.OQRN || !item.url;
       sheet.hidden = false;
-      open.focus();
+      (self ? card : open).focus();
     };
+  }
+
+  // 見出しの横長のロゴ（ux.md A1 の .ls-brand-logo）を押すと、このツール自身のシート（紹介画像・キャッチコピー・説明・カードでおくるん）
+  function brandLogoSheet(tool) {
+    const logo = document.querySelector(".ls-brand .ls-brand-logo");
+    if (!logo || logo.closest("button, a")) return;
+    const target = logo.closest("picture") || logo;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "oqrn-brand-logo";
+    button.setAttribute("aria-haspopup", "dialog");
+    button.setAttribute("aria-label", `${tool.name}の紹介を見る`);
+    target.replaceWith(button);
+    button.append(target);
+    button.addEventListener("click", () => sharedToolSheet()(tool, button, { self: true }));
   }
 
   // 「くらぶ 〜Qlove〜」（Q のツールが集まる、くらしの部室の名前）：おくるん（トップ）と、このツール以外のツールのアイコン。押すとなかまのシートを出す
@@ -455,6 +477,7 @@
     host.appendChild(open);
     host.appendChild(familyRow(tool, others, lead, title));
     host.appendChild(backupLink());
+    brandLogoSheet(tool);
 
     const sheet = document.createElement("div");
     sheet.className = "oqrn-sheet";
