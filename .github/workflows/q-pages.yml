@@ -3,6 +3,8 @@
 #   リポジトリの中の ?v= は手で付けなくてよい（公開の写しにだけ付ける）
 #   Q キット（shared/）を読むところには、Q キットの版（shared/ をさいごに変えたコミットの時刻）を付ける。
 #   Q キットだけが新しくなったときは、各ツールの見回り（schedule）が気づいて出しなおす
+#   dev: true のツールは、テストを非公開の katsuan/q-dev に置く（読みだけの deploy key を secret Q_DEV_KEY に。呼ぶ側は secrets: inherit）。
+#     q-dev の <folder>/ をこのリポジトリに重ねてからテストし、Pages には「出してよいものだけの写し」（_site）を出す
 name: Q の公開（共通）
 
 on:
@@ -24,6 +26,14 @@ on:
         description: テストが読む、となりのリポジトリ（"q-saqsen=katsuan/soccer q-roqga=katsuan/score-recorder"）
         type: string
         default: ""
+      dev:
+        description: テストを非公開の katsuan/q-dev（<folder>/）から読む。Pages には test/・tools/ などを入れない写しを出す
+        type: boolean
+        default: false
+    secrets:
+      Q_DEV_KEY:
+        description: katsuan/q-dev を読む deploy key（読みだけ）の秘密の鍵。dev のときだけ使う
+        required: false
 
 jobs:
   build:
@@ -87,6 +97,19 @@ jobs:
         run: |
           for pair in $SIBLINGS; do git clone --quiet --depth 1 "https://github.com/${pair#*=}.git" "${pair%%=*}"; done
 
+      - name: 非公開のテスト（katsuan/q-dev）
+        if: steps.kit.outputs.deploy == 'true' && inputs.dev
+        uses: actions/checkout@v5
+        with:
+          repository: katsuan/q-dev
+          path: q-dev
+          ssh-key: ${{ secrets.Q_DEV_KEY }}
+          persist-credentials: false
+
+      - name: q-dev のテストを、このリポジトリに重ねる
+        if: steps.kit.outputs.deploy == 'true' && inputs.dev
+        run: python3 q-dev/bin/qdev overlay "$FOLDER" "$FOLDER"
+
       - name: 手元と同じ並び（~/GitHub/q-oqrn）にする
         if: steps.kit.outputs.deploy == 'true'
         run: ln -sfn "$GITHUB_WORKSPACE" "$HOME/GitHub"
@@ -117,7 +140,7 @@ jobs:
         env:
           KIT: ${{ steps.kit.outputs.kit }}
         run: |
-          python3 ../q-oqrn/tools/qpublish.py . --kit "$KIT" --commit "$GITHUB_SHA" $([ "$IS_KIT" = "true" ] && echo --kit-file)
+          python3 ../q-oqrn/tools/qpublish.py . --kit "$KIT" --commit "$GITHUB_SHA" $([ "$IS_KIT" = "true" ] && echo --kit-file) $([ "${{ inputs.dev }}" = "true" ] && echo --site ../_site)
 
       - uses: actions/configure-pages@v5
         if: steps.kit.outputs.deploy == 'true'
@@ -125,7 +148,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         if: steps.kit.outputs.deploy == 'true'
         with:
-          path: ${{ inputs.folder }}
+          path: ${{ inputs.dev && '_site' || inputs.folder }}
 
   deploy:
     needs: build

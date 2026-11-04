@@ -11,12 +11,17 @@
   3. 何を出したかを qpublish.json に書く（3時間ごとの見回りが、Q キットの版が変わったかを見るのに使う）
      --kit-file を付けると shared/version.txt にも Q キットの版を書く（おくるんだけ。ほかのツールがこれを読む）
 
-使い方: python3 qpublish.py <リポジトリのフォルダ> [--kit 版] [--kit-file] [--commit SHA]
+  4. --site <フォルダ> を付けると、Pages に出す写しをそのフォルダに作り、出してはいけないものが入っていないかを確かめる
+     （テスト・作る道具・お試しの画面は出さない。入れないものは SITE_SKIP、入っていたら止めるものは unclean()）
+
+使い方: python3 qpublish.py <リポジトリのフォルダ> [--kit 版] [--kit-file] [--commit SHA] [--site 写しのフォルダ]
+       python3 qpublish.py --check-clean <フォルダ>   … 出してはいけないものが入っていないかだけ見る
 """
 import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -88,12 +93,63 @@ def stamp_kit(root, kit):
     print(f"Q キットの版 ?v={kit}（{count} か所）")
 
 
+# Pages に出す写しに入れないもの。どの深さでも：テストのフォルダ・テストのファイル・手元の設定。いちばん上だけ：作る道具・node の設定
+SITE_SKIP_ANY = {".git", ".github", ".claude", "node_modules", "test", "tests", "__tests__", "__pycache__", ".DS_Store", "AGENTS.md", "CLAUDE.md"}
+SITE_SKIP_TOP = {"tools", "package.json", "package-lock.json", ".gitignore"}
+TEST_FILE = re.compile(r"\.(test|spec)\.[cm]?js$")
+# 入っていたら止めるもの（写しの作り方をまちがえたとき・お試しの画面の名前）
+UNCLEAN_NAME = re.compile(r"^(mock|mocks|__mocks__|fixtures|sandbox)$|[-_.]mock\.html?$", re.I)
+
+
+def skip(rel):
+    parts = rel.parts
+    return bool(set(parts) & SITE_SKIP_ANY) or parts[0] in SITE_SKIP_TOP or bool(TEST_FILE.search(rel.name))
+
+
+def unclean(site):
+    """出してはいけないもの（相対パスの一覧）。空なら出してよい"""
+    site = Path(site)
+    bad = []
+    for path in sorted(site.rglob("*")):
+        rel = path.relative_to(site)
+        if any(rel.is_relative_to(Path(b)) for b in bad):
+            continue  # 止めるフォルダの中は数えない（フォルダの名前だけ出す）
+        if skip(rel) or UNCLEAN_NAME.search(rel.name):
+            bad.append(str(rel))
+    return bad
+
+
+def make_site(root, site):
+    """root から、出してよいものだけを site に写す"""
+    site = Path(site).resolve()
+    if site.exists():
+        shutil.rmtree(site)
+    for path in sorted(root.rglob("*")):
+        rel = path.relative_to(root)
+        if skip(rel) or not path.is_file():
+            continue
+        out = site / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, out)
+    bad = unclean(site)
+    if bad:
+        sys.exit("公開の写しに、出してはいけないものがあります：" + "・".join(bad))
+    print(f"公開の写し: {site}（{sum(1 for p in site.rglob('*') if p.is_file())} ファイル）")
+
+
 def main():
+    if sys.argv[1:2] == ["--check-clean"]:
+        bad = unclean(sys.argv[2])
+        if bad:
+            sys.exit("出してはいけないものがあります：" + "・".join(bad))
+        print("出してはいけないものは入っていません")
+        return
     ap = argparse.ArgumentParser(description="公開のときに ?v= を付ける（Actions の中だけで使う）")
     ap.add_argument("root")
     ap.add_argument("--kit", default="")
     ap.add_argument("--kit-file", action="store_true")
     ap.add_argument("--commit", default="")
+    ap.add_argument("--site", default="")
     args = ap.parse_args()
     root = Path(args.root).resolve()
     version = stamp_own(root)
@@ -104,6 +160,8 @@ def main():
     info = {"version": version, "kit": args.kit, "commit": args.commit}
     (root / "qpublish.json").write_text(json.dumps(info, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"qpublish.json: {info}")
+    if args.site:
+        make_site(root, args.site)
 
 
 if __name__ == "__main__":
