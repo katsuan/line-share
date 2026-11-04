@@ -1,6 +1,6 @@
-// ConneQt（くらぶ）のツール共通の service worker の中身（電波がなくても、一度開いたツールは開けるようにする）。
+// くらぶ（Qlove）のツール共通の service worker の中身（電波がなくても、一度開いたツールは開けるようにする）。
 // 各ツールの sw.js（ツールのいちばん上の階層）が、ツールの名前を決めてから読み込む：
-//   self.CONNEQT_TOOL = "qji";
+//   self.Q_TOOL = "qji";   （前の名前 self.CONNEQT_TOOL も読む。すでに配った sw.js のため）
 //   importScripts("/line-share/shared/sw-core.js");
 // やり方：まずネットから取る（新しい版をすぐ出すため）。取れない・遅いとき（5秒）だけ、前に保存したものを出す。
 // 扱うのは同じサイト（katsuan.github.io）のファイルと Google Fonts だけ。LINE・Firebase・画像サーバーなどには触らない。
@@ -9,8 +9,8 @@
 (function () {
   "use strict";
 
-  const tool = self.CONNEQT_TOOL || "tool";
-  const PREFIX = `conneqt-${tool}-`;
+  const tool = self.Q_TOOL || self.CONNEQT_TOOL || "tool";
+  const PREFIX = `conneqt-${tool}-`; // 保存の名前は前のまま（変えると、今の保存が全部消える）
   // v1 はクエリごとに保存していた。v2 にしたときに、v1 の保存は activate で消える
   const CACHE = `${PREFIX}v2`;
   const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];

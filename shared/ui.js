@@ -447,11 +447,15 @@
       return false;
     }
     if (button) {
-      // 2秒だけ「コピーしました！」にして、元のボタン名に戻す
-      const label = button.dataset.label || (button.dataset.label = button.textContent);
+      // 2秒だけ「コピーしました！」にして、元の中身（頭の線アイコンごと）に戻す。続けて押しても、最初の中身を覚えておく
+      if (!button._lsLabel) button._lsLabel = [...button.childNodes].map((node) => node.cloneNode(true));
+      const label = button._lsLabel;
       button.textContent = "コピーしました！";
       clearTimeout(button._lsCopied);
-      button._lsCopied = setTimeout(() => (button.textContent = label), 2000);
+      button._lsCopied = setTimeout(() => {
+        button.replaceChildren(...label.map((node) => node.cloneNode(true)));
+        button._lsLabel = null;
+      }, 2000);
     } else if (typeof done === "function") done();
     else if (done) toast(done);
     return true;
