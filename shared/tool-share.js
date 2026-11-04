@@ -81,7 +81,7 @@
   // おくるんのマーク（吹き出しの Q）。ui.css を読んでいないツールでも出るよう、ここで場所を決める
   const MARK_URL = new URL("shared/mark.svg", BASE).href;
   // 線アイコン（shared/icons/ の Lucide）。同じく ui.css がなくても出るよう、ファイルを直接読む
-  const ICONS = ["next"];
+  const ICONS = ["next", "backup"];
   const iconEl = (name) => {
     const el = document.createElement("span");
     el.className = `oqrn-i oqrn-i-${name}`;
@@ -422,7 +422,7 @@
     const link = document.createElement("a");
     link.className = "oqrn-backup";
     link.href = new URL(`backup/?from=${encodeURIComponent(toolKey)}`, BASE).href;
-    link.textContent = "💾 この端末の記録をバックアップ";
+    link.append(iconEl("backup"), "この端末の記録をバックアップ");
     return link;
   }
 

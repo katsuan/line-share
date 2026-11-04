@@ -72,9 +72,12 @@
       }
 
       .bk-ok {
+        display: flex;
+        align-items: center;
+        gap: var(--ls-space-s);
         color: var(--ls-success);
         font-size: 13px;
-        font-weight: 800;
+        font-weight: 700;
       }
     </style>
   </head>
@@ -90,9 +93,9 @@
         <p class="ls-hint">Qlove の記録は、この端末の中だけにあります。ファイルにしておけば、機種変更のときも戻せます。</p>
 
         <section class="ls-panel" aria-labelledby="saveTitle">
-          <h2 id="saveTitle" class="ls-panel-title">📦 保存する</h2>
+          <h2 id="saveTitle" class="ls-panel-title"><span class="ls-icon" data-icon="save" aria-hidden="true"></span>保存する</h2>
           <ul id="tools" class="bk-tools"></ul>
-          <p id="empty" class="ls-empty" hidden><span class="ls-empty-icon">🗒️</span>この端末には、まだ記録がありません。</p>
+          <p id="empty" class="ls-empty" hidden><span class="ls-empty-icon ls-icon" data-icon="inbox" aria-hidden="true"></span>この端末には、まだ記録がありません。</p>
           <div class="bk-row">
             <button id="saveFile" class="ls-button is-primary" type="button">ファイルに保存</button>
             <button id="copyText" class="ls-button" type="button">文字でコピー</button>
@@ -101,7 +104,7 @@
         </section>
 
         <section class="ls-panel" aria-labelledby="loadTitle">
-          <h2 id="loadTitle" class="ls-panel-title">📥 戻す</h2>
+          <h2 id="loadTitle" class="ls-panel-title"><span class="ls-icon" data-icon="upload" aria-hidden="true"></span>戻す</h2>
           <div class="bk-row">
             <label class="ls-button" for="loadFile">ファイルを選ぶ</label>
             <button id="pasteOpen" class="ls-button" type="button">文字を貼る</button>
@@ -114,13 +117,13 @@
         </section>
 
         <section class="ls-panel" aria-labelledby="keepTitle">
-          <h2 id="keepTitle" class="ls-panel-title">🏠 消えにくくする</h2>
+          <h2 id="keepTitle" class="ls-panel-title"><span class="ls-icon" data-icon="shield-check" aria-hidden="true"></span>消えにくくする</h2>
           <p class="ls-hint">iPhone の Safari では、しばらく開かないと記録が消えることがあります。ホーム画面に追加すると消えにくくなります。</p>
           <ol class="bk-steps">
             <li>Safari でツールを開く</li>
             <li>下の共有ボタン（□↑）→「ホーム画面に追加」</li>
           </ol>
-          <p id="persisted" class="bk-ok" hidden>✅ この端末では、記録を消えにくくしてあります</p>
+          <p id="persisted" class="bk-ok" hidden><span class="ls-icon" data-icon="done" aria-hidden="true"></span>この端末では、記録を消えにくくしてあります</p>
         </section>
       </div>
     </main>
