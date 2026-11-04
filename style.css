@@ -48,6 +48,12 @@
   cursor: pointer;
 }
 
+/* 頭はおくるんのマーク（ui.css の is-oqrn）を紫で。ほかのツールの「○○を紹介する」（tool-share.js）と同じ */
+.hub-share.is-oqrn::before {
+  margin-right: 0;
+  background: var(--ls-accent);
+}
+
 .share-options {
   display: grid;
   gap: var(--ls-space-s);

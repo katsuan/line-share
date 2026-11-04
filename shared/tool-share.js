@@ -1,4 +1,4 @@
-// ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「📤 ○○を紹介する」の窓口。
+// ほかのツール（さくせん盤・キロっく・ぽもくる・ひっくり・くろのす・ジェンダーリビール・くじ）に置く「○○を紹介する」の窓口（頭におくるんのマーク）。
 // 押すとシートを出し、「カードでおくるん」（おくるんのマーク）か「リンクでシェア」を選べる。
 // 上に「つぎにおすすめ」（hub-links.json の next があるツールだけ）、下に「この端末の記録をバックアップ」（/backup/）。
 // 開くたびに「最近使ったツール」（localStorage の conneqt:recent）を覚え、おくるん HOME に出す。
@@ -440,7 +440,10 @@
     open.type = "button";
     open.className = "oqrn-share-open";
     open.setAttribute("aria-haspopup", "dialog");
-    open.textContent = `📤 ${tool.name}を紹介する`;
+    // 頭はおくるんのマーク（紹介はおくるんで送るので。「カードでおくるん」と同じ印）
+    const mark = Object.assign(document.createElement("span"), { className: "oqrn-mark" });
+    mark.setAttribute("aria-hidden", "true");
+    open.append(mark, `${tool.name}を紹介する`);
     const next = nextCard(tool, others);
     if (next) host.appendChild(next);
     host.appendChild(open);
