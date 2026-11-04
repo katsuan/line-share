@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  // 記録の名前の頭 → ツールの名前（ConneQt の一覧に出していないツールも入れる）
+  // 記録の名前の頭 → ツールの名前（くらぶの一覧に出していないツールも入れる）
   const OWNERS = [
     ["line-share:", "おくるん", "oqrn"],
     ["oqrn:", "おくるん", "oqrn"],
@@ -53,7 +53,7 @@
     return items;
   }
 
-  // ツールごとにまとめる（ConneQt 自身の「最近つかった」は数えない）
+  // ツールごとにまとめる（くらぶ自身の「最近つかった」は数えない）
   function byTool(items) {
     const groups = new Map();
     for (const [key, value] of Object.entries(items)) {

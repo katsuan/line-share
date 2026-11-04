@@ -101,7 +101,7 @@
       ${ICONS.map((name) => `.oqrn-i-${name} { --oqrn-i: url("${new URL(`shared/icons/${name}.svg`, BASE).href}"); }`).join("\n      ")}
       /* 文の頭をそろえて左に（見た目の決まり 3） */
       .oqrn-share { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; margin: 24px 0 8px; }
-      /* コネクト：1行目に名前と説明、2行目にツールのアイコンが横に流れつづける帯（終わりなくくり返す。ふえても1行のまま） */
+      /* くらぶ：1行目に名前と説明、2行目にツールのアイコンが横に流れつづける帯（終わりなくくり返す。ふえても1行のまま） */
       .oqrn-family { display: grid; justify-items: start; gap: 4px; width: 100%; font-family: inherit; line-height: 1.4; }
       .oqrn-family-head { margin: 0; color: var(--ls-subtext, #8a877e); font-size: 11px; line-height: 1.9; white-space: nowrap; }
       .oqrn-family-label { font-weight: 700; letter-spacing: 0.04em; }
@@ -445,7 +445,7 @@
     return button;
   }
 
-  // この端末の記録のバックアップ（おくるんの /backup/。ConneQt の全ツールの記録を1つのファイルにまとめる）
+  // この端末の記録のバックアップ（おくるんの /backup/。くらぶの全ツールの記録を1つのファイルにまとめる）
   function backupLink() {
     const link = document.createElement("a");
     link.className = "oqrn-backup";
