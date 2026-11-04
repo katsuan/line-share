@@ -9,6 +9,7 @@
 | `look.mjs` | 見た目の点検（`docs/ux.md` の L1〜L6：グラデ・余白・中央・絵文字・色・見出し）。直す候補の数を出すだけで止めない。`--list` で何行目か |
 | `selfcheck.gs` | GAS のプロジェクトに入れて、使う前に GAS エディタで `qCheckAll` を動かす。`safeCell()` もここ |
 | `example.test.js` | テストの書き方の見本 |
+| `pressure-level.mjs` | 気圧の変化の目安の手本（`pressureLevel`）と、見本でくらべる `checkPressureLevels(levelAt)`。決め方は [docs/pressure.md](../../docs/pressure.md) |
 
 ## GAS のテスト（node）
 
