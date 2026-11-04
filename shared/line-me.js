@@ -7,8 +7,8 @@
 //   mount(opts) → { update() } / null（ブラウザ版では何も出さない）
 //     opts：{ liffId, host（アイコンを入れる場所。既定は .ls-brand）, botName（例「くらぶボット」）,
 //             connected()（ボットとつながっているか）, pending()（まだ送っていない記録の数）,
-//             retry()（電波がもどったとき・「いま送る」で呼ぶ。Promise でもよい）, onSettings()（「🔗 ○○とつなぐ」を押したとき）,
-//             onPrefs()（「⚙️ 設定」を押したとき。ふつうは QLineMe.openFold("settings")） }
+//             retry()（電波がもどったとき・「いま送る」で呼ぶ。Promise でもよい）, onSettings()（「○○とつなぐ」を押したとき）,
+//             onPrefs()（「設定」を押したとき。ふつうは QLineMe.openFold("settings")） }
 //     ボットにつながないツール（キロっく）向け：
 //       bot: false … 「ボットとつながっているか」「まだ送っていない数」の行と数の印を出さない
 //       show: true … ブラウザ版でも出す（灰色のふち。キロっくはアイコンから設定を開くため）
@@ -17,13 +17,14 @@
 //       onOpen(handle) … 押したときにツールのシートを開く（部品のシートは出さない）。handle.status() で { me, loggedIn }
 //     → { update(), status() }
 //   describe(state) … シートに出す行（テストで中身を確かめる）
+//   buttonLabel(state, opts) … アイコンの読み上げの名前（opts：{ inLine, opens }。テストで確かめる）
 //   readMe(storage)・saveMe(profile, storage) … 端末に残した名前とアイコンの URL
 //   initial(name) … 名前の頭の字（アイコンがないとき）
-//   openFold(idOrElement) … たたみ欄（<details>。ふつうはページの下の「⚙️ 設定」id="settings"）を開いて、そこまで動かす
+//   openFold(idOrElement) … たたみ欄（<details>。ふつうはページの下の「設定」id="settings"）を開いて、そこまで動かす
 //
 // 設定の置き場所（Q のツールの決まり。q-oqrn/docs/ux.md の A7）
-//   設定（週のはじまり・表示・目標・記録の控えなど）は、ページの下の「⚙️ 設定」のたたみ欄（id="settings"）に1つにまとめる。
-//   LINE 版はアイコンのシートの「⚙️ 設定」からそこへ。ブラウザ版はアイコンが出ないので、ページの下の欄をそのまま開く
+//   設定（週のはじまり・表示・目標・記録の控えなど）は、ページの下の「設定」のたたみ欄（id="settings"）に1つにまとめる。
+//   LINE 版はアイコンのシートの「設定」からそこへ。ブラウザ版はアイコンが出ないので、ページの下の欄をそのまま開く
 //   hue(name)     … 頭の字の丸の色あい（0〜359）。同じ名前なら、どのツール・どの端末でも同じ色
 //
 // 守ること（q-oqrn/docs/security.md）
@@ -113,7 +114,7 @@ var QLineMe = (function () {
 
   /**
    * シートに出す行（文字だけ）。icon は前からの絵文字（ツールが文字で出しているので残す）、iconName は線アイコンの名前（ui.css の .ls-icon。キットのシートはこちら）
-   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「⚙️ 設定」の記録の控え） }
+   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「設定」の記録の控え） }
    */
   function describe(state) {
     var s = state || {};
@@ -167,21 +168,77 @@ var QLineMe = (function () {
     document.head.appendChild(style);
   }
 
+  /** 線アイコン（ui.css の .ls-icon）。hidden なら読み上げない */
+  function iconSpan(name, hidden) {
+    var el = document.createElement("span");
+    el.className = "ls-icon";
+    el.setAttribute("data-icon", name);
+    if (hidden) el.setAttribute("aria-hidden", "true");
+    return el;
+  }
+
+  /**
+   * アイコンの読み上げの名前（だれか・LINE 版か・送っていない記録・押すと何が出るか）
+   * state は mount の中の状態（me・loggedIn・verified・pending）。opts：{ inLine（LINE アプリの中か）, opens（押すとツールのシートが開く） }
+   */
+  function buttonLabel(state, opts) {
+    var st = state || {};
+    var o = opts || {};
+    var who = st.loggedIn && st.me && st.me.name
+      ? st.me.name + " さん（LINE 版" + (st.verified ? "" : "・前回のログイン") + "）"
+      : (o.inLine ? "LINE 版" : "ブラウザ版") + "・ログインしていません";
+    var pending = st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "";
+    return who + pending + (o.opens ? "。押すと、あなたの記録と設定" : "。押すとくわしく");
+  }
+
+  // シートのボタン1つ。iconName を渡すと、文字の前に線アイコン
+  function sheetButton(className, text, onClick, iconName) {
+    var el = document.createElement("button");
+    el.type = "button";
+    el.className = className;
+    el.textContent = text;
+    if (iconName) el.prepend(iconSpan(iconName, true));
+    el.addEventListener("click", onClick);
+    return el;
+  }
+
+  // シートの見出し（アイコンと名前）
+  function sheetHead(st) {
+    var head = document.createElement("div");
+    head.className = "qme-head";
+    var title = document.createElement("p");
+    title.className = "ls-sheet-title";
+    title.id = "qmeTitle";
+    title.textContent = st.loggedIn && st.me && st.me.name ? st.me.name + " さん" : "LINE 版";
+    head.append(avatarEl(st.me), title);
+    return head;
+  }
+
+  // シートの説明の行（describe の中身）
+  function sheetRows(st) {
+    var list = document.createElement("ul");
+    list.className = "qme-rows";
+    describe(st).forEach(function (row) {
+      var li = document.createElement("li");
+      if (row.pending) li.className = "is-pending";
+      var text = document.createElement("span");
+      text.textContent = row.text;
+      li.append(iconSpan(row.iconName, true), text);
+      list.appendChild(li);
+    });
+    return list;
+  }
+
   /** 頭の字を、名前で決まる色の丸に出す（名前がなければツールの色のまま 👤） */
   function showInitial(box, name) {
     // 名前がないときは、人の線アイコン（initial() の 👤 は、文字で使うツールのために残す）
     if (!String(name || "").trim()) {
-      var person = document.createElement("span");
-      person.className = "ls-icon";
-      person.setAttribute("data-icon", "user");
-      box.replaceChildren(person);
+      box.replaceChildren(iconSpan("user"));
       return;
     }
     box.replaceChildren(document.createTextNode(initial(name)));
-    if (String(name || "").trim()) {
-      box.classList.add("is-initial");
-      box.style.setProperty("--qme-h", String(hue(name)));
-    }
+    box.classList.add("is-initial");
+    box.style.setProperty("--qme-h", String(hue(name)));
   }
 
   /** アイコン（img か頭の字）を作る */
@@ -241,20 +298,11 @@ var QLineMe = (function () {
       };
     }
 
-    // アイコンの読み上げの名前（だれか・LINE 版か・送っていない記録・押すと何が出るか）
-    function buttonLabel(st) {
-      var who = st.loggedIn && me && me.name
-        ? me.name + " さん（LINE 版" + (st.verified ? "" : "・前回のログイン") + "）"
-        : (inLine ? "LINE 版" : "ブラウザ版") + "・ログインしていません";
-      var pending = st.pending ? "。まだ送っていない記録 " + st.pending + " 件" : "";
-      return who + pending + (o.onOpen ? "。押すと、あなたの記録と設定" : "。押すとくわしく");
-    }
-
     function drawButton() {
       var st = state();
       button.classList.toggle("is-out", !st.loggedIn);
       button.classList.toggle("is-unsure", st.loggedIn && !st.verified);
-      button.setAttribute("aria-label", buttonLabel(st));
+      button.setAttribute("aria-label", buttonLabel(st, { inLine: inLine, opens: !!o.onOpen }));
       var parts = [avatarEl(me)];
       if (st.pending) {
         var badge = document.createElement("span");
@@ -275,55 +323,6 @@ var QLineMe = (function () {
     }
     function onKey(event) {
       if (event.key === "Escape") close();
-    }
-
-    // シートのボタン1つ
-    // iconName を渡すと、文字の前に線アイコン
-    function sheetButton(className, text, onClick, iconName) {
-      var el = document.createElement("button");
-      el.type = "button";
-      el.className = className;
-      el.textContent = text;
-      if (iconName) {
-        var mark = document.createElement("span");
-        mark.className = "ls-icon";
-        mark.setAttribute("data-icon", iconName);
-        mark.setAttribute("aria-hidden", "true");
-        el.prepend(mark);
-      }
-      el.addEventListener("click", onClick);
-      return el;
-    }
-
-    // シートの見出し（アイコンと名前）
-    function sheetHead(st) {
-      var head = document.createElement("div");
-      head.className = "qme-head";
-      var title = document.createElement("p");
-      title.className = "ls-sheet-title";
-      title.id = "qmeTitle";
-      title.textContent = st.loggedIn && me && me.name ? me.name + " さん" : "LINE 版";
-      head.append(avatarEl(me), title);
-      return head;
-    }
-
-    // シートの説明の行（describe の中身）
-    function sheetRows(st) {
-      var list = document.createElement("ul");
-      list.className = "qme-rows";
-      describe(st).forEach(function (row) {
-        var li = document.createElement("li");
-        if (row.pending) li.className = "is-pending";
-        var icon = document.createElement("span");
-        icon.setAttribute("aria-hidden", "true");
-        icon.className = "ls-icon";
-        icon.setAttribute("data-icon", row.iconName);
-        var text = document.createElement("span");
-        text.textContent = row.text;
-        li.append(icon, text);
-        list.appendChild(li);
-      });
-      return list;
     }
 
     // シートのボタン（いま送る・ログイン・設定・ボットとつなぐ・閉じる）。閉じるは最後
@@ -443,7 +442,7 @@ var QLineMe = (function () {
     return true;
   }
 
-  return { KEY: KEY, mount: mount, openFold: openFold, describe: describe, readMe: readMe, saveMe: saveMe, initial: initial, hue: hue, clean: clean };
+  return { KEY: KEY, mount: mount, openFold: openFold, describe: describe, buttonLabel: buttonLabel, readMe: readMe, saveMe: saveMe, initial: initial, hue: hue, clean: clean };
 })();
 
 if (typeof module !== "undefined" && module.exports) module.exports = QLineMe;
