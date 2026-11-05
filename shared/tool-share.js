@@ -196,6 +196,14 @@
     intro: "場所・予定・お知らせ・文字や手書きを、カードや画像にしてトークに送れます"
   };
 
+  // 「カードでおくるん」の説明の終わり。おくるんは LINE で送るので、ブラウザ版では LINE へのログインが要ると添える
+  function cardSendNote() {
+    const inLine = / Line\//.test(navigator.userAgent);
+    return inLine
+      ? '<span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span>'
+      : '<span class="oqrn-nw">LINE にログインして、</span><span class="oqrn-nw">友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span>';
+  }
+
   // 下から出るシートの閉じ方をそろえる：閉じるボタン（data-close）・外側を押す・Esc。閉じたら、開いたボタンに戻る
   function sheetBehavior(sheet, getOpener) {
     // シートを閉じて、開いたボタンに戻る
@@ -227,7 +235,7 @@
         <a class="oqrn-tool-open"></a>
         <a class="oqrn-tool-line" hidden>${iconHtml("app")}LINE 版で開く</a>
         <p class="oqrn-tool-why" hidden></p>
-        <a class="oqrn-sheet-option" data-tool-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small><span class="oqrn-nw">このツールの</span><span class="oqrn-nw">紹介カードを作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
+        <a class="oqrn-sheet-option" data-tool-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small><span class="oqrn-nw">このツールの</span><span class="oqrn-nw">紹介カードを作って、</span>${cardSendNote()}</small></a>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>
       </div>`;
     document.body.appendChild(sheet);
@@ -485,7 +493,7 @@
     sheet.innerHTML = `
       <div class="oqrn-sheet-card" role="dialog" aria-modal="true" aria-labelledby="oqrnShareTitle">
         <p id="oqrnShareTitle" class="oqrn-sheet-title"></p>
-        <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span><span class="oqrn-nw">LINE の友だち</span>・<span class="oqrn-nw">グループに</span><span class="oqrn-nw">送ります</span></small></a>
+        <a class="oqrn-sheet-option is-primary" data-card><span><span class="oqrn-mark" aria-hidden="true"></span>カードでおくるん</span><small>おくるんで<span class="oqrn-nw">紹介カードを</span><span class="oqrn-nw">作って、</span>${cardSendNote()}</small></a>
         <button class="oqrn-sheet-option" type="button" data-link><span>${iconHtml("link")}リンクでシェア</span><small>リンクを共有します<span class="oqrn-nw">（共有できないときは</span><span class="oqrn-nw">コピー）</span></small></button>
         <p class="oqrn-sheet-status" role="status"></p>
         <button class="oqrn-sheet-close" type="button" data-close>閉じる</button>

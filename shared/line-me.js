@@ -114,7 +114,7 @@ var QLineMe = (function () {
 
   /**
    * シートに出す行（文字だけ）。icon は前からの絵文字（ツールが文字で出しているので残す）、iconName は線アイコンの名前（ui.css の .ls-icon。キットのシートはこちら）
-   * state：{ me（{ name, picture } か null）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「設定」の記録の控え） }
+   * state：{ me（{ name, picture } か null）, inLine（LINE アプリの中か。false ならブラウザ版の言い方）, loggedIn, connected, pending, botName, online, verified（false なら、前回のログインのまま。まだ確かめていない）, canLogin（ログインのボタンを出せる）, bot（false ならボットの行を出さない）, moveHint（記録のうつし方。既定は「設定」の記録の控え） }
    */
   function describe(state) {
     var s = state || {};
@@ -134,7 +134,9 @@ var QLineMe = (function () {
     if (n) rows.push({ icon: "📮", iconName: "inbox", text: "まだ" + bot + "に送っていない記録が " + n + " 件。" + (s.online === false ? "電波がもどったら送ります" : s.connected ? "すぐ送りなおします" : "つながったら送ります"), pending: true });
     else if (s.connected && s.bot !== false) rows.push({ icon: "📮", iconName: "inbox", text: "送っていない記録はありません" });
     if (s.online === false) rows.push({ icon: "📶", iconName: "offline", text: "いまは電波がありません。記録はこの端末に残っています" });
-    rows.push({ icon: "📱", iconName: "app", text: "LINE 版の記録は、Safari などのブラウザ版とは別に、この端末に残ります（" + (s.moveHint || "「設定」の記録の控えでうつせます") + "）" });
+    // LINE の中か、ブラウザ版か（inLine。わからないときは LINE 版の言い方）
+    var here = s.inLine === false ? "このブラウザの記録は、LINE 版とは別に" : "LINE 版の記録は、Safari などのブラウザ版とは別に";
+    rows.push({ icon: "📱", iconName: "app", text: here + "、この端末に残ります（" + (s.moveHint || "「設定」の記録の控えでうつせます") + "）" });
     return rows;
   }
 
@@ -209,7 +211,7 @@ var QLineMe = (function () {
     var title = document.createElement("p");
     title.className = "ls-sheet-title";
     title.id = "qmeTitle";
-    title.textContent = st.loggedIn && st.me && st.me.name ? st.me.name + " さん" : "LINE 版";
+    title.textContent = st.loggedIn && st.me && st.me.name ? st.me.name + " さん" : (st.inLine === false ? "ブラウザ版" : "LINE 版");
     head.append(avatarEl(st.me), title);
     return head;
   }
@@ -294,6 +296,7 @@ var QLineMe = (function () {
         pending: o.bot === false ? 0 : Number(o.pending && o.pending()) || 0,
         bot: o.bot !== false,
         botName: o.botName,
+        inLine: inLine,
         online: typeof navigator !== "undefined" && "onLine" in navigator ? navigator.onLine : true
       };
     }
