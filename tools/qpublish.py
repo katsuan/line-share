@@ -93,9 +93,12 @@ def stamp_kit(root, kit):
     print(f"Q キットの版 ?v={kit}（{count} か所）")
 
 
-# Pages に出す写しに入れないもの。どの深さでも：テストのフォルダ・テストのファイル・手元の設定。いちばん上だけ：作る道具・node の設定
-SITE_SKIP_ANY = {".git", ".github", ".claude", "node_modules", "test", "tests", "__tests__", "__pycache__", ".DS_Store", "AGENTS.md", "CLAUDE.md"}
-SITE_SKIP_TOP = {"tools", "package.json", "package-lock.json", ".gitignore"}
+# Pages に出す写しに入れないもの
+#   どの深さでも：テストのフォルダ・テストのファイル・点で始まるもの（手元の設定・git。.nojekyll と .well-known は出す）
+#   いちばん上だけ：作る道具（tools/）・node の設定・README.md でない .md（手元向けの決まりのメモ）
+SITE_SKIP_ANY = {"node_modules", "test", "tests", "__tests__", "__pycache__"}
+SITE_KEEP_DOT = {".nojekyll", ".well-known"}
+SITE_SKIP_TOP = {"tools", "package.json", "package-lock.json"}
 TEST_FILE = re.compile(r"\.(test|spec)\.[cm]?js$")
 # 入っていたら止めるもの（写しの作り方をまちがえたとき・お試しの画面の名前）
 UNCLEAN_NAME = re.compile(r"^(mock|mocks|__mocks__|fixtures|sandbox)$|[-_.]mock\.html?$", re.I)
@@ -103,7 +106,11 @@ UNCLEAN_NAME = re.compile(r"^(mock|mocks|__mocks__|fixtures|sandbox)$|[-_.]mock\
 
 def skip(rel):
     parts = rel.parts
-    return bool(set(parts) & SITE_SKIP_ANY) or parts[0] in SITE_SKIP_TOP or bool(TEST_FILE.search(rel.name))
+    if set(parts) & SITE_SKIP_ANY or parts[0] in SITE_SKIP_TOP or TEST_FILE.search(rel.name):
+        return True
+    if any(part.startswith(".") and part not in SITE_KEEP_DOT for part in parts):
+        return True
+    return len(parts) == 1 and rel.suffix.lower() == ".md" and rel.name != "README.md"
 
 
 def unclean(site):

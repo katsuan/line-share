@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const SKIP_DIRS = new Set(["node_modules", ".git", "vendor", "dist", "output", "fonts", "DerivedData", ".claude", "tools", "test", "tests", "data", "gas", "server", "backup-old"]);
+const SKIP_DIRS = new Set(["node_modules", ".git", "vendor", "dist", "output", "fonts", "DerivedData", "tools", "test", "tests", "data", "gas", "server", "backup-old"]);
 const EXT = new Set([".html", ".css", ".js", ".mjs"]);
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-\u{23FF}]/u;
 

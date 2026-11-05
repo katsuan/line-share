@@ -16,7 +16,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-const SKIP_DIRS = new Set(["node_modules", ".git", "vendor", "dist", "output", "fonts", "DerivedData", ".claude", "tools"]);
+// 点で始まるフォルダ（.git・手元の設定）も見ない。.github（公開の流れ）だけは見る
+const SKIP_DIRS = new Set(["node_modules", "vendor", "dist", "output", "fonts", "DerivedData", "tools"]);
 
 const RULES = [
   // ---- 画面（HTML・JS） ----
@@ -43,7 +44,7 @@ const RULES = [
 // フォルダの中のコードのファイルを集める（見ないフォルダは飛ばす）
 function walk(dir, out) {
   for (const name of fs.readdirSync(dir)) {
-    if (SKIP_DIRS.has(name)) continue;
+    if (SKIP_DIRS.has(name) || (name.startsWith(".") && name !== ".github")) continue;
     const p = path.join(dir, name);
     const st = fs.statSync(p);
     if (st.isDirectory()) walk(p, out);
