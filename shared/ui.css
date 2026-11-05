@@ -935,6 +935,17 @@ input[type="time"].ls-input {
   background: var(--ls-surface);
 }
 
+/* 画像で保存の窓（ui.js の imageSheet）。画像は長押しで保存できるように */
+.ls-image-sheet img {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  border-radius: var(--ls-radius-md);
+  object-fit: contain;
+  background: #fff;
+  -webkit-touch-callout: default;
+}
+
 .ls-sheet-title {
   display: flex;
   align-items: center;

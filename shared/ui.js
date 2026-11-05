@@ -438,6 +438,62 @@
     setTimeout(hide, ms);
   }
 
+  // ---- 画像で保存 ----
+
+  /**
+   * 作った画像を出して、保存してもらう窓（長押しで保存・共有・ダウンロード・閉じる）。どのツールもこれを使う。
+   *   imageSheet(blob, { name: "countdown.png", alt: "保存用の画像" })
+   * name はダウンロード・共有のときのファイル名、alt は画像の読み上げ、hint は画像の下の一言。
+   * 共有（端末の共有メニュー）は、ファイルを渡せる端末だけに出す。閉じたら画像の URL を手放す。返すもの：閉じる関数
+   */
+  function imageSheet(blob, { name = "image.png", alt = "画像", hint = "画像を長押しすると保存できます。" } = {}) {
+    document.querySelector(".ls-sheet.ls-image-sheet")?.remove();
+    const before = document.activeElement;
+    const url = URL.createObjectURL(blob);
+    const file = new File([blob], name, { type: blob.type || "image/png" });
+    const sheet = document.createElement("div");
+    sheet.className = "ls-sheet ls-image-sheet";
+    const card = document.createElement("div");
+    card.className = "ls-sheet-card";
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    card.setAttribute("aria-label", alt);
+    const img = Object.assign(document.createElement("img"), { src: url, alt });
+    const note = Object.assign(document.createElement("p"), { className: "ls-hint", textContent: hint });
+    const actions = Object.assign(document.createElement("div"), { className: "ls-stack" });
+    if (navigator.canShare?.({ files: [file] })) {
+      const share = Object.assign(document.createElement("button"), { type: "button", className: "ls-button is-primary is-block" });
+      share.append(icon("share"), "共有・保存");
+      share.addEventListener("click", () => navigator.share({ files: [file] }).catch(() => {}));
+      actions.append(share);
+    }
+    const download = Object.assign(document.createElement("a"), { className: "ls-button is-block", href: url, download: name });
+    download.append(icon("save"), "ダウンロード");
+    actions.append(download);
+    const closeButton = Object.assign(document.createElement("button"), { type: "button", className: "ls-button", textContent: "閉じる" });
+    card.append(img, note, actions, closeButton);
+    sheet.append(card);
+    // 窓を閉じて、画像の URL を手放す
+    const close = () => {
+      if (!sheet.isConnected) return;
+      sheet.remove();
+      document.removeEventListener("keydown", onKey);
+      URL.revokeObjectURL(url);
+      before?.focus?.({ preventScroll: true });
+    };
+    const onKey = (event) => {
+      if (event.key === "Escape") close();
+    };
+    closeButton.addEventListener("click", close);
+    sheet.addEventListener("click", (event) => {
+      if (event.target === sheet) close();
+    });
+    document.addEventListener("keydown", onKey);
+    document.body.append(sheet);
+    closeButton.focus({ preventScroll: true });
+    return close;
+  }
+
   // ---- コピー ----
 
   /**
@@ -683,6 +739,6 @@
 
   window.LineShareUI = {
     jumpTo, PALETTE, paletteFromColor, optional, syncOptionals, setPreviewError, loadTemplates, removeButton, keepRemoveVisible,
-    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy, icon, iconHtml
+    afterSent, firstTip, progress, toast, setAccent, ask, pickField, copy, icon, iconHtml, imageSheet
   };
 })();

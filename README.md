@@ -112,6 +112,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 | `toast(message, { actionLabel, onAction, ms })` | 下に数秒出る知らせ。「元に戻す」などのボタンも付けられる |
 | `firstTip(key, steps, before)` | はじめて開いた人にだけ、短い使い方 |
 | `afterSent({ resend })` | 送ったあとのシート |
+| `imageSheet(blob, { name, alt })` | 作った画像を出して保存してもらう窓（長押しで保存・共有・ダウンロード・閉じる）。画像で保存はどのツールもこれ |
 | `progress(label, show)` | 時間のかかる処理の経過秒数 |
 | `setAccent(hex)` | ツールの色を変える |
 | `PALETTE`・`paletteFromColor(hex)` | おくるんの色の並び・1色から薄い色などを作る |
