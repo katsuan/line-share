@@ -1368,6 +1368,35 @@ body.is-typing .ls-to-preview {
   color: #fff;
 }
 
+/* ブラウザ版で開いたときに、はじめに出すシート（shared/liff.js の outsideChoice）。文は左そろえ、ボタンは横いっぱい */
+.ls-outside-choice {
+  z-index: 1000;
+  align-items: center;
+}
+
+.ls-outside-choice .ls-sheet-card {
+  gap: var(--ls-space-s);
+  width: min(100%, 360px);
+}
+
+.ls-outside-choice .ls-hint {
+  margin-bottom: var(--ls-space-s);
+}
+
+.ls-outside-choice .ls-outside-button {
+  width: 100%;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ls-outside-choice .ls-sheet-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ls-space-s);
+}
+
 /* ==== Q のツールの共通部品（Q キット） ====
  * ほかの Q のツールも https://katsuan.github.io/line-share/shared/ui.css を読み、
  * :root の --ls-accent など（README の「Q キット」）を自分の色に変えるだけで、同じ見た目の部品を使える。

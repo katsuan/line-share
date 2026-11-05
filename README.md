@@ -165,6 +165,8 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 ブラウザ版で開いたとき（使い心地の決まり `docs/ux.md` の B6）：お知らせカード（`/card/`）と返事（`/reply/`）は、送るボタンの上に「ログインして送る」「LINE 版で開く」（線アイコン付き）を出す（`LineShareLiff.outsideHelp`）。場所・予定（`/plan/`）と文字・手書き（`/image/`）は決まりと違い、開いたときにそのまま LINE のログインへ移る。手書きは端末に残さないので、描いたあとにログインで行き来すると消えてしまうのと、画像の保存先（プラン）をログインで決めるため
 
+本人を LINE で分けるツール（くるかな・ひっくり）は、ブラウザ版で開いたときに、はじめに「ブラウザ版で開いています」のシート（`LineShareLiff.outsideChoice({ icon, text, loginLabel, guestLabel, onGuest })`）を出す。「LINE 版で開く」「ログインして使う」と、ログインしなくても使えるツールは「ログインせずに…」。黙ってログイン画面へ飛ばさない。LIFF の起こし方は `LineShareLiff.init`（ツールは `window.LINE_SHARE_CONFIG.liffId` に自分の LIFF ID を入れてから読む）
+
 ### Google Maps（任意）
 
 Google Cloud で Maps JavaScript API と Places API (New) を有効にし、API キーを「HTTP リファラー」で `https://katsuan.github.io/*` に制限して `googleMapsApiKey` に設定します。

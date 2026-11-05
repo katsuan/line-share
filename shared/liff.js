@@ -206,5 +206,47 @@
     return true;
   }
 
-  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, isOwner, login, tidyUrl, MESSAGES };
+  /**
+   * ブラウザ版で開いたときに、はじめに出すシート（「ブラウザ版で開いています」）。LINE 版で開く・ログインする・（あれば）ログインせずに使う、から選ぶ。
+   * 本人を LINE で分けるツール（くるかな・ひっくり）が、黙ってログイン画面へ飛ばさないために使う。
+   *   icon       シートの上に出すツールのアイコンの画像
+   *   text       一言（なぜ LINE か・ログインしないと何ができるか）
+   *   appUrl()   LINE 版で開く URL（省略時は今のページの ?… をそのまま持っていく）
+   *   loginLabel ログインのボタンの言葉
+   *   guestLabel ログインせずに使うボタンの言葉（なければ出さない）。押すと閉じて onGuest()
+   * もう開いていれば何もしない。返すもの：閉じる関数（開かなかったときは null）
+   */
+  function outsideChoice({ icon = "", text = "", appUrl: getAppUrl, loginLabel = "ログインして使う", guestLabel = "", guestIcon = "play", onGuest } = {}) {
+    if (document.querySelector(".ls-sheet.ls-outside-choice")) return null;
+    const sheet = document.createElement("div");
+    sheet.className = "ls-sheet ls-outside-choice";
+    sheet.innerHTML =
+      '<div class="ls-sheet-card" role="dialog" aria-modal="true" aria-labelledby="lsOutsideChoiceTitle">' +
+      (icon ? '<img alt="" width="56" height="56">' : "") +
+      '<p id="lsOutsideChoiceTitle" class="ls-sheet-title">ブラウザ版で開いています</p>' +
+      '<p class="ls-hint"></p>' +
+      '<a class="ls-outside-button is-app" data-act="app"><span class="ls-icon" data-icon="app" aria-hidden="true"></span>LINE 版で開く</a>' +
+      '<button class="ls-outside-button" type="button" data-act="login"><span class="ls-icon" data-icon="login" aria-hidden="true"></span><span></span></button>' +
+      (guestLabel ? '<button class="ls-sheet-cancel" type="button" data-act="guest"><span class="ls-icon" aria-hidden="true"></span><span></span></button>' : "") +
+      "</div>";
+    if (icon) sheet.querySelector("img").src = icon;
+    sheet.querySelector(".ls-hint").textContent = text;
+    sheet.querySelector('[data-act="app"]').href = getAppUrl?.() || appUrl(location.search);
+    sheet.querySelector('[data-act="login"] span:last-child').textContent = loginLabel;
+    sheet.querySelector('[data-act="login"]').addEventListener("click", login);
+    const close = () => sheet.remove();
+    const guest = sheet.querySelector('[data-act="guest"]');
+    if (guest) {
+      guest.querySelector(".ls-icon").dataset.icon = guestIcon;
+      guest.querySelector("span:last-child").textContent = guestLabel;
+      guest.addEventListener("click", () => {
+        close();
+        onGuest?.();
+      });
+    }
+    document.body.appendChild(sheet);
+    return close;
+  }
+
+  window.LineShareLiff = { init, canShare, share, environment, appUrl, outsideHelp, outsideChoice, isOwner, login, tidyUrl, returnUrl, MESSAGES };
 })();
