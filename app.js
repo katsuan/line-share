@@ -23,11 +23,16 @@ function groupMembers(tools, key) {
 // LINE絵文字・ほかのツールの欄を JSON から作る（1行ずつのリンク）
 (function () {
   // LINE STORE の絵文字のページ
-  const storeUrl = (id) => `https://line.me/S/emoji/?id=${encodeURIComponent(id)}`;
+  // iPad の LINE は line.me/S/… のリンクに対応していない（「不正なリンク」になる）ので、iPad ではブラウザのお店のページを開く。
+  // iPadOS の Safari は Mac と同じ名乗りをするので、画面に指で触れるかでも見分ける
+  const isIpad = /iPad/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const storeUrl = (id) =>
+    isIpad ? `https://store.line.me/emojishop/product/${encodeURIComponent(id)}/ja` : `https://line.me/S/emoji/?id=${encodeURIComponent(id)}`;
   // 絵文字の見本の画像
   const imageUrl = (id) => `https://stickershop.line-scdn.net/sticonshop/v1/product/${encodeURIComponent(id)}/iPhone/main.png?v=1`;
   // 絵文字の作者のページ
-  const authorUrl = (id) => `https://line.me/S/shop/emoji/author/${encodeURIComponent(id)}`;
+  const authorUrl = (id) =>
+    isIpad ? `https://store.line.me/emojishop/author/${encodeURIComponent(id)}/ja` : `https://line.me/S/shop/emoji/author/${encodeURIComponent(id)}`;
 
   // JSON を読む（読めなければ reject）
   const loadJson = (path) =>
