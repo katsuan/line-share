@@ -1,6 +1,6 @@
 // 気圧の変化の目安（Open-Meteo の pressure_msl から頭痛ーるに近い段階を出す）の手本と、見本でくらべる道具。
 // 決め方と見本は data/pressure-level.json、説明は docs/pressure.md。
-// 使っているツール（SQriptable・そらくる・KazoQ）は、自分のテストで checkPressureLevels を呼んで、手本と同じ答えになるかを確かめる。
+// 使っているツール（SQriptable・そらくる・KAZOQ）は、自分のテストで checkPressureLevels を呼んで、手本と同じ答えになるかを確かめる。
 //
 //   import { checkPressureLevels } from "../../q-oqrn/tools/qtest/pressure-level.mjs";
 //   checkPressureLevels((hpa, i) => myLevel(hpa, i));   // 合わなければ投げる
