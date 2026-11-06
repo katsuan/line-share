@@ -57,6 +57,7 @@ test("本人確認なしの呼び出しは断る", () => {
 1. `selfcheck.gs` を GAS のプロジェクトにコピーする（`99_selfcheck.gs` など。番号の並びの最後に）
 2. プロジェクトに `Q_SELF_CHECK` を書く（何を確かめるか。書き方は `selfcheck.gs` の上）
 3. GAS エディタで `qCheckAll` を実行し、実行ログを見る（✅ だいじょうぶ／⚠️ 見てほしい／❌ 直す）
+   - `secretProperties`（鍵がコードに書かれていないか）は、Apps Script API でコードを読んで見る。`appsscript.json` の `oauthScopes` に `https://www.googleapis.com/auth/script.projects.readonly` を足し、[Apps Script の設定](https://script.google.com/home/usersettings)で API をオンにする。読めないときは、理由（オフ・許可がない など）が ⚠️ の1行で出る
 
 何も書きこまず、LINE にも送りません（カードは LINE の「確かめるだけ」の API に渡します）。
 
