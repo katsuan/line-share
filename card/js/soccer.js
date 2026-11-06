@@ -11,7 +11,7 @@
 //           as・cd・sb はさくせん盤の選手の印・交代から（なければ省く）
 //           内訳と PK は、入っているものだけ出す（なければ空）。同点で PK があれば PK で勝ち負けを決める
 
-const SOCCER_EDITOR_URL = "https://katsuan.github.io/soccer/";
+const SOCCER_EDITOR_URL = "https://katsuan.github.io/saqsen/";
 const PITCH_COLOR = "#2E8B4A";
 const LINE_COLOR = "#FFFFFFAA";
 

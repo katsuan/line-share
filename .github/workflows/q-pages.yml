@@ -23,7 +23,7 @@ on:
         type: string
         default: ""
       siblings:
-        description: テストが読む、となりのリポジトリ（"q-saqsen=katsuan/soccer q-roqga=katsuan/score-recorder"）
+        description: テストが読む、となりのリポジトリ（"q-saqsen=katsuan/saqsen q-roqga=katsuan/roqga"）
         type: string
         default: ""
       dev:
