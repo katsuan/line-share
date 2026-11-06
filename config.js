@@ -37,7 +37,7 @@ window.LINE_SHARE_CONFIG = {
   // 自分たちのほかの LIFF アプリ（キロっく・ひっくり・くるかな・つづく）。お知らせカードはリンクで渡されたボタンのうち、
   // katsuan.github.io と、liff.line.me のこの ID（とおくるん自身の liffId）だけを送れるリンクとして通す
   trustedLiffIds: [
-    "2009927582-2isjfmkk", // キロっく
+    "2012187502-SXNrASOl", // キロっく（くらぶの LIFF チャネル）
     "2012187502-gUp90W4L", // ひっくり（くらぶの LIFF チャネル）
     "2009927876-PcLT1IYA", // ひっくり（前の LIFF。前に作ったカードのため残す）
     "2009927876-DioOJd0z", // おくるん（前の LIFF。前に作ったカードのため残す）
