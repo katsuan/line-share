@@ -18,6 +18,7 @@
     ["qji:", "くじ", "qji"],
     ["countdown:", "くろのす", "qronos"],
     ["gender-reveal:", "ジェンダーリビール", "babyq"],
+    ["hiqri:", "ひっくり", "hiqri"],
     ["othello:", "ひっくり", "hiqri"],
     ["shoquji:", "しょくじ", "shoquji"],
     ["suqsuq:", "すくすく", "suqsuq"],
