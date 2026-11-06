@@ -13,7 +13,7 @@
   "bg"（背景と同じグラデーション。白い形のまわりを削って見分けやすくするのに使う）、(r, g, b)（色。紙吹雪など）
   "deco": True を付けた図形はアイコンだけに描き、ロゴの Q には入れない（まわりの飾り）
 
-このファイルは oqrn の tools/ に1つだけ置き、pomodoro・countdown・gender-reveal・hiqri・qji の tools/icon.py が
+このファイルは oqrn の tools/ に1つだけ置き、pomodoro・qronos・gender-reveal・hiqri・qji の tools/icon.py が
 となりのおくるん（~/GitHub/q-oqrn。GitHub のリポジトリ名は oqrn）から読む（tools/brandkit_path.py）。直すのはここだけでよい。
 Pillow・fontTools・Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf）・macOS のヒラギノ角ゴシックが必要。
 """
