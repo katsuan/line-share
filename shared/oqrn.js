@@ -1,8 +1,8 @@
 // ほかのツール（さくせん盤・くろのす・ジェンダーリビール・くじなど）から、おくるんのお知らせカードを開くための入口。
-// LIFF ID とカードの URL はここ1か所で持つ（line-share の config.js の liffId と同じ値）。
+// LIFF ID とカードの URL はここ1か所で持つ（oqrn の config.js の liffId と同じ値）。
 //
 // 使い方（各ツールの HTML。ツールの script より前に読む）
-//   <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
+//   <script src="https://katsuan.github.io/oqrn/shared/oqrn.js"></script>
 //   OQRN.cardUrl({ headerTitle: "…", title: "…", from: "qji" })   … 中身を入れた状態でカードを開く URL
 //   OQRN.cardUrl(new URLSearchParams(...))                         … URLSearchParams もそのまま渡せる（badge など同じ名前を重ねるとき）
 (function () {
@@ -19,7 +19,7 @@
 
   window.OQRN = Object.freeze({
     liffId: LIFF_ID,
-    site: "https://katsuan.github.io/line-share/",
+    site: "https://katsuan.github.io/oqrn/",
     top: `https://liff.line.me/${LIFF_ID}`,
     card: CARD,
     cardUrl

@@ -2,7 +2,7 @@
 // 区切り（7日・30日・1年…）とくらべて、「🐘 ゾウまで ▓▓░░ あと 1,200 kg」「いま 3.2 頭分」のように見せる。キロっくの「これまでに持ち上げた重さ」から作った。
 //
 // 使い方：自分の script より前に
-//   <script src="https://katsuan.github.io/line-share/shared/milestones.js" defer></script> → window.QMilestones
+//   <script src="https://katsuan.github.io/oqrn/shared/milestones.js" defer></script> → window.QMilestones
 //   見た目は ui.css（.ls-goal・.ls-ms）。読めなかったとき（電波がないなど）に備えて、ツールは window.QMilestones がなくても動くようにしておく
 //
 //   const m = QMilestones.create({

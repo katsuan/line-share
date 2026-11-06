@@ -113,7 +113,7 @@
 
   // おくるんのトップの URL（LINE 版で開く）
   function topUrl() {
-    return config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
+    return config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/oqrn/";
   }
 
   // カードの末尾に入れる「Created by おくるん ›」の箱

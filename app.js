@@ -333,7 +333,7 @@ function groupMembers(tools, key) {
 // トップのシェア：紹介カードを LINE で送るか、リンクを共有する
 (function () {
   const config = window.LINE_SHARE_CONFIG || {};
-  const PAGE_URL = "https://katsuan.github.io/line-share/";
+  const PAGE_URL = "https://katsuan.github.io/oqrn/";
   const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : PAGE_URL;
   const $ = (id) => document.getElementById(id);
   const sheet = $("shareSheet");

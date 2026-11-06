@@ -1398,7 +1398,7 @@ body.is-typing .ls-to-preview {
 }
 
 /* ==== Q のツールの共通部品（Q キット） ====
- * ほかの Q のツールも https://katsuan.github.io/line-share/shared/ui.css を読み、
+ * ほかの Q のツールも https://katsuan.github.io/oqrn/shared/ui.css を読み、
  * :root の --ls-accent など（README の「Q キット」）を自分の色に変えるだけで、同じ見た目の部品を使える。
  * クラス名と変数名は、読んでいるツールがあるので変えない（足すのはよい）。
  */

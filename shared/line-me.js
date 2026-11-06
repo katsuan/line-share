@@ -33,7 +33,7 @@
 //   - 開いてすぐ出す（B1）：前に残した名前・アイコンで先に描き、LIFF の答えが来たら描きなおす
 //
 // 使い方：ツールの HTML で、自分の script より前に botlink.js のあとで
-//   <script src="https://katsuan.github.io/line-share/shared/line-me.js?v=…" defer></script> → window.QLineMe
+//   <script src="https://katsuan.github.io/oqrn/shared/line-me.js?v=…" defer></script> → window.QLineMe
 // LIFF を起こすのは shared/botlink.js の liffReady（ボットとのつなぎと同じ約束を待つ）
 // テストは shared/test/line-me.test.js
 var QLineMe = (function () {

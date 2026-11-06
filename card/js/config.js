@@ -52,7 +52,7 @@ const THEMES = {
 };
 
 // おくるんのトップ（LINE で開くとツール一覧）。紹介テンプレートのリンク先
-const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/line-share/";
+const TOP_URL = config.liffId ? `https://liff.line.me/${config.liffId}` : "https://katsuan.github.io/oqrn/";
 
 // 用意済みのテンプレート。中身は data/templates.json の card（開いたあとに読み込む）。
 // "{top}" はおくるんのトップの URL に置き換える

@@ -6,7 +6,7 @@
   1. 読み込む JS・CSS に ?v=（日本時間の年月日時分。今ある番号より必ず大きく）を付ける
      ・おくるん（tools/stamp.py があるリポジトリ）は stamp.py、ほかは qstamp.py のやり方で、HTML を全部
      HTML からたどれないところ（前の名前で読まれる入口・ロゴやアイコン）にある ?v=数字 も、同じ番号にそろえる
-  2. Q キット（https://katsuan.github.io/line-share/shared/…）を読む <script src>・<link href> に、
+  2. Q キット（https://katsuan.github.io/oqrn/shared/…）を読む <script src>・<link href> に、
      Q キットの版（--kit。shared/ をさいごに変えたコミットの日本時間。中身が同じなら同じ番号）を付ける。?v= のないものにも付ける
   3. 何を出したかを qpublish.json に書く（3時間ごとの見回りが、Q キットの版が変わったかを見るのに使う）
      --kit-file を付けると shared/version.txt にも Q キットの版を書く（おくるんだけ。ほかのツールがこれを読む）
@@ -29,7 +29,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import qstamp  # noqa: E402
 
-KIT_ATTR = re.compile(r'((?:src|href)=")(https://katsuan\.github\.io/line-share/shared/[^"?#]+\.(?:js|css))(?:\?v=[^"#]*)?(")')
+KIT_ATTR = re.compile(r'((?:src|href)=")(https://katsuan\.github\.io/oqrn/shared/[^"?#]+\.(?:js|css))(?:\?v=[^"#]*)?(")')
 
 
 def html_files(root):

@@ -3,7 +3,7 @@
 場所・予定・お知らせ・文字・手書きを、LINE のトークにカードや画像で送れる LIFF ツール集です。
 GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプランの判定と有償プランの画像保存だけに使います。
 
-公開URL: https://katsuan.github.io/line-share/
+公開URL: https://katsuan.github.io/oqrn/
 
 ## ツール
 
@@ -61,11 +61,11 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 読みこみ方（各ツールの HTML。ツールの CSS より前に読む）：
 
 ```html
-<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<link rel="stylesheet" href="https://katsuan.github.io/oqrn/shared/ui.css">
 <style>
   :root { --ls-accent: #ec8a16; --ls-accent-strong: #c97513; --ls-accent-soft: #fdf1e3; --ls-accent-ink: #995a0e; --ls-font: "M PLUS Rounded 1c", sans-serif; }
 </style>
-<script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
+<script src="https://katsuan.github.io/oqrn/shared/ui.js" defer></script>
 ```
 
 色は `:root` に書く（開いた瞬間から色が付く）か、`LineShareUI.setAccent("#ec8a16")`（濃い色・薄い色・文字色を1色から作る）。`<script src=".../ui.js" data-accent="#ec8a16" defer>` でもよい。
@@ -80,7 +80,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 
 **日本語の改行**：`ui.css` が、文（`p`・`li` など）に `text-wrap: pretty`、見出し・ラベル・ボタン・1〜2行の説明（`.ls-hint`・`li`・`small`・`.lead`・`.sub`・`.hint`・`.note`）に `word-break: auto-phrase`（文節で折る）を付けて、「〜ま／す。」のような1〜2文字だけの行を防ぐ。長い本文には文節で折る指定を付けない（右がガタガタになって行が増える）。折りたくない短い語は `<span class="ls-nowrap">`。説明は1〜2行に収まる長さにし、スマホの幅（375px と 320px）で確かめる。
 
-**電波がないとき（service worker）**：各ツールのいちばん上に `sw.js`（2行：`self.CONNEQT_TOOL = "<key>"; importScripts("/line-share/shared/sw-core.js");`）を置き、各ページで `navigator.serviceWorker.register("./sw.js")`。中身は `shared/sw-core.js`：同じサイトのファイルはまずネットから取り（新しい版をすぐ出す）、取れない・5秒より遅いときだけ前に保存したものを出す。Google Fonts は保存したものを先に使う。LINE・Firebase・画像サーバーなどほかのサイトには触らない。
+**電波がないとき（service worker）**：各ツールのいちばん上に `sw.js`（2行：`self.CONNEQT_TOOL = "<key>"; importScripts("/oqrn/shared/sw-core.js");`）を置き、各ページで `navigator.serviceWorker.register("./sw.js")`。中身は `shared/sw-core.js`：同じサイトのファイルはまずネットから取り（新しい版をすぐ出す）、取れない・5秒より遅いときだけ前に保存したものを出す。Google Fonts は保存したものを先に使う。LINE・Firebase・画像サーバーなどほかのサイトには触らない。
 
 | 変数 | 中身 |
 |---|---|
@@ -160,7 +160,7 @@ GitHub Pages で配信する静的サイトです。GAS（`gas/`）はプラン�
 ### LIFF
 
 1. LINE Developers で LIFF アプリを1つ作る（Scope: `profile` / `chat_message.write`、Share Target Picker を有効化）
-2. エンドポイント URL に `https://katsuan.github.io/line-share/` を設定する
+2. エンドポイント URL に `https://katsuan.github.io/oqrn/` を設定する
 3. 各ツールは `https://liff.line.me/<LIFF ID>/plan/` のようにパスを付けて開く。トップページが `liff.state` を受けて各ツールへ転送する
 
 ブラウザ版で開いたとき（使い心地の決まり `docs/ux.md` の B6）：お知らせカード（`/card/`）と返事（`/reply/`）は、送るボタンの上に「ログインして送る」「LINE 版で開く」（線アイコン付き）を出す（`LineShareLiff.outsideHelp`）。場所・予定（`/plan/`）と文字・手書き（`/image/`）は決まりと違い、開いたときにそのまま LINE のログインへ移る。手書きは端末に残さないので、描いたあとにログインで行き来すると消えてしまうのと、画像の保存先（プラン）をログインで決めるため
@@ -251,9 +251,9 @@ LINE アプリ内のブラウザが古いプログラムを持ち続けないよ
 
 ### Q のほかのツールの公開
 
-どのツールも同じしくみです（各ツールの `.github/workflows/pages.yml` が `katsuan/line-share/.github/workflows/q-pages.yml@main` を呼ぶ）。
+どのツールも同じしくみです（各ツールの `.github/workflows/pages.yml` が `katsuan/oqrn/.github/workflows/q-pages.yml@main` を呼ぶ）。
 
-1. ツールのフォルダと、となりの `q-oqrn`（line-share）をそろえて取り、手元と同じ日本時間・Node 20 でテストと `check-code.mjs` を動かす
+1. ツールのフォルダと、となりの `q-oqrn`（oqrn）をそろえて取り、手元と同じ日本時間・Node 20 でテストと `check-code.mjs` を動かす
 2. 通ったら `tools/qpublish.py` が公開の写しに `?v=` を付ける：自分の JS・CSS（`tools/qstamp.py` のやり方）、HTML からたどれない入口やロゴ・アイコンの `?v=` も同じ番号に、Q キットの URL には Q キットの版
 3. Pages に出す。何を出したかは公開ページの `qpublish.json`
 4. Q キットだけ新しくなったときは、各ツールの3時間ごとの見回り（schedule）が `qpublish.json` とくらべて出しなおす
@@ -268,14 +268,14 @@ LINE アプリ内のブラウザが古いプログラムを持ち続けないよ
 |---|---|
 | `data/line-emoji.json` | トップの「LINE絵文字」。`title`・`lead`、`items`（`id`＝LINE STORE の URL の `product/` のあと、`name`、`desc`）、`author`（`id`＝`author/` のあと、`name`）。リンクと画像は ID から作る（`url`・`image` を書くとそちらを使う） |
 | `data/hub-links.json` | トップの「くらぶ 〜Qlove〜」（Q のツールが集まる、くらしの部室の名前。前は「ほかのツール」「Qるっと」「コネクト 〜ConneQt〜」）と、補足の1行（`lead`：いまは「くらしの部室」。｜Qらし《くらし》のように｜と《》で囲んだところはルビになる）。各ツールの紹介の窓口の下に並ぶアイコンの欄も同じ名前。`title`、`items`（`icon`・`name`・`desc`・`url`。`appIcon` にツールのアイコン画像の URL を入れると絵文字の代わりに出す。読めないときは `icon`。`en` に英字の名前を入れると、名前の右に「さくせん盤 〜SAQSEN〜」のように小さく添える。`ogp` は共有画像。`ogp` があるツールはタップするとまず画像と説明のカード（「○○を開く」）を出す。紹介カードの写真にも使う、`copy` はキャッチコピーで、画像のカードの名前の下と紹介カードの見出しに出す。`key`・`color`・`lead`・`intro` は下の紹介の窓口が使う）。`groups`（`key`・`label`）と各ツールの `group` で、トップの一覧を「⚽ スポーツ・からだ」などに分けて小さな見出しを入れる。`also`（部の key の配列）は兼部で、その部にも並べる（キロっく＝たいいく部とけいぞく部。`group` は元の部のまま）。`next`（`{ key, why }`）は、そのツールの紹介の窓口の上に出す「つぎにおすすめ」（使う流れでつながるツールを1つだけ）。`short` はアイコンの欄に出す短い名前（長い名前のツールだけ）。`line`・`lineWhy` は LINE 版のあるツール（つづく・しょくじ）だけ：LINE 版の URL と、ブラウザ版の紹介に「LINE 版で開く」の下に出すそのよさ（「。」で終える。GAS などの仕組みの言葉は書かない）。画面に出る言葉のテストは `data/test/hub-links.test.js`（`node --test data/test/`） |
-| `shared/oqrn.js` | ほかのツール（さくせん盤・くろのす・ジェンダーリビール・くじ）から、おくるんのお知らせカードを開く入口。LIFF ID とカードの URL はここ1か所（config.js の liffId と同じ値）。`OQRN.cardUrl({ … })` で中身を入れたカードの URL を作る。各ツールは自分の script より前に `<script src="https://katsuan.github.io/line-share/shared/oqrn.js">` で読む |
-| `shared/season.js` | 季節の絵文字。`<script src="https://katsuan.github.io/line-share/shared/season.js">` で読み、`QSeason.decorate(文)`（ときどき文の後ろに「 🎃」。ふだん3割・イベントの時期6割・当日9割）・`QSeason.maybe()`（出すときだけ絵文字、出さないときは空）・`QSeason.pick()`（必ず1つ）。日付は日本時間。うれしい瞬間の短い文にだけ使い、エラー・ボタン・送るカードの中身には付けない。`tool-share.js` を読んでいるツールは自動で読まれる。GAS には `season.gs` として写す（KazoQ・食事記録・LOgBOT・勉強クイズくん・くるかな。変えたら写しも直す） |
-| `shared/week-start.js` | カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）を、端末ごとに1つの共通設定にする（localStorage の `qlove:weekStart`）。1つのツールで日曜にすると、同じ katsuan.github.io のほかのツールも日曜で開く。自分の script より前に `<script src="https://katsuan.github.io/line-share/shared/week-start.js">` で読み、`QWeekStart.get(ツールの前からの値)`・`QWeekStart.set(値)`。読めないときに備え、`window.QWeekStart` がなくても動くようにする。使っているのはくるかな・つづく・BabyQ（キロっくは月曜で固定） |
+| `shared/oqrn.js` | ほかのツール（さくせん盤・くろのす・ジェンダーリビール・くじ）から、おくるんのお知らせカードを開く入口。LIFF ID とカードの URL はここ1か所（config.js の liffId と同じ値）。`OQRN.cardUrl({ … })` で中身を入れたカードの URL を作る。各ツールは自分の script より前に `<script src="https://katsuan.github.io/oqrn/shared/oqrn.js">` で読む |
+| `shared/season.js` | 季節の絵文字。`<script src="https://katsuan.github.io/oqrn/shared/season.js">` で読み、`QSeason.decorate(文)`（ときどき文の後ろに「 🎃」。ふだん3割・イベントの時期6割・当日9割）・`QSeason.maybe()`（出すときだけ絵文字、出さないときは空）・`QSeason.pick()`（必ず1つ）。日付は日本時間。うれしい瞬間の短い文にだけ使い、エラー・ボタン・送るカードの中身には付けない。`tool-share.js` を読んでいるツールは自動で読まれる。GAS には `season.gs` として写す（KazoQ・食事記録・LOgBOT・勉強クイズくん・くるかな。変えたら写しも直す） |
+| `shared/week-start.js` | カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）を、端末ごとに1つの共通設定にする（localStorage の `qlove:weekStart`）。1つのツールで日曜にすると、同じ katsuan.github.io のほかのツールも日曜で開く。自分の script より前に `<script src="https://katsuan.github.io/oqrn/shared/week-start.js">` で読み、`QWeekStart.get(ツールの前からの値)`・`QWeekStart.set(値)`。読めないときに備え、`window.QWeekStart` がなくても動くようにする。使っているのはくるかな・つづく・BabyQ（キロっくは月曜で固定） |
 | `shared/milestones.js` | 目じるしと進みぐあい（`window.QMilestones`）。これまでの合計を、よく知られた物や区切りとくらべて「🐘 ゾウまで ▓▓░░ あと 1,200 kg」「いま 3.2 頭分」のように見せる。`QMilestones.create({ marks, amount, markValue })` に目じるし（小さい順。`{ icon, name, short?, value, count, big? }`。`big` は届く前から表に見せる）と単位の書き方を渡し、`goalHtml(合計, { lead })`（次の目じるしまでの棒。入れ物は `.ls-goal`）・`tableHtml(合計, { title, hint })`（目じるしの表。越えたら ✅・新しい3つより前は開いて見る・次だけ「あと ◯」・あいだの小さい目じるしはかくす・押すと「いま ◯ 頭分」「いま ◯％」）・`compareLabel(値)`（「🐘 ゾウ 0.9 頭分」）・`newlyPassed(前, 後)` と `passedTitle(目じるし)`（「🎉 🐘 ゾウを越えました！」）。いちばん上を越えたら「地球 2個分」…。記録を消しても減らない合計は `syncLedger(ledger, [{ id, value }])`（同じ記録は2回数えない・直したら差の分）と `loadLedger`・`saveLedger`。大きな数は `bigNumber`（万・億・兆・京・垓）。見た目は ui.css の `.ls-goal`・`.ls-ms`。見本は shared/kit.html（つづくの続けた日数）。使っているのはキロっく（持ち上げた重さ）。`window.QMilestones` がなくても動くようにする |
 | `shared/qlove-bot.js` | くらぶボット（仮。`katsuan/qlove-bot`、使う人がそれぞれ配布用シートをコピーして持つ LINE ボット）の受け口の URL を、端末ごとに1つだけ残す（localStorage の `qlove:bot`）。1つのツールで入れれば、同じ katsuan.github.io のほかのツールも読める（LINE の中とブラウザは別の保存場所なので、それぞれで入れる）。残すのは GAS の `…/exec` の URL だけ（合言葉・ID トークンは残さない）。`QloveBotLink.get()`・`set(text)`・`clear()`・`call(tool, action, payload)`（text/plain の JSON で送る）・`ping(url)`。つづく・しょくじは `botlink.js` の `target` から使う（自分で入れたつなぎ先がないとき、くらぶボットにそのツールの機能があれば、そちらにつなぐ） |
-| `shared/botlink.js` | ボットとつなぐ（LINE 版のツールを、使う人の自分のボットにつなぐ共通の部品。`window.QBotLink`）。つづく・しょくじが使う（どちらも くらぶボットにつなぐ）。自分の script より前に `qlove-bot.js` と `<script src="https://katsuan.github.io/line-share/shared/botlink.js?v=…" defer>` で読む。中身：`cleanUrl(text)`（GAS の `…/exec` だけ）・`inLineApp()`・`target({ own, tool })`（つなぎ先：ツールに入れた URL が先。なければ くらぶボット（`qlove:bot`）に聞いて、そのツールの機能があるときだけ）・`start({ liffId, url, tool, legacyApp, mapError })`（LINE 版でログインしていれば送る口 `client.call(action, payload, { keepalive })`。ID トークンを付けて text/plain で送る）・`outbox(key)`（送れなかったものを覚えて、次に開いたときに送りなおす箱。ID トークンは入れない）・`reopenHidden()`（「LINE 版で開きなおす」を出すか）・`guide({ key, openUrl, say, closedText })`（ブラウザ版の「LINE 版で使う」の案内と4コマ。ページに `#lineGuidePanel`・`#lineOutside`・`[data-close-line-guide]`・`[data-show-line-guide]`）。送る形はくらぶボットの `{ app: "qlove", v: 1, tool, action, liffId, idToken, … }`。すでに配った記録ボットのコピーに送るときだけ `legacyApp` で前の形（`app: "tuzuq"`・`op`）も入れる。ツールごとの違い（送る中身・ボットの言葉の読みかえ）は各ツールの `js/linelog.js` に。テストは `shared/test/botlink.test.js`（つづく・しょくじのテストもこの部品を読む） |
+| `shared/botlink.js` | ボットとつなぐ（LINE 版のツールを、使う人の自分のボットにつなぐ共通の部品。`window.QBotLink`）。つづく・しょくじが使う（どちらも くらぶボットにつなぐ）。自分の script より前に `qlove-bot.js` と `<script src="https://katsuan.github.io/oqrn/shared/botlink.js?v=…" defer>` で読む。中身：`cleanUrl(text)`（GAS の `…/exec` だけ）・`inLineApp()`・`target({ own, tool })`（つなぎ先：ツールに入れた URL が先。なければ くらぶボット（`qlove:bot`）に聞いて、そのツールの機能があるときだけ）・`start({ liffId, url, tool, legacyApp, mapError })`（LINE 版でログインしていれば送る口 `client.call(action, payload, { keepalive })`。ID トークンを付けて text/plain で送る）・`outbox(key)`（送れなかったものを覚えて、次に開いたときに送りなおす箱。ID トークンは入れない）・`reopenHidden()`（「LINE 版で開きなおす」を出すか）・`guide({ key, openUrl, say, closedText })`（ブラウザ版の「LINE 版で使う」の案内と4コマ。ページに `#lineGuidePanel`・`#lineOutside`・`[data-close-line-guide]`・`[data-show-line-guide]`）。送る形はくらぶボットの `{ app: "qlove", v: 1, tool, action, liffId, idToken, … }`。すでに配った記録ボットのコピーに送るときだけ `legacyApp` で前の形（`app: "tuzuq"`・`op`）も入れる。ツールごとの違い（送る中身・ボットの言葉の読みかえ）は各ツールの `js/linelog.js` に。テストは `shared/test/botlink.test.js`（つづく・しょくじのテストもこの部品を読む） |
 | `shared/line-me.js` | LINE 版の「わたし」（`window.QLineMe`）。LINE 版（LIFF）で開いたとき、見出し（`.ls-brand`）のロゴの右に本人の LINE のアイコン（なければ名前の頭の字）を出し、押すと小さなシート（だれでログインしているか・ボットとつながっているか・まだ送っていない記録の数・ブラウザ版との記録のちがい・「⚙️ 設定」・「🔗 ○○とつなぐ」・ログインしていなければ「🔑 LINE でログイン」・電波があってつながっていれば「📮 いま送る」）。まだ送っていない記録があればアイコンの右上に数の印。電波がもどったら（`online`）ツールの `retry` を呼ぶ。`botlink.js` のあとで読み、`QLineMe.mount({ liffId, botName, connected(), pending(), retry(), onSettings()（「🔗 ○○とつなぐ」）, onPrefs()（「⚙️ 設定」） })`。`QLineMe.openFold("settings")` でページの下の「⚙️ 設定」を開く（ux.md の A7） → `{ update() }`（ブラウザ版では null）。LIFF を起こすのは `botlink.js` の `liffReady`（同じ約束を待つ）。端末に残すのは名前とアイコンの URL だけ（`qlove:me`。ID・トークンは残さない）。プロフィールは LIFF の scope に `profile` が要る。ボットにつながないツール向けに `bot: false`（ボットの行・数の印を出さない）・`show: true`（ブラウザ版でも出す）・`ready`（ツールが自分で LIFF を起こした約束）・`initial`（前にツールが覚えた名前と写真）・`onOpen(handle)`（押したらツールのシートを開く。`handle.status()` で `{ me, loggedIn }`、`QLineMe.describe({ …, bot: false, moveHint })` で同じ言葉の行）。ふちは3つ：緑（LIFF に確かめてログイン中）・緑の点線（前回のログインのまま。電波がない・起こせないあいだ。電波がもどったら確かめなおす）・灰色（ログインしていない。部品のシートに「🔑 LINE でログイン」）。使っているのはつづく・しょくじ・キロっく・ひっくり・くるかな（キロっくはアイコンから「あなたの記録」と設定のシートを開き、その上に同じ行。ひっくり・くるかなは自分のシートを開く） |
-| `shared/tool-share.js` | ほかのツールに置く「○○を紹介する」（頭におくるんのマーク）の窓口。`<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="<key>" defer>` と `<div data-tool-share></div>`（置き場所。なければページの最後）で使う。押すとシートで、おくるんのマーク＋「カードでおくるん」か「🔗 リンクでシェア」を選べる（説明の文は、言葉の途中で折らないよう文節ごとに包む）。カードはお知らせカード（`/card/`）に、`data/hub-links.json` の同じ `key` の中身（名前・英字・ツールの色・OGP 画像・説明・URL）を渡して作る。流入口は `from=<key>-intro`。上に「つぎにおすすめ」（`next` があるツールだけ）、見出しの横長のロゴ（`.ls-brand .ls-brand-logo`）を押せるボタンに包み、押すとこのツール自身の同じシート（「開く」「LINE 版で開く」はなし）。アイコンの欄（名前つき。押すと、そのツールの紹介画像・キャッチコピー・説明と「○○を開く」、そのツールを「カードでおくるん」で送る入口のシート）の下に「この端末の記録をバックアップ」（線アイコンの backup）（`/backup/?from=<key>`）。開くたびに「最近使ったツール」（localStorage の `conneqt:recent`）を覚え、トップの「最近つかった」に3つまで出す。`navigator.storage.persist()` で、ブラウザが記録を勝手に消さないようにもお願いする |
+| `shared/tool-share.js` | ほかのツールに置く「○○を紹介する」（頭におくるんのマーク）の窓口。`<script src="https://katsuan.github.io/oqrn/shared/tool-share.js" data-tool="<key>" defer>` と `<div data-tool-share></div>`（置き場所。なければページの最後）で使う。押すとシートで、おくるんのマーク＋「カードでおくるん」か「🔗 リンクでシェア」を選べる（説明の文は、言葉の途中で折らないよう文節ごとに包む）。カードはお知らせカード（`/card/`）に、`data/hub-links.json` の同じ `key` の中身（名前・英字・ツールの色・OGP 画像・説明・URL）を渡して作る。流入口は `from=<key>-intro`。上に「つぎにおすすめ」（`next` があるツールだけ）、見出しの横長のロゴ（`.ls-brand .ls-brand-logo`）を押せるボタンに包み、押すとこのツール自身の同じシート（「開く」「LINE 版で開く」はなし）。アイコンの欄（名前つき。押すと、そのツールの紹介画像・キャッチコピー・説明と「○○を開く」、そのツールを「カードでおくるん」で送る入口のシート）の下に「この端末の記録をバックアップ」（線アイコンの backup）（`/backup/?from=<key>`）。開くたびに「最近使ったツール」（localStorage の `conneqt:recent`）を覚え、トップの「最近つかった」に3つまで出す。`navigator.storage.persist()` で、ブラウザが記録を勝手に消さないようにもお願いする |
 | `backup/` | 記録のバックアップ。くらぶ（Qlove）のツールが katsuan.github.io の localStorage に残した記録（名前の頭が `line-share:`・`soccer:`・`kiloq:` など、`backup/app.js` の `OWNERS` にあるものだけ。LINE のログイン情報は入れない）を1つのファイル（`conneqt-年月日.json`）か文字にまとめて保存し、ファイルを選ぶか文字を貼ると戻す（戻す前に確かめる）。写真・動画・手書きの画像（IndexedDB）は入らない。新しいツールが記録を残すなら `OWNERS` に名前の頭を足す |
 | `data/pressure-level.json` | 気圧の変化の目安（Open-Meteo の気圧から頭痛ーるに近い段階）の決め方（`rule`）と見本（`cases`）。SQriptable・そらくる・KazoQ が同じ答えになるよう、それぞれのテストが `tools/qtest/pressure-level.mjs` の `checkPressureLevels` でくらべる。くわしくは [docs/pressure.md](docs/pressure.md)。見本と手本の式のずれは `data/test/pressure-level.test.js` |
 | `data/templates.json` | テンプレートと候補。`card`＝お知らせカードのテンプレート（`key`・`label`・`icon`・`description`・`status`・`state`。`"{top}"` はおくるんのトップの URL に置き換わる）、`place.presets`＝場所のテンプレート、`place.badges`＝バッジの候補、`text`＝文字・手書きの「よく使う文字」 |

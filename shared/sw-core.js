@@ -1,7 +1,7 @@
 // くらぶ（Qlove）のツール共通の service worker の中身（電波がなくても、一度開いたツールは開けるようにする）。
 // 各ツールの sw.js（ツールのいちばん上の階層）が、ツールの名前を決めてから読み込む：
 //   self.Q_TOOL = "qji";   （前の名前 self.CONNEQT_TOOL も読む。すでに配った sw.js のため）
-//   importScripts("/line-share/shared/sw-core.js");
+//   importScripts("/oqrn/shared/sw-core.js");
 // やり方：まずネットから取る（新しい版をすぐ出すため）。取れない・遅いとき（5秒）だけ、前に保存したものを出す。
 // 扱うのは同じサイト（katsuan.github.io）のファイルと Google Fonts だけ。LINE・Firebase・画像サーバーなどには触らない。
 // 同じサイトのファイルは、クエリ（?deck=… ・ ?v=…）を外した URL で1つだけ保存する（GitHub Pages はクエリで中身が変わらない）。

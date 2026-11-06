@@ -42,7 +42,7 @@ jobs:
       deploy: ${{ steps.kit.outputs.deploy }}
     env:
       FOLDER: ${{ inputs.folder }}
-      IS_KIT: ${{ github.repository == 'katsuan/line-share' }}
+      IS_KIT: ${{ github.repository == 'katsuan/oqrn' }}
       TZ: Asia/Tokyo # 手元と同じ日本時間（日付・曜日を見るテストがある）
     steps:
       - name: このリポジトリ
@@ -51,11 +51,11 @@ jobs:
           path: ${{ inputs.folder }}
           fetch-depth: 0 # check-code の V1 が1つ前のコミットと比べる。おくるんは Q キットの版を shared/ の歴史から決める
 
-      - name: Q キット（line-share）を q-oqrn に
-        if: github.repository != 'katsuan/line-share'
+      - name: Q キット（oqrn）を q-oqrn に
+        if: github.repository != 'katsuan/oqrn'
         uses: actions/checkout@v5
         with:
-          repository: katsuan/line-share
+          repository: katsuan/oqrn
           path: q-oqrn
           fetch-depth: 0 # Q キットの版を shared/ の歴史から決める
 
@@ -70,10 +70,10 @@ jobs:
           if [ "$IS_KIT" = "true" ]; then
             kit=$want
           else
-            # line-share の公開がまだ終わっていなければ、少し待つ（5分まで。来なければ、出ている版を使う）
+            # oqrn の公開がまだ終わっていなければ、少し待つ（5分まで。来なければ、出ている版を使う）
             # version.txt がない（404）ときは Q キットの ?v= はさわらない（リポジトリに書いてあるまま）
             for i in $(seq 1 10); do
-              code=$(curl -s -o kit.txt -w '%{http_code}' "https://katsuan.github.io/line-share/shared/version.txt?t=$(date +%s)" || true)
+              code=$(curl -s -o kit.txt -w '%{http_code}' "https://katsuan.github.io/oqrn/shared/version.txt?t=$(date +%s)" || true)
               kit=$(tr -d '[:space:]' < kit.txt 2>/dev/null || true)
               rm -f kit.txt
               if [ "$code" != "200" ]; then kit=""; break; fi
@@ -81,7 +81,7 @@ jobs:
               sleep 30
             done
           fi
-          echo "Q キットの版: ${kit:-（まだない）}（line-share の main: $want）"
+          echo "Q キットの版: ${kit:-（まだない）}（oqrn の main: $want）"
           echo "kit=$kit" >> "$GITHUB_OUTPUT"
           deploy=true
           if [ "$EVENT" = "schedule" ]; then

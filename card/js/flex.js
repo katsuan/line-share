@@ -8,7 +8,7 @@
 const MAX_URI_LENGTH = 1000;
 // 押すと返事のページ（/reply/）を開くボタンを作る。投票は候補も渡して、そこで選びなおせるようにする
 function replyAction(label, { text, title = "", choices = [], pick = -1, format = "" }) {
-  const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/line-share/reply/";
+  const base = config.liffId ? `https://liff.line.me/${config.liffId}/reply/` : "https://katsuan.github.io/oqrn/reply/";
   // 返事のページの URL を作る（候補を付けると長すぎるときは付けない）
   const build = (body, withChoices) => {
     const params = new URLSearchParams({ text: body });

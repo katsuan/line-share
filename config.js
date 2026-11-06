@@ -1,5 +1,5 @@
 // 全ツール共通の設定。LIFF アプリは1つだけ作り、エンドポイントにこのサイトのトップ
-// （例: https://katsuan.github.io/line-share/）を設定する。
+// （例: https://katsuan.github.io/oqrn/）を設定する。
 // 各ツールは https://liff.line.me/<liffId>/plan/ のようにパスを付けて開く。
 window.LINE_SHARE_CONFIG = {
   liffId: "2009927876-DioOJd0z",

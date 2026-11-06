@@ -2,7 +2,7 @@
 // この端末に1つだけ残す（localStorage の qlove:weekStart）。同じ katsuan.github.io のツールなら、どれで変えてもほかのツールも同じになる。
 //
 // 使い方：自分の script より前に
-//   <script src="https://katsuan.github.io/line-share/shared/week-start.js"></script> → window.QWeekStart
+//   <script src="https://katsuan.github.io/oqrn/shared/week-start.js"></script> → window.QWeekStart
 //   QWeekStart.get(fallback) … 共通の設定。まだない・読めない・変な値なら fallback（ツールが前から持っている自分の設定。0 か 1）、それもなければ月曜
 //   QWeekStart.set(value)    … 0 なら日曜、それ以外は月曜として残す。残せない端末でも、開いているあいだは各ツールの値で動く
 // 読めなかったとき（電波がなく、まだ保存もないなど）に備えて、各ツールは window.QWeekStart がなくても動くようにしておく

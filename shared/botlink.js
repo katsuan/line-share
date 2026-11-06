@@ -34,8 +34,8 @@
 //   - 送れなかったものの箱（outbox）に残すのは、ツールが渡した中身だけ（ID トークンは入れない）
 //
 // 使い方：ツールの HTML で、自分の script より前に
-//   <script src="https://katsuan.github.io/line-share/shared/qlove-bot.js"></script>（くらぶボットにつなぐときだけ。なければ 2 を飛ばす）
-//   <script src="https://katsuan.github.io/line-share/shared/botlink.js"></script> → window.QBotLink
+//   <script src="https://katsuan.github.io/oqrn/shared/qlove-bot.js"></script>（くらぶボットにつなぐときだけ。なければ 2 を飛ばす）
+//   <script src="https://katsuan.github.io/oqrn/shared/botlink.js"></script> → window.QBotLink
 // テストは shared/test/botlink.test.js。つづく・しょくじのテストも、この部品を読んで動かす
 var QBotLink = (function () {
   "use strict";

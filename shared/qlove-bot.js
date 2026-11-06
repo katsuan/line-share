@@ -6,7 +6,7 @@
 // くらぶボットは LINE に確かめた本人（つなぐ番号でひもづけた人）の呼び出ししか受けない。
 //
 // 使い方：自分の script より前に
-//   <script src="https://katsuan.github.io/line-share/shared/qlove-bot.js"></script> → window.QloveBotLink
+//   <script src="https://katsuan.github.io/oqrn/shared/qlove-bot.js"></script> → window.QloveBotLink
 //   QloveBotLink.get()               … 入れてある URL（なければ ""）
 //   QloveBotLink.set(text)           … URL を確かめて残す → { ok: true, url } / { ok: false, error: "url" | "save" }
 //   QloveBotLink.clear()             … 消す

@@ -10,7 +10,7 @@
 //
 // 使い方（各ツールの HTML）
 //   <div data-tool-share></div>   … ボタンを置く場所（なければページの最後に置く）
-//   <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="kiloq" defer></script>
+//   <script src="https://katsuan.github.io/oqrn/shared/tool-share.js" data-tool="kiloq" defer></script>
 //
 // 紹介の中身（名前・英字・キャッチコピー・色・OGP 画像・説明・URL）は data/hub-links.json の items（key が data-tool と同じもの）から読む。
 // HOME の「ほかのツール」と同じ1か所で直せる。どのツールも katsuan.github.io の下にあるので、そのまま読める。
@@ -21,7 +21,7 @@
   const toolKey = script && script.dataset.tool;
   if (!toolKey) return;
 
-  const BASE = new URL("..", script.src); // https://katsuan.github.io/line-share/
+  const BASE = new URL("..", script.src); // https://katsuan.github.io/oqrn/
 
   // 最近使ったツール（おくるん HOME の「最近つかった」に出す）。どのツールも katsuan.github.io の下なので、保存場所は共通
   const RECENT_KEY = "conneqt:recent";
