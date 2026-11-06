@@ -7,8 +7,8 @@
 |---|---|
 | SQriptable（q-sqriptable） | `SQriptable.js` の `meteoPressureLevel`（pressure カードの目安） |
 | そらくる（q-soraqru） | `js/meteo.js` の `levelOf` |
-| KazoQ（q-kazoq） | `03_27_ZUTOOL_GATEWAY_METEO.js` の `getOpenMeteoPressureLevel_`（頭痛ーるの予備） |
-| KazoQ の天気の知らせ（q-kazoq） | `03_43_WEATHER_NOTICE_RULES.js`（そらくるの `levelOf`・`dropAt` を写したもの） |
+| KazoQ（q-kazoq） | `03_27_zutool_gateway_meteo.js` の `getOpenMeteoPressureLevel_`（頭痛ーるの予備） |
+| KazoQ の天気の知らせ（q-kazoq） | `03_43_weather_notice_rules.js`（そらくるの `levelOf`・`dropAt` を写したもの） |
 | くらぶボット（q-qlove-bot） | `lib/50_weather_forecast.gs` の `soraqruDropAt_`・`soraqruLevelOf_`（天気のカード） |
 
 ## 決め方
