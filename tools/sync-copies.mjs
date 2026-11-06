@@ -24,7 +24,7 @@ export const COPIES = [
       "q-qurukana/gas/season.js",
       "line-meal-project/gs/02_core/season.gs",
       "GAS_LINE_QA_Bot/50_message/season.gs",
-      "GAS_Github_v2-main/04_line/season.gs"
+      "GAS_github/04_line/season.gs"
     ]
   },
   {
@@ -38,8 +38,8 @@ export const COPIES = [
       "line-learning-platform/services/gas/src/00_run/selfcheck.js",
       "line-video-to-drive/selfcheck.js",
       "GAS_LINE_QA_Bot/00_run/selfcheck.gs",
-      "GAS_Github_v2-main/09_check/selfcheck.gs",
-      "GAS_Github_v2-main/entry/09_check/selfcheck.js"
+      "GAS_github/09_check/selfcheck.gs",
+      "GAS_github/entry/09_check/selfcheck.js"
     ]
   }
 ];
