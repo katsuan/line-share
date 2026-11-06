@@ -17,7 +17,7 @@
   sparkles mic mic-off volume-2 cake gift play upload shield-check type brush highlighter
   paint-bucket shapes rectangle-horizontal tag clipboard history
   video film scissors flame dumbbell bookmark bookmark-check（よく記録するもの：まだ固定していない／固定した）。
-  utensils coffee shopping-bag bed-double car train-front plane ferris-wheel waves（ゆくさきの予定の種類。waves は温泉）。cloud-sun（天気）。gauge（気圧）・sunrise・sunset（日の出・日の入り）。ladder（あみだ）・roulette（ルーレット）は Lucide にないので、同じ線の太さ・角で描いた。chart=chart-column home=house。whistle（笛）・ball（サッカーボール）は Lucide にないので、同じ線の太さ・角で描いた
+  utensils coffee shopping-bag bed-double car train-front plane ferris-wheel waves（ゆくさきの予定の種類。waves は温泉）。cloud-sun（天気）。wind（風）・thermometer（気温・水温）・umbrella（降水確率）・moon（潮・月）。gauge（気圧）・sunrise・sunset（日の出・日の入り）。ladder（あみだ）・roulette（ルーレット）は Lucide にないので、同じ線の太さ・角で描いた。chart=chart-column home=house。whistle（笛）・ball（サッカーボール）は Lucide にないので、同じ線の太さ・角で描いた
 足すときは、Lucide の SVG の中身（<path> など）を、ほかのファイルと同じ <svg …> で包んで shared/icons/<名前>.svg に置く。
 線の太さ（stroke-width="2"）・角（round）・大きさ（viewBox 0 0 24 24）は全部そろえる。
 """
