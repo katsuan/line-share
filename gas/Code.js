@@ -15,7 +15,7 @@
 // Script Properties（setup() で作る。STRIPE_SECRET_KEY だけは手で入れる）
 //   DRIVE_FOLDER_ID   … 画像の保存先フォルダ
 //   PLANS_SHEET_ID    … プランの一覧（スプレッドシート。シート「plans」）
-//   LINE_CHANNEL_ID   … LIFF アプリの LINE ログインチャネル ID（ほかのチャネルのトークンは断る）
+//   LINE_CHANNEL_ID   … LIFF アプリの LINE ログインチャネル ID（ほかのチャネルのトークンは断る。カンマ区切りで複数。コードの既定のチャネルはいつも通す）
 //   PREMIUM_USERS     … 有償プランのユーザー（ユーザーIDの SHA-256。カンマか改行区切り）。シートを使う前からの一覧。今も有効
 //   KEEP_DAYS         … 画像を残す日数（毎日の掃除で、これより古いものをゴミ箱へ移す）
 //   STRIPE_SECRET_KEY … Stripe の秘密鍵（制限付きキーなら Events の読み取りだけで足りる）。空なら Stripe の知らせは受けない
@@ -24,7 +24,8 @@
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_KEEP_DAYS = 30;
-const DEFAULT_LINE_CHANNEL_ID = '2009927876';
+// くらぶの LIFF チャネル（2012187502。おくるんは 2026-11-06 にここへ移った）と、前のおくるんのチャネル（2009927876。前のリンクから開いた人のため）
+const DEFAULT_LINE_CHANNEL_ID = '2012187502,2009927876';
 const FOLDER_NAME = 'おくるカード画像';
 const SHEET_NAME = 'plans';
 // シート「plans」の列。1行＝1人。plan が premium で、expiresAt が空か未来なら有償
@@ -335,12 +336,18 @@ function upload_(payload) {
 
 // ---- 共通 ----
 
+/** 受けつける LINE ログインチャネル ID（Script Properties の LINE_CHANNEL_ID と、コードの既定） */
+function allowedChannelIds_() {
+  const list = (getProperty_('LINE_CHANNEL_ID') || '') + ',' + DEFAULT_LINE_CHANNEL_ID;
+  return list.split(',').map((id) => id.trim()).filter(Boolean);
+}
+
 /** LIFF のアクセストークンから本人を確かめ、ユーザーIDのハッシュを返す */
 function verifyUser_(accessToken) {
   if (!accessToken) throw userError_('LINE でログインしてください。');
 
   const verify = fetchJson_('https://api.line.me/oauth2/v2.1/verify?access_token=' + encodeURIComponent(accessToken));
-  if (!verify || String(verify.client_id) !== getProperty_('LINE_CHANNEL_ID')) {
+  if (!verify || !allowedChannelIds_().includes(String(verify.client_id))) {
     throw userError_('LINE のログインを確かめられませんでした。');
   }
 

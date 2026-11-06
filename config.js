@@ -2,7 +2,7 @@
 // （例: https://katsuan.github.io/oqrn/）を設定する。
 // 各ツールは https://liff.line.me/<liffId>/plan/ のようにパスを付けて開く。
 window.LINE_SHARE_CONFIG = {
-  liffId: "2009927876-DioOJd0z",
+  liffId: "2012187502-8NqYx6DQ",
 
   // 場所の検索に使う Google Maps JavaScript API のキー。
   // Google Cloud でこのサイトのURLだけに使えるよう「HTTPリファラー」で制限して設定する。
@@ -40,6 +40,7 @@ window.LINE_SHARE_CONFIG = {
     "2009927582-2isjfmkk", // キロっく
     "2012187502-gUp90W4L", // ひっくり（くらぶの LIFF チャネル）
     "2009927876-PcLT1IYA", // ひっくり（前の LIFF。前に作ったカードのため残す）
+    "2009927876-DioOJd0z", // おくるん（前の LIFF。前に作ったカードのため残す）
     "2009927582-qytzPvoy", // くるかな
     "2012187502-o87l8Esu" // つづく
   ],

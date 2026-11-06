@@ -7,7 +7,7 @@
 //   OQRN.cardUrl(new URLSearchParams(...))                         … URLSearchParams もそのまま渡せる（badge など同じ名前を重ねるとき）
 (function () {
   "use strict";
-  const LIFF_ID = "2009927876-DioOJd0z";
+  const LIFF_ID = "2012187502-8NqYx6DQ";
   const CARD = `https://liff.line.me/${LIFF_ID}/card/`;
 
   // 中身を入れた状態でお知らせカードを開く URL（オブジェクトか URLSearchParams を渡す）
